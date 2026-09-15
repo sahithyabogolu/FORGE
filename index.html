@@ -3,46 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="FORGE — Financial Clarity Engine for cash analysis, financial statements, investor screening and forecasting." />
+  <meta name="description" content="FORGE — Financial Intelligence & Investor Screening Platform built by Yukti and Sahithya." />
   <title>FORGE | Financial Clarity Engine</title>
 
-  <!-- PDF.js for PDF text extraction -->
+  <!-- External Parsers (Client-side, local execution, works on any connection) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     if (window['pdfjs-dist/build/pdf']) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
   </script>
+  <!-- SheetJS for XLSX/XLS/CSV parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Mammoth for DOCX text extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
-        "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     :root {
-      --bg-dark: #0a0a0a;
-      --panel-bg: #141414;
-      --card-bg: #1c1c1c;
-      --border-color: #2e2e2e;
-      --border-focus: #666666;
+      --bg-dark: #080808;
+      --panel-bg: #121212;
+      --card-bg: #1a1a1a;
+      --border-color: #2a2a2a;
+      --border-focus: #777777;
       --text-main: #e5e5e5;
       --text-muted: #888888;
       --accent-white: #ffffff;
-      
-      /* Monochrome Palette Shifts */
-      --mono-bright: #ffffff;
-      --mono-mid: #a3a3a3;
-      --mono-dark: #525252;
-      --mono-subtle: #262626;
+      --alert-red: #d93838;
+      --warn-yellow: #d99b26;
+      --pass-green: #38d973;
     }
 
-    html {
-      scroll-behavior: smooth;
-    }
+    html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg-dark);
@@ -54,30 +52,169 @@
       letter-spacing: -0.01em;
     }
 
-    button,
-    input,
-    select {
+    button, input, select {
       font: inherit;
       -webkit-tap-highlight-color: transparent;
     }
 
-    button:focus-visible,
-    input:focus-visible,
-    select:focus-visible {
-      outline: 2px solid #fff;
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 2px solid var(--accent-white);
       outline-offset: 3px;
     }
 
-    /* HEADER */
+    /* ROBOTIC PRELOADER OVERLAY */
+    #loaderOverlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #000000;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: "Courier New", Courier, monospace;
+      color: #888;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
 
+    .loader-box {
+      width: 90%;
+      max-width: 520px;
+      border: 1px solid #333;
+      padding: 30px;
+      background: #0a0a0a;
+      box-shadow: 0 0 30px rgba(255,255,255,0.05);
+      border-radius: 4px;
+    }
+
+    .loader-title {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .loader-credits {
+      color: #aaa;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #222;
+      padding-bottom: 10px;
+    }
+
+    .terminal-logs {
+      font-size: 0.75rem;
+      color: #777;
+      min-height: 100px;
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+
+    .terminal-logs .line {
+      color: #ccc;
+    }
+    .terminal-logs .line::before {
+      content: "> ";
+      color: #555;
+    }
+
+    .progress-bar-wrap {
+      width: 100%;
+      height: 6px;
+      background: #222;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: #fff;
+      transition: width 0.15s ease;
+    }
+
+    /* MANDATORY GATEWAY MODAL */
+    #loginModal {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(15px);
+      z-index: 8888;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+    }
+
+    .modal-card h2 {
+      font-size: 1.4rem;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+
+    .modal-card p {
+      color: #888;
+      font-size: 0.85rem;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    /* HERO SECTION WITH ATMOSPHERIC BACKGROUND */
+    .hero-banner {
+      position: relative;
+      width: 100%;
+      height: 280px;
+      background: linear-gradient(180deg, rgba(8,8,8,0.4) 0%, rgba(8,8,8,1) 100%), 
+                  url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 40px 6%;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .hero-content h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 3px;
+    }
+
+    .hero-content p {
+      color: #aaa;
+      font-size: 0.95rem;
+      max-width: 650px;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    /* HEADER */
     header {
-      padding: 20px 6%;
+      padding: 18px 6%;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 20px;
       border-bottom: 1px solid var(--border-color);
-      background: rgba(10, 10, 10, 0.95);
+      background: rgba(8, 8, 8, 0.95);
       backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
@@ -98,45 +235,49 @@
     .brand-dot {
       width: 8px;
       height: 8px;
-      background: #737373;
+      background: #888;
       border-radius: 50%;
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
-      flex-shrink: 0;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
     }
 
-    .credits {
+    .user-badge {
       font-size: 0.75rem;
       letter-spacing: 1.5px;
-      color: var(--text-muted);
+      color: #fff;
       text-transform: uppercase;
-      border: 1px solid var(--border-color);
-      padding: 6px 12px;
+      border: 1px solid #333;
+      padding: 6px 14px;
       border-radius: 4px;
-      background: var(--panel-bg);
+      background: #141414;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     /* FOOTER */
-
     footer {
       margin-top: auto;
-      padding: 24px;
+      padding: 30px 24px;
       text-align: center;
       border-top: 1px solid var(--border-color);
       color: var(--text-muted);
       font-size: 0.75rem;
       letter-spacing: 1px;
       line-height: 1.6;
+      background: #050505;
     }
 
     footer .disclaimer {
-      max-width: 800px;
-      margin: 10px auto 0;
-      font-size: 0.68rem;
-      color: #525252;
+      max-width: 850px;
+      margin: 12px auto 0;
+      font-size: 0.7rem;
+      color: #666;
+      border: 1px dashed #222;
+      padding: 12px;
+      border-radius: 4px;
     }
 
-    /* LAYOUT */
-
+    /* LAYOUT & CARDS */
     .container {
       width: 90%;
       max-width: 1100px;
@@ -144,33 +285,10 @@
       flex: 1;
     }
 
-    h1,
-    h2,
-    h3 {
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
     h2 {
       font-size: 1.1rem;
       margin-bottom: 8px;
       color: #f5f5f5;
-    }
-
-    .access-card {
-      background: var(--panel-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 28px;
-      margin-bottom: 30px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
-    }
-
-    .access-card h1 {
-      font-size: 1.2rem;
-      margin-bottom: 6px;
-      color: #fff;
     }
 
     p.subtitle {
@@ -186,12 +304,7 @@
       flex-wrap: wrap;
     }
 
-    /* INPUTS */
-
-    input[type="text"],
-    input[type="number"],
-    select,
-    input[type="file"] {
+    input[type="text"], input[type="number"], select, input[type="file"] {
       background: #000;
       border: 1px solid var(--border-color);
       color: #fff;
@@ -199,18 +312,11 @@
       border-radius: 4px;
       outline: none;
       font-size: 0.88rem;
-      transition: border-color 0.2s, background-color 0.2s;
+      transition: border-color 0.2s;
       min-width: 0;
     }
 
-    .input-group input[type="text"] {
-      flex: 1 1 220px;
-    }
-
-    input[type="text"]:focus,
-    input[type="number"]:focus,
-    select:focus,
-    input[type="file"]:focus {
+    input[type="text"]:focus, input[type="number"]:focus, select:focus, input[type="file"]:focus {
       border-color: var(--border-focus);
       background: #050505;
     }
@@ -235,14 +341,7 @@
       padding: 6px 10px;
       margin-right: 10px;
       cursor: pointer;
-      transition: background 0.2s;
     }
-
-    input[type="file"]::file-selector-button:hover {
-      background: #404040;
-    }
-
-    /* BUTTONS */
 
     .btn {
       background: var(--accent-white);
@@ -260,12 +359,8 @@
     }
 
     .btn:hover {
-      background: #a3a3a3;
+      background: #ccc;
       transform: translateY(-1px);
-    }
-
-    .btn:active {
-      transform: translateY(0);
     }
 
     .btn-secondary {
@@ -282,24 +377,16 @@
 
     .btn-danger {
       background: #171717;
-      color: #a3a3a3;
-      border-color: #404040;
+      color: #aaa;
+      border-color: #333;
     }
 
     .btn-danger:hover {
-      background: #262626;
+      background: #222;
       color: #fff;
-      border-color: #737373;
-    }
-
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      transform: none;
     }
 
     /* TABS */
-
     .tabs {
       display: flex;
       gap: 10px;
@@ -307,7 +394,6 @@
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 12px;
       overflow-x: auto;
-      scrollbar-width: thin;
     }
 
     .tab-btn {
@@ -321,7 +407,6 @@
       letter-spacing: 1px;
       text-transform: uppercase;
       white-space: nowrap;
-      transition: all 0.2s;
     }
 
     .tab-btn.active {
@@ -329,13 +414,6 @@
       background: var(--panel-bg);
       border-color: var(--border-color);
     }
-
-    .tab-btn:hover:not(.active) {
-      color: #d4d4d4;
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    /* PANELS */
 
     .feature-panel {
       display: none;
@@ -345,47 +423,16 @@
       padding: 32px;
     }
 
-    .feature-panel.active {
-      display: block;
-    }
+    .feature-panel.active { display: block; }
 
-    /* GRIDS */
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-    }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
 
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       padding: 24px;
       border-radius: 6px;
-    }
-
-    .card h3 {
-      font-size: 0.9rem;
-      margin-bottom: 10px;
-      color: #eee;
-    }
-
-    .card p {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-    }
-
-    .field-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
     }
 
     .field-label {
@@ -397,46 +444,9 @@
       margin-bottom: 8px;
     }
 
-    .field-stack input,
-    .field-stack select,
-    .full-width {
-      width: 100%;
-    }
+    .full-width { width: 100%; }
 
-    /* RESULTS & MONOCHROME BADGES */
-
-    .result-box {
-      margin-top: 15px;
-      padding: 12px;
-      background: #050505;
-      border: 1px solid var(--border-color);
-      font-size: 0.8rem;
-      line-height: 1.6;
-      min-height: 42px;
-      border-radius: 4px;
-    }
-
-    .spinner {
-      display: none;
-      margin: 20px 0;
-      color: var(--accent-white);
-      font-size: 0.85rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .error-msg {
-      display: none;
-      margin-top: 15px;
-      padding: 12px;
-      background: #171717;
-      border: 1px solid #404040;
-      color: #d4d4d4;
-      font-size: 0.8rem;
-      border-radius: 4px;
-      line-height: 1.5;
-    }
-
+    /* OUTPUT & METRICS */
     .analysis-output {
       margin-top: 24px;
       background: #050505;
@@ -457,34 +467,59 @@
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      flex-wrap: wrap;
     }
 
-    .analysis-list {
-      list-style: none;
-    }
-
+    .analysis-list { list-style: none; }
     .analysis-list li {
       padding: 12px 0;
       border-bottom: 1px solid #171717;
       font-size: 0.85rem;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
       gap: 16px;
     }
+    .analysis-list li .lbl { color: var(--text-muted); flex: 1; }
+    .analysis-list li .val { color: var(--accent-white); font-weight: 600; text-align: right; }
 
-    .analysis-list li .lbl {
-      color: var(--text-muted);
-      flex: 1;
+    /* RED FLAGS LISTING */
+    .red-flag-box {
+      margin-top: 20px;
+      background: #110000;
+      border: 1px solid #441111;
+      padding: 18px;
+      border-radius: 6px;
     }
 
-    .analysis-list li .val {
-      color: var(--accent-white);
-      font-weight: 600;
-      text-align: right;
-      max-width: 65%;
-      overflow-wrap: anywhere;
+    .red-flag-title {
+      color: #ff5555;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .red-flag-list {
+      list-style: disc;
+      padding-left: 20px;
+      color: #d8a0a0;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+
+    .warning-banner {
+      background: #261a00;
+      border: 1px solid #664400;
+      color: #ffcc66;
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-top: 15px;
+      display: none;
+      line-height: 1.5;
     }
 
     .metrics-row {
@@ -503,766 +538,483 @@
     }
 
     .metric-card .val {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       font-weight: 700;
       color: #fff;
       margin-top: 8px;
-      overflow-wrap: anywhere;
     }
 
     .metric-card .lbl {
       font-size: 0.7rem;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 1px;
     }
 
-    /* Strict Grey/Black Visual Status Classes */
+    .spinner {
+      display: none;
+      margin: 20px 0;
+      color: var(--accent-white);
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .error-msg {
+      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      background: #1a0808;
+      border: 1px solid #4a1515;
+      color: #ff8888;
+      font-size: 0.8rem;
+      border-radius: 4px;
+    }
+
+    /* MONOCHROME STATUS TAGS */
     .status-tag {
       display: inline-block;
       padding: 2px 8px;
       border-radius: 3px;
       font-weight: 700;
       font-size: 0.75rem;
-      letter-spacing: 1px;
       text-transform: uppercase;
     }
-    
-    .status-high {
-      background: #ffffff;
-      color: #000000;
-    }
-    
-    .status-med {
-      background: #737373;
-      color: #ffffff;
-    }
-
-    .status-low {
-      background: #262626;
-      color: #a3a3a3;
-      border: 1px solid #404040;
-    }
-
-    .status-note {
-      margin-top: 15px;
-      font-size: 0.72rem;
-      line-height: 1.6;
-      color: #666;
-    }
-
-    .section-note {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-top: 12px;
-    }
-
-    .subsection {
-      margin-bottom: 20px;
-    }
-
-    .subsection:last-child {
-      margin-bottom: 0;
-    }
-
-    .flex-actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .locked-notice {
-      padding: 24px;
-      background: #050505;
-      border: 1px dashed var(--border-color);
-      border-radius: 6px;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      letter-spacing: 0.5px;
-      margin-top: 10px;
-    }
-
-    /* MOBILE */
+    .status-high { background: #fff; color: #000; }
+    .status-med { background: #666; color: #fff; }
+    .status-low { background: #222; color: #888; border: 1px solid #333; }
 
     @media (max-width: 600px) {
-      header {
-        padding: 16px 5%;
-        align-items: flex-start;
-      }
-
-      .brand {
-        font-size: 0.95rem;
-        letter-spacing: 3px;
-      }
-
-      .credits {
-        font-size: 0.62rem;
-        letter-spacing: 0.8px;
-        padding: 5px 8px;
-        text-align: right;
-      }
-
-      .container {
-        width: 94%;
-        margin: 20px auto;
-      }
-
-      .access-card,
-      .feature-panel {
-        padding: 20px;
-      }
-
-      .grid-2,
-      .grid-3 {
-        grid-template-columns: 1fr;
-      }
-
-      .input-group .btn {
-        flex: 1 1 140px;
-      }
-
-      .analysis-output {
-        padding: 16px;
-      }
-
-      .analysis-list li {
-        flex-direction: column;
-        gap: 5px;
-      }
-
-      .analysis-list li .val {
-        text-align: left;
-        max-width: 100%;
-      }
-
-      .metrics-row {
-        grid-template-columns: 1fr;
-      }
-
-      footer {
-        padding: 20px 14px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html {
-        scroll-behavior: auto;
-      }
-
-      *,
-      *::before,
-      *::after {
-        transition-duration: 0.01ms !important;
-        animation-duration: 0.01ms !important;
-      }
+      .hero-banner { height: 220px; padding: 20px 5%; }
+      .hero-content h1 { font-size: 1.5rem; }
+      .container { width: 94%; }
+      .feature-panel { padding: 20px; }
+      .analysis-list li { flex-direction: column; gap: 4px; }
+      .analysis-list li .val { text-align: left; }
     }
   </style>
 </head>
-
 <body>
 
+  <!-- ROBOTIC SEQUENCE PRELOADER -->
+  <div id="loaderOverlay">
+    <div class="loader-box">
+      <div class="loader-title">SYSTEM INITIALIZATION</div>
+      <div class="loader-credits">BUILT BY YUKTI AND SAHITHYA</div>
+      <div class="terminal-logs" id="terminalLogs">
+        <div class="line">Booting FORGE core kernel v4.0...</div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="loaderBar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MANDATORY LOGIN GATEWAY MODAL -->
+  <div id="loginModal" style="display: none;">
+    <div class="modal-card">
+      <h2>AUTHENTICATION</h2>
+      <p>Please enter your full name to unlock the workspace. Access is restricted until identity is registered.</p>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <input type="text" id="modalUserName" placeholder="Enter full name..." maxlength="80" autocomplete="off" />
+        <button class="btn" id="modalLoginBtn" type="button">Access Terminal</button>
+      </div>
+      <div id="modalErr" class="error-msg" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- MAIN HEADER -->
   <header>
     <div class="brand">
       <div class="brand-dot"></div>
       FORGE
     </div>
-    <div class="credits">By Sahithya &amp; Yukti</div>
+    <div id="userBadgeDisplay" class="user-badge" style="display:none;">
+      <span id="userBadgeName">USER</span>
+      <button class="btn btn-danger" id="logoutBtn" style="padding: 2px 8px; font-size: 0.65rem;">Reset</button>
+    </div>
   </header>
 
+  <!-- SERIOUS HERO SECTION -->
+  <section class="hero-banner">
+    <div class="hero-content">
+      <h1>FINANCIAL CLARITY ENGINE</h1>
+      <p>Institutional-grade quantitative analysis, financial document parsing, multi-variable runway projections, and accurate investor screening.</p>
+    </div>
+  </section>
+
+  <!-- MAIN WORKSPACE -->
   <main class="container">
 
-    <!-- ACCESS & SESSION CONTROL -->
-
-    <section class="access-card">
-      <h1>USER SESSION ACCESS</h1>
-      <p class="subtitle">
-        Enter your name to initiate an active financial workspace.
-      </p>
-
-      <div class="input-group">
-        <input
-          type="text"
-          id="userName"
-          placeholder="Enter user name..."
-          maxlength="100"
-          autocomplete="name"
-        />
-        <button class="btn" id="saveUserBtn" type="button">
-          Save Session
-        </button>
-        <button class="btn btn-danger" id="resetBtn" type="button">
-          Reset Session
-        </button>
-      </div>
-
-      <p
-        id="greeting"
-        style="margin-top:16px;font-size:0.88rem;font-weight:600;color:var(--accent-white);"
-        aria-live="polite"
-      ></p>
-    </section>
-
-    <!-- TABS -->
-
+    <!-- TABS NAV -->
     <nav class="tabs" aria-label="Financial tools">
-      <button class="tab-btn active" type="button" data-tab="doc-intel">
-        1. Statement Scanner
-      </button>
-      <button class="tab-btn" type="button" data-tab="ten-k">
-        2. 10-K &amp; Filing Scanner
-      </button>
-
-      <button class="tab-btn" type="button" data-tab="forecast">
-        3. Forecast Simulator
-      </button>
+      <button class="tab-btn active" type="button" data-tab="doc-intel">1. Statement Scanner</button>
+      <button class="tab-btn" type="button" data-tab="ten-k">2. 10-K &amp; Filing Screening</button>
+      <button class="tab-btn" type="button" data-tab="forecast">3. Forecast Simulator</button>
     </nav>
 
     <!-- TAB 1: STATEMENT SCANNER -->
-
     <section id="doc-intel" class="feature-panel active">
-
       <h2>FINANCIAL STATEMENT SCANNER</h2>
-      <p class="subtitle">
-        Upload a PDF, CSV, or TXT financial statement (P&amp;L, Balance Sheet, Cash Flow) for automatic detection and analysis.
-      </p>
+      <p class="subtitle">Upload financial statements across PDF, XLSX, XLS, CSV, DOC, DOCX, or TXT formats for real-time item detection.</p>
 
       <div class="grid-2" style="margin-bottom:20px;">
-
         <div>
-          <label class="field-label" for="stmtType">Document Classification Mode</label>
+          <label class="field-label" for="stmtType">Document Classification</label>
           <select id="stmtType" class="full-width">
-            <option value="auto">Auto-Detect Statement Type</option>
+            <option value="auto">Auto-Detect Document Type</option>
             <option value="income">Income Statement / P&amp;L</option>
             <option value="balance_sheet">Balance Sheet</option>
             <option value="cashflow">Cash Flow Statement</option>
-            <option value="equity">Statement of Equity</option>
           </select>
         </div>
 
         <div>
-          <label class="field-label" for="stmtFile">
-            Upload File (PDF / CSV / TXT)
-          </label>
-          <input
-            type="file"
-            id="stmtFile"
-            accept=".pdf,.csv,.txt,text/csv,text/plain,application/pdf"
-          />
+          <label class="field-label" for="stmtFile">Upload Document (PDF, XLSX, XLS, CSV, DOC, DOCX, TXT)</label>
+          <input type="file" id="stmtFile" accept=".pdf,.xlsx,.xls,.csv,.doc,.docx,.txt" />
         </div>
-
       </div>
 
-      <button class="btn" id="analyzeStatementBtn" type="button">
-        Scan &amp; Classify File
-      </button>
+      <button class="btn" id="analyzeStatementBtn" type="button">Scan &amp; Extract Document</button>
 
-      <div id="stmtSpinner" class="spinner" aria-live="polite">
-        ⚙️ Extracting &amp; analyzing metrics...
-      </div>
-
-      <div id="stmtError" class="error-msg" role="alert"></div>
+      <div id="stmtSpinner" class="spinner">⚙️ Extracting line items and executing quantitative analysis...</div>
+      <div id="stmtError" class="error-msg"></div>
+      <div id="stmtWarn" class="warning-banner"></div>
 
       <div id="stmtOutput" class="analysis-output">
-
         <div class="output-header">
-          <span id="stmtTitle">Statement Analysis &amp; Detection</span>
-          <span class="status-tag status-high" id="detectedTag">
-            Identified
-          </span>
+          <span>Extraction Summary</span>
+          <span class="status-tag status-high" id="detectedTag">SUCCESS</span>
         </div>
 
         <ul class="analysis-list" id="stmtResults"></ul>
 
-        <div class="flex-actions" style="margin-top:15px;">
-          <button class="btn btn-secondary" id="syncBtn" type="button">
-            Sync Extracted Numbers to Simulator →
-          </button>
+        <div class="flex-actions" style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="syncBtn" type="button">Import Numbers into Simulator →</button>
+          <button class="btn btn-secondary" id="exportStmtCsv" type="button">Export Extracted CSV</button>
         </div>
-
-        <p class="status-note">
-          Statement classifier detects line items based on keyword signals across standard financial accounting structures.
-        </p>
-
       </div>
     </section>
 
     <!-- TAB 2: 10-K & FILING SCANNER -->
-
     <section id="ten-k" class="feature-panel">
+      <h2>10-K &amp; INVESTOR SCREENER</h2>
+      <p class="subtitle">Evaluate corporate filings for investment suitability. Calculates profit margins, debt ratios, and highlights specific red flags.</p>
 
-      <h2>10-K &amp; FILING SCANNER</h2>
-      <p class="subtitle">
-        Upload a 10-K report, filing, or general corporate financial statement (PDF/CSV/TXT) for investor screening.
-      </p>
-
-      <div class="subsection">
-        <label class="field-label" for="tenkFile">
-          Upload Financial Report / 10-K (PDF/CSV/TXT)
-        </label>
-
-        <input
-          type="file"
-          id="tenkFile"
-          accept=".pdf,.csv,.txt,text/csv,text/plain,application/pdf"
-        />
+      <div class="subsection" style="margin-bottom:20px;">
+        <label class="field-label" for="tenkFile">Upload Corporate Filing / 10-K (PDF, XLSX, XLS, CSV, DOC, DOCX, TXT)</label>
+        <input type="file" id="tenkFile" accept=".pdf,.xlsx,.xls,.csv,.doc,.docx,.txt" />
       </div>
 
-      <button class="btn" id="analyzeInvestorBtn" type="button">
-        Scan Filing &amp; Generate Verdict
-      </button>
+      <button class="btn" id="analyzeInvestorBtn" type="button">Run Investor Analysis</button>
 
-      <div id="tenkSpinner" class="spinner" aria-live="polite">
-        ⚙️ Parsing filing &amp; evaluating criteria...
-      </div>
-
-      <div id="tenkError" class="error-msg" role="alert"></div>
+      <div id="tenkSpinner" class="spinner">⚙️ Evaluating investment criteria &amp; scanning red flags...</div>
+      <div id="tenkError" class="error-msg"></div>
+      <div id="tenkWarn" class="warning-banner"></div>
 
       <div id="tenkOutput" class="analysis-output">
-
-        <div class="output-header" id="tenkTitle">
-          Investor Verdict
-        </div>
+        <div class="output-header">Investment Recommendation &amp; Audit</div>
 
         <div class="metrics-row" style="margin-bottom:20px;">
-
           <div class="metric-card">
-            <div class="lbl">Investor Decision</div>
+            <div class="lbl">Verdict</div>
             <div class="val" id="verdictVal">--</div>
           </div>
-
           <div class="metric-card">
             <div class="lbl">Health Score</div>
             <div class="val" id="healthVal">--</div>
           </div>
-
           <div class="metric-card">
             <div class="lbl">Risk Rating</div>
-            <div class="val" id="flagVal" style="font-size:0.85rem;">
-              --
-            </div>
+            <div class="val" id="flagVal">--</div>
           </div>
-
         </div>
 
-        <ul class="analysis-list" id="tenkResults"></ul>
+        <!-- RED FLAGS CONTAINER -->
+        <div id="redFlagWrapper" class="red-flag-box" style="display:none;">
+          <div class="red-flag-title">⚠️ Detected Risk Factors &amp; Red Flags</div>
+          <ul class="red-flag-list" id="redFlagsList"></ul>
+        </div>
 
-        <p class="status-note">
-          This is a local rule-based screening tool evaluating quantitative financial metrics extracted from your document.
-        </p>
+        <ul class="analysis-list" id="tenkResults" style="margin-top:20px;"></ul>
 
+        <div class="flex-actions" style="margin-top:20px;">
+          <button class="btn btn-secondary" id="exportInvestorJson" type="button">Export Investor Audit (JSON)</button>
+        </div>
       </div>
     </section>
 
     <!-- TAB 3: FORECAST SIMULATOR -->
-
     <section id="forecast" class="feature-panel">
-
       <h2>FORECAST SIMULATOR</h2>
-      <p class="subtitle">
-        Dynamic cash model driven directly by imported statement metrics.
-      </p>
+      <p class="subtitle">Dynamic multi-period cash projection engine driven by imported document metrics.</p>
 
-      <div id="simLockedNotice" class="locked-notice">
-        🔒 <strong>Simulator Locked:</strong> Please scan and import a financial statement or 10-K file in Tab 1 or Tab 2 to unlock forecast projections.
+      <div id="simLockedNotice" class="card" style="text-align:center; padding:30px;">
+        🔒 <strong>Simulator Locked:</strong> Scan and import a statement in Tab 1 or Tab 2 to unlock projections.
       </div>
 
       <div id="simContent" style="display:none;">
-
-        <div class="flex-actions" style="margin-bottom:20px;">
-          <button class="btn btn-secondary" id="syncBtnForecast" type="button">
-            Re-Sync Scanner Numbers
-          </button>
-        </div>
-
         <div class="grid-3" style="margin-bottom:20px;">
-
           <div>
-            <label class="field-label" for="simCash">
-              Opening Cash Balance ($)
-            </label>
-            <input
-              type="number"
-              id="simCash"
-              value="0"
-              min="0"
-              step="0.01"
-              inputmode="decimal"
-              class="full-width"
-            />
+            <label class="field-label" for="simCash">Opening Cash Balance ($)</label>
+            <input type="number" id="simCash" value="0" min="0" step="0.01" class="full-width" />
           </div>
-
           <div>
-            <label class="field-label" for="simRev">
-              Base Revenue ($)
-            </label>
-            <input
-              type="number"
-              id="simRev"
-              value="0"
-              min="0"
-              step="0.01"
-              inputmode="decimal"
-              class="full-width"
-            />
+            <label class="field-label" for="simRev">Base Period Revenue ($)</label>
+            <input type="number" id="simRev" value="0" min="0" step="0.01" class="full-width" />
           </div>
-
           <div>
-            <label class="field-label" for="simBurn">
-              Base Operating Expenses ($)
-            </label>
-            <input
-              type="number"
-              id="simBurn"
-              value="0"
-              min="0"
-              step="0.01"
-              inputmode="decimal"
-              class="full-width"
-            />
+            <label class="field-label" for="simBurn">Base Period Operating Expenses ($)</label>
+            <input type="number" id="simBurn" value="0" min="0" step="0.01" class="full-width" />
           </div>
-
         </div>
 
         <div class="grid-2" style="margin-bottom:20px;">
-
           <div>
-            <label class="field-label" for="simWindow">
-              Projection Mode
-            </label>
+            <label class="field-label" for="simWindow">Projection Horizon</label>
             <select id="simWindow" class="full-width">
               <option value="monthly">12 Months Projections</option>
               <option value="weekly">4 Weeks Projections</option>
             </select>
           </div>
-
           <div>
-            <label class="field-label" for="simGrowth">
-              Revenue Growth Per Period (%)
-            </label>
-            <input
-              type="number"
-              id="simGrowth"
-              value="0"
-              min="-100"
-              max="1000"
-              step="0.1"
-              class="full-width"
-            />
+            <label class="field-label" for="simGrowth">Revenue Compound Growth Rate (%)</label>
+            <input type="number" id="simGrowth" value="0" min="-100" max="1000" step="0.1" class="full-width" />
           </div>
-
         </div>
 
         <div class="card" style="margin-bottom:20px;">
-
-          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-            <span class="field-label" style="margin:0;">
-              Operations Scale Multiplier
-            </span>
-            <strong id="sliderVal" style="color:#fff;font-size:0.8rem;">
-              100%
-            </strong>
+          <div style="display:flex; justify-content:space-between;">
+            <span class="field-label">Operating Scale Multiplier</span>
+            <strong id="sliderVal" style="color:#fff;">100%</strong>
           </div>
-
-          <input
-            type="range"
-            id="scaleSlider"
-            min="50"
-            max="200"
-            value="100"
-            step="5"
-          />
-
-          <p class="section-note">
-            Scales baseline revenue and expenses proportionally across the forecast window.
-          </p>
-
+          <input type="range" id="scaleSlider" min="50" max="200" value="100" step="5" />
         </div>
 
         <div id="simOutput" class="analysis-output" style="display:block;">
-
-          <div class="output-header">
-            Live Simulation Calculations
-          </div>
-
+          <div class="output-header">Simulation Calculations</div>
           <div class="metrics-row">
-
             <div class="metric-card">
               <div class="lbl">Net Cash Yield</div>
-              <div class="val" id="netVal">$0</div>
+              <div class="val" id="netVal">$0.00</div>
             </div>
-
             <div class="metric-card">
               <div class="lbl">Operating Margin</div>
               <div class="val" id="marginVal">0.0%</div>
             </div>
-
             <div class="metric-card">
               <div class="lbl">Ending Cash</div>
-              <div class="val" id="endingCashVal">$0</div>
+              <div class="val" id="endingCashVal">$0.00</div>
             </div>
-
             <div class="metric-card">
-              <div class="lbl">Runway Viability</div>
-              <div class="val" id="runwayVal">
-                --
-              </div>
+              <div class="lbl">Estimated Runway</div>
+              <div class="val" id="runwayVal">--</div>
             </div>
-
           </div>
 
           <ul class="analysis-list" style="margin-top:20px;">
-            <li>
-              <span class="lbl">Projection Horizon</span>
-              <span class="val" id="projectionVal">12 Months</span>
-            </li>
-            <li>
-              <span class="lbl">Projected Total Revenue</span>
-              <span class="val" id="projectedRevVal">$0</span>
-            </li>
-            <li>
-              <span class="lbl">Projected Total Expenses</span>
-              <span class="val" id="projectedBurnVal">$0</span>
-            </li>
-            <li>
-              <span class="lbl">Estimated Cash Runway</span>
-              <span class="val" id="cashRunwayVal">--</span>
-            </li>
+            <li><span class="lbl">Total Projected Revenue</span><span class="val" id="projectedRevVal">$0.00</span></li>
+            <li><span class="lbl">Total Projected Expenses</span><span class="val" id="projectedBurnVal">$0.00</span></li>
           </ul>
-
-          <p class="status-note">
-            Forecasts are illustrative calculations derived strictly from imported file numbers.
-          </p>
-
         </div>
-
       </div>
-
     </section>
 
   </main>
 
+  <!-- FOOTER WITH MANDATORY DISCLAIMER -->
   <footer>
-    <div>FORGE &copy; 2026 | BUILT BY SAHITHYA &amp; YUKTI</div>
+    <div>FORGE FINANCIAL ENGINE &copy; 2026 | BUILT BY YUKTI AND SAHITHYA</div>
     <div class="disclaimer">
-      Notice: FORGE provides analytical models for financial evaluations.
-      Outputs do not constitute formal financial or legal advice.
+      <strong>DISCLAIMER &amp; NOTICE:</strong> FORGE was constructed exclusively as an academic project by Yukti and Sahithya. The automated extractions, financial calculations, and investor screening outputs provided by this software are for illustrative and testing purposes only and DO NOT constitute professional financial, investment, accounting, or legal advice.
     </div>
   </footer>
 
+  <!-- CORE LOGIC & PARSING SUITE -->
   <script>
     "use strict";
 
-    /* =====================================================
-       FORGE | FINANCIAL CLARITY ENGINE
-       Complete local application logic with PDF Support
-       ===================================================== */
+    const STORAGE_KEY = "forge_active_user";
 
-    const STORAGE_KEY = "forge_user_name";
-
+    // Global Extracted State
     let parsedExtractedRev = 0;
     let parsedExtractedBurn = 0;
     let parsedCashBalance = 0;
+    let parsedExtractedDebt = 0;
     let parsedDocumentType = "";
     let parsedStatementReady = false;
 
     const $ = (id) => document.getElementById(id);
 
-    const money = (value) =>
-      "$" + Number(value).toLocaleString("en-US", {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2
-      });
-
-    const escapeHTML = (value) =>
-      String(value).replace(/[&<>"']/g, (char) => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      }[char]));
-
-    function setText(id, value) {
-      const element = $(id);
-      if (element) element.textContent = String(value);
-    }
-
-    function setHTML(id, html) {
-      const element = $(id);
-      if (element) element.innerHTML = html;
-    }
-
-    function show(id, visible) {
-      const element = $(id);
-      if (element) element.style.display = visible ? "block" : "none";
-    }
-
-    function setError(id, message) {
-      setText(id, message);
-      show(id, Boolean(message));
-    }
-
-    function readAmount(id) {
-      const element = $(id);
-      if (!element) return 0;
-      const raw = element.value.trim();
-      if (raw === "") return 0;
-      const value = Number(raw);
-      return Number.isFinite(value) && value >= 0 ? value : 0;
-    }
+    const money = (val) => "$" + Number(val || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     /* =====================================================
-       INITIALIZATION & SESSION
+       1. ROBOTIC PRELOADER & USER GATEWAY LOGIC
        ===================================================== */
-
-    function initialize() {
-      const savedName = localStorage.getItem(STORAGE_KEY);
-      if (savedName) {
-        $("userName").value = savedName;
-        setText("greeting", `ACTIVE SESSION: ${savedName.toUpperCase()}`);
-      }
+    window.addEventListener("DOMContentLoaded", () => {
+      runRoboticBootSequence(() => {
+        checkUserSession();
+      });
       bindEvents();
+    });
+
+    function runRoboticBootSequence(onComplete) {
+      const logsContainer = $("terminalLogs");
+      const progressBar = $("loaderBar");
+      const overlay = $("loaderOverlay");
+
+      const logs = [
+        "Initializing neural parsing matrices...",
+        "Loading PDF, XLSX, CSV, and DOC parser modules...",
+        "Setting up quantitative screening rules...",
+        "System check complete. Credits: Built by Yukti and Sahithya.",
+        "Launching FORGE Terminal..."
+      ];
+
+      let step = 0;
+      const interval = setInterval(() => {
+        step++;
+        const pct = Math.min((step / logs.length) * 100, 100);
+        progressBar.style.width = pct + "%";
+
+        if (step <= logs.length) {
+          const div = document.createElement("div");
+          div.className = "line";
+          div.textContent = logs[step - 1];
+          logsContainer.appendChild(div);
+        }
+
+        if (step >= logs.length) {
+          clearInterval(interval);
+          setTimeout(() => {
+            overlay.style.opacity = "0";
+            overlay.style.visibility = "hidden";
+            if (onComplete) onComplete();
+          }, 400);
+        }
+      }, 300);
+    }
+
+    function checkUserSession() {
+      const savedUser = localStorage.getItem(STORAGE_KEY);
+      if (savedUser && savedUser.trim() !== "") {
+        grantAccess(savedUser);
+      } else {
+        $("loginModal").style.display = "flex";
+      }
+    }
+
+    function grantAccess(name) {
+      localStorage.setItem(STORAGE_KEY, name);
+      $("loginModal").style.display = "none";
+      $("userBadgeName").textContent = name.toUpperCase();
+      $("userBadgeDisplay").style.display = "flex";
     }
 
     function bindEvents() {
-      $("saveUserBtn").addEventListener("click", saveUser);
-      $("resetBtn").addEventListener("click", confirmReset);
+      $("modalLoginBtn").addEventListener("click", () => {
+        const name = $("modalUserName").value.trim();
+        if (!name) {
+          $("modalErr").textContent = "Please enter a valid name to proceed.";
+          $("modalErr").style.display = "block";
+          return;
+        }
+        grantAccess(name);
+      });
 
-      document.querySelectorAll(".tab-btn").forEach((button) => {
-        button.addEventListener("click", () => {
-          switchTab(button.dataset.tab, button);
+      $("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      });
+
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach((t) => t.classList.remove("active"));
+          document.querySelectorAll(".feature-panel").forEach((p) => p.classList.remove("active"));
+          btn.classList.add("active");
+          $(btn.dataset.tab).classList.add("active");
         });
       });
 
       $("analyzeStatementBtn").addEventListener("click", analyzeStatement);
-      $("analyzeInvestorBtn").addEventListener("click", analyzeInvestorDecision);
+      $("analyzeInvestorBtn").addEventListener("click", analyzeInvestorFiling);
       $("syncBtn").addEventListener("click", syncToSimulator);
-      $("syncBtnForecast").addEventListener("click", syncToSimulator);
 
-      [
-        "simCash",
-        "simRev",
-        "simBurn",
-        "simGrowth",
-        "scaleSlider",
-        "simWindow"
-      ].forEach((id) => {
+      ["simCash", "simRev", "simBurn", "simGrowth", "scaleSlider", "simWindow"].forEach((id) => {
         $(id).addEventListener("input", runSimulation);
-        $(id).addEventListener("change", runSimulation);
+      });
+
+      $("exportStmtCsv").addEventListener("click", exportStmtAsCSV);
+      $("exportInvestorJson").addEventListener("click", exportInvestorAuditJSON);
+    }
+
+    /* =====================================================
+       2. UNIVERSAL FILE READ ENGINE (PDF, XLSX, CSV, DOC, DOCX, TXT)
+       ===================================================== */
+    async function readUniversalFile(file) {
+      if (!file) throw new Error("No file selected.");
+      const name = file.name.toLowerCase();
+
+      // PDF PARSER
+      if (name.endsWith(".pdf") || file.type === "application/pdf") {
+        if (!window.pdfjsLib) throw new Error("PDF parsing engine unavailable.");
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+        let text = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map((it) => it.str).join(" ") + "\n";
+        }
+        return text;
+      }
+
+      // EXCEL & CSV PARSER
+      if (name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".csv")) {
+        if (!window.XLSX) throw new Error("Excel/CSV parser module unavailable.");
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        let text = "";
+        workbook.SheetNames.forEach((sheetName) => {
+          const sheet = workbook.Sheets[sheetName];
+          text += XLSX.utils.sheet_to_txt(sheet) + "\n";
+        });
+        return text;
+      }
+
+      // DOCX PARSER
+      if (name.endsWith(".docx")) {
+        if (!window.mammoth) throw new Error("Docx parser module unavailable.");
+        const buffer = await file.arrayBuffer();
+        const res = await mammoth.extractRawText({ arrayBuffer: buffer });
+        return res.value;
+      }
+
+      // FALLBACK PLAIN TEXT / DOC / TXT
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => reject(new Error("Error reading file text content."));
+        reader.readAsText(file);
       });
     }
 
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", initialize, { once: true });
-    } else {
-      initialize();
-    }
-
-    function saveUser() {
-      const name = $("userName").value.trim();
-      if (!name || name.length > 100) {
-        setText("greeting", "Please enter a valid name (1–100 characters).");
-        return;
-      }
-      localStorage.setItem(STORAGE_KEY, name);
-      setText("greeting", `SESSION SAVED: ${name.toUpperCase()}`);
-    }
-
-    function confirmReset() {
-      const proceed = window.confirm(
-        "WARNING: Resetting will clear your FORGE session and current inputs. Proceed?"
-      );
-      if (!proceed) return;
-
-      localStorage.removeItem(STORAGE_KEY);
-      $("userName").value = "";
-      setText("greeting", "Session reset completed.");
-
-      ["stmtFile", "tenkFile"].forEach((id) => { $(id).value = ""; });
-
-      parsedExtractedRev = 0;
-      parsedExtractedBurn = 0;
-      parsedCashBalance = 0;
-      parsedDocumentType = "";
-      parsedStatementReady = false;
-
-      show("stmtOutput", false);
-      show("tenkOutput", false);
-      show("stmtSpinner", false);
-      show("tenkSpinner", false);
-
-      setError("stmtError", "");
-      setError("tenkError", "");
-
-      show("simLockedNotice", true);
-      show("simContent", false);
-    }
-
-    function switchTab(id, button) {
-      document.querySelectorAll(".tab-btn").forEach((tab) => tab.classList.remove("active"));
-      document.querySelectorAll(".feature-panel").forEach((panel) => panel.classList.remove("active"));
-
-      if (button) button.classList.add("active");
-      const targetPanel = $(id);
-      if (targetPanel) targetPanel.classList.add("active");
-    }
-
     /* =====================================================
-       FILE READING HELPER (PDF, CSV, TXT)
+       3. METRIC EXTRACTION ENGINE
        ===================================================== */
-
-    async function readFileContent(file) {
-      if (!file) throw new Error("No file selected.");
-
-      const isPdf = file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf";
-
-      if (isPdf) {
-        if (!window.pdfjsLib) {
-          throw new Error("PDF parser loading failed. Please refresh or check connection.");
-        }
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let fullText = "";
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items.map((item) => item.str).join(" ");
-          fullText += pageText + "\n";
-        }
-        return fullText;
-      } else {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target.result);
-          reader.onerror = () => reject(new Error("Error reading file content."));
-          reader.readAsText(file);
-        });
-      }
-    }
-
-    /* =====================================================
-       TEXT EXTRACTION HELPER
-       ===================================================== */
-
     function extractMetric(text, keywords) {
       const lines = text.split(/\r?\n/);
       for (const line of lines) {
-        const lowerLine = line.toLowerCase();
+        const lower = line.toLowerCase();
         for (const kw of keywords) {
-          if (lowerLine.includes(kw)) {
-            // Match numeric values (including formatted like $1,234.56 or (1,234))
-            const matches = line.match(/\(?\$?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\)?/g);
-            if (matches && matches.length > 0) {
+          if (lower.includes(kw)) {
+            // Match numbers with optional currency formatting or parenthetical negative values
+            const matches = line.match(/\(?\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)\)?/g);
+            if (matches) {
               const lastMatch = matches[matches.length - 1];
-              let isNegative = lastMatch.includes('(') || line.includes('-');
-              let valStr = lastMatch.replace(/[\$\(\)\,\s]/g, '');
-              let val = parseFloat(valStr);
-              if (!isNaN(val)) {
-                return isNegative ? -val : val;
-              }
+              const isNegative = lastMatch.includes("(") && lastMatch.includes(")");
+              const rawNum = lastMatch.replace(/[\$\,\(\)]/g, "");
+              const val = parseFloat(rawNum);
+              if (!isNaN(val)) return isNegative ? -val : val;
             }
           }
         }
@@ -1271,241 +1023,269 @@
     }
 
     /* =====================================================
-       TAB 1: STATEMENT SCANNER LOGIC
+       4. TAB 1: STATEMENT ANALYSIS LOGIC
        ===================================================== */
-
     async function analyzeStatement() {
-      setError("stmtError", "");
-      show("stmtOutput", false);
+      $("stmtError").style.display = "none";
+      $("stmtWarn").style.display = "none";
+      $("stmtOutput").style.display = "none";
 
-      const fileInput = $("stmtFile");
-      if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        setError("stmtError", "Please select a PDF, CSV, or TXT file to parse.");
+      const file = $("stmtFile").files[0];
+      if (!file) {
+        $("stmtError").textContent = "Please select a valid document to parse.";
+        $("stmtError").style.display = "block";
         return;
       }
 
-      show("stmtSpinner", true);
+      $("stmtSpinner").style.display = "block";
 
       try {
-        const text = await readFileContent(fileInput.files[0]);
-        show("stmtSpinner", false);
+        const text = await readUniversalFile(file);
+        $("stmtSpinner").style.display = "none";
 
         if (!text || text.trim().length === 0) {
-          setError("stmtError", "The uploaded file contains no readable text.");
+          $("stmtWarn").textContent = "WARNING: Unreadable document format or empty file. Please check file formatting or input numbers manually.";
+          $("stmtWarn").style.display = "block";
           return;
         }
 
-        let rev = extractMetric(text, ["revenue", "sales", "total revenue", "turnover"]);
-        let burn = extractMetric(text, ["operating expenses", "total expenses", "cost of goods", "cogs", "expenses"]);
-        let cash = extractMetric(text, ["cash and cash equivalents", "cash balance", "cash", "total cash"]);
-        let netInc = extractMetric(text, ["net income", "net profit", "net earnings"]);
+        const rev = extractMetric(text, ["revenue", "total revenue", "sales", "gross sales"]);
+        const burn = extractMetric(text, ["operating expenses", "total expenses", "cost of goods", "cogs", "expenses"]);
+        const cash = extractMetric(text, ["cash", "cash and cash equivalents", "ending cash"]);
 
-        // Auto-classify statement type
-        let docType = $("stmtType").value;
-        if (docType === "auto") {
-          const lower = text.toLowerCase();
-          if (lower.includes("balance sheet") || lower.includes("assets") && lower.includes("liabilities")) {
-            docType = "Balance Sheet";
-          } else if (lower.includes("cash flow") || lower.includes("operating activities")) {
-            docType = "Cash Flow Statement";
-          } else if (lower.includes("equity") || lower.includes("retained earnings")) {
-            docType = "Statement of Equity";
-          } else {
-            docType = "Income Statement / P&L";
-          }
+        if (rev === 0 && burn === 0 && cash === 0) {
+          $("stmtWarn").textContent = "WARNING: File scanned successfully, but no explicit financial line items were recognized. Double-check your file content or input data directly into the simulator.";
+          $("stmtWarn").style.display = "block";
+        }
+
+        parsedExtractedRev = rev;
+        parsedExtractedBurn = burn;
+        parsedCashBalance = cash;
+        parsedStatementReady = true;
+
+        const results = $("stmtResults");
+        results.innerHTML = `
+          <li><span class="lbl">Extracted Revenue</span><span class="val">${money(rev)}</span></li>
+          <li><span class="lbl">Extracted Operating Expenses</span><span class="val">${money(burn)}</span></li>
+          <li><span class="lbl">Calculated Net Operating Income</span><span class="val">${money(rev - burn)}</span></li>
+          <li><span class="lbl">Extracted Cash Balance</span><span class="val">${money(cash)}</span></li>
+        `;
+
+        $("stmtOutput").style.display = "block";
+        unlockSimulator();
+      } catch (err) {
+        $("stmtSpinner").style.display = "none";
+        $("stmtError").textContent = err.message || "An error occurred while parsing the statement.";
+        $("stmtError").style.display = "block";
+      }
+    }
+
+    /* =====================================================
+       5. TAB 2: INVESTOR SCREENING & RED FLAGS ENGINE
+       ===================================================== */
+    async function analyzeInvestorFiling() {
+      $("tenkError").style.display = "none";
+      $("tenkWarn").style.display = "none";
+      $("tenkOutput").style.display = "none";
+
+      const file = $("tenkFile").files[0];
+      if (!file) {
+        $("tenkError").textContent = "Please select a 10-K or corporate filing report.";
+        $("tenkError").style.display = "block";
+        return;
+      }
+
+      $("tenkSpinner").style.display = "block";
+
+      try {
+        const text = await readUniversalFile(file);
+        $("tenkSpinner").style.display = "none";
+
+        if (!text || text.trim().length === 0) {
+          $("tenkWarn").textContent = "WARNING: File contains unreadable text or image-only scans. Manual verification recommended.";
+          $("tenkWarn").style.display = "block";
+          return;
+        }
+
+        const rev = extractMetric(text, ["revenue", "total revenue", "sales"]);
+        const burn = extractMetric(text, ["operating expenses", "total expenses", "cogs"]);
+        const cash = extractMetric(text, ["cash", "cash and cash equivalents"]);
+        const debt = extractMetric(text, ["total debt", "long-term debt", "liabilities"]);
+
+        parsedExtractedRev = rev;
+        parsedExtractedBurn = burn;
+        parsedCashBalance = cash;
+        parsedExtractedDebt = debt;
+        parsedStatementReady = true;
+
+        const netIncome = rev - burn;
+        const opMargin = rev > 0 ? (netIncome / rev) * 100 : -100;
+        const monthlyBurn = burn > rev ? (burn - rev) / 12 : 0;
+        const runwayMonths = monthlyBurn > 0 ? cash / monthlyBurn : 999;
+
+        // ACCURATE RED FLAGS DETECTION ENGINE
+        const redFlags = [];
+
+        if (opMargin < 0) {
+          redFlags.push(`Unprofitable Operations: Operating margin is negative (${opMargin.toFixed(1)}%). Expenses exceed revenue.`);
+        }
+        if (runwayMonths < 6 && monthlyBurn > 0) {
+          redFlags.push(`Severe Cash Runway Risk: Remaining liquidity provides under ${runwayMonths.toFixed(1)} months of operation before cash depletion.`);
+        }
+        if (debt > cash * 2 && debt > 0) {
+          redFlags.push(`Excessive Leverage: Total liabilities/debt (${money(debt)}) exceed liquid cash (${money(cash)}) by more than 2x.`);
+        }
+        if (rev === 0) {
+          redFlags.push("Zero Recorded Revenue: Company reports no top-line revenue generation in the evaluated period.");
+        }
+
+        // VERDICT & HEALTH SCORE LOGIC
+        let verdict = "INVESTMENT SUITABLE";
+        let risk = "LOW RISK";
+        let score = 90;
+
+        if (redFlags.length >= 3 || runwayMonths < 3) {
+          verdict = "DO NOT INVEST";
+          risk = "HIGH / CRITICAL RISK";
+          score = 25;
+        } else if (redFlags.length >= 1) {
+          verdict = "HIGH CAUTION / HOLD";
+          risk = "MODERATE RISK";
+          score = 55;
+        }
+
+        $("verdictVal").textContent = verdict;
+        $("healthVal").textContent = score + "/100";
+        $("flagVal").textContent = risk;
+
+        // Render Red Flags
+        const flagWrapper = $("redFlagWrapper");
+        const flagList = $("redFlagsList");
+        flagList.innerHTML = "";
+
+        if (redFlags.length > 0) {
+          redFlags.forEach((flag) => {
+            const li = document.createElement("li");
+            li.textContent = flag;
+            flagList.appendChild(li);
+          });
+          flagWrapper.style.display = "block";
         } else {
-          const map = {
-            "income": "Income Statement / P&L",
-            "balance_sheet": "Balance Sheet",
-            "cashflow": "Cash Flow Statement",
-            "equity": "Statement of Equity"
-          };
-          docType = map[docType] || "Financial Statement";
+          flagWrapper.style.display = "none";
         }
 
-        parsedExtractedRev = Math.abs(rev);
-        parsedExtractedBurn = Math.abs(burn);
-        parsedCashBalance = Math.abs(cash);
-        parsedDocumentType = docType;
-        parsedStatementReady = true;
-
-        setText("stmtTitle", `CLASSIFIED: ${docType.toUpperCase()}`);
-        
-        let html = `
-          <li><span class="lbl">Detected Type</span><span class="val">${escapeHTML(docType)}</span></li>
-          <li><span class="lbl">Extracted Base Revenue</span><span class="val">${money(parsedExtractedRev)}</span></li>
-          <li><span class="lbl">Extracted Operating Expenses</span><span class="val">${money(parsedExtractedBurn)}</span></li>
-          <li><span class="lbl">Extracted Cash Balance</span><span class="val">${money(parsedCashBalance)}</span></li>
-          <li><span class="lbl">Extracted Net Income</span><span class="val">${money(netInc)}</span></li>
+        const results = $("tenkResults");
+        results.innerHTML = `
+          <li><span class="lbl">Evaluated Revenue</span><span class="val">${money(rev)}</span></li>
+          <li><span class="lbl">Evaluated Operating Expenses</span><span class="val">${money(burn)}</span></li>
+          <li><span class="lbl">Operating Profit Margin</span><span class="val">${opMargin.toFixed(2)}%</span></li>
+          <li><span class="lbl">Liquid Cash Balance</span><span class="val">${money(cash)}</span></li>
+          <li><span class="lbl">Total Reported Liabilities / Debt</span><span class="val">${money(debt)}</span></li>
         `;
 
-        setHTML("stmtResults", html);
-        show("stmtOutput", true);
-
+        $("tenkOutput").style.display = "block";
+        unlockSimulator();
       } catch (err) {
-        show("stmtSpinner", false);
-        setError("stmtError", err.message || "An error occurred while parsing the document.");
+        $("tenkSpinner").style.display = "none";
+        $("tenkError").textContent = err.message || "An error occurred during investor screening.";
+        $("tenkError").style.display = "block";
       }
     }
 
     /* =====================================================
-       TAB 2: 10-K & FILING SCANNER LOGIC
+       6. TAB 3: FORECAST SIMULATOR LOGIC
        ===================================================== */
-
-    async function analyzeInvestorDecision() {
-      setError("tenkError", "");
-      show("tenkOutput", false);
-
-      const fileInput = $("tenkFile");
-      if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        setError("tenkError", "Please select a 10-K report or filing file.");
-        return;
-      }
-
-      show("tenkSpinner", true);
-
-      try {
-        const text = await readFileContent(fileInput.files[0]);
-        show("tenkSpinner", false);
-
-        if (!text || text.trim().length === 0) {
-          setError("tenkError", "The filing file contains no readable text.");
-          return;
-        }
-
-        let rev = extractMetric(text, ["revenue", "sales", "total revenue"]);
-        let burn = extractMetric(text, ["operating expenses", "total expenses", "cogs"]);
-        let cash = extractMetric(text, ["cash and cash equivalents", "cash balance", "cash"]);
-        let debt = extractMetric(text, ["total debt", "long-term debt", "liabilities"]);
-        let netInc = extractMetric(text, ["net income", "net profit"]);
-
-        parsedExtractedRev = Math.abs(rev);
-        parsedExtractedBurn = Math.abs(burn);
-        parsedCashBalance = Math.abs(cash);
-        parsedDocumentType = "10-K Filing";
-        parsedStatementReady = true;
-
-        // Health Score & Decision Engine
-        let score = 50;
-        let risks = [];
-
-        if (parsedExtractedRev > parsedExtractedBurn) score += 20;
-        else { score -= 15; risks.push("Operating Burn exceeds Revenue"); }
-
-        if (netInc > 0) score += 15;
-        else risks.push("Negative Net Income");
-
-        if (parsedCashBalance > debt) score += 15;
-        else if (debt > 0) { score -= 10; risks.push("High Debt relative to Cash"); }
-
-        score = Math.min(100, Math.max(0, score));
-
-        let verdict = "NEUTRAL / HOLD";
-        let flag = "MEDIUM";
-
-        if (score >= 70) {
-          verdict = "INVEST / STRONG";
-          flag = "LOW";
-        } else if (score < 45) {
-          verdict = "PASS / HIGH RISK";
-          flag = "HIGH";
-        }
-
-        setText("verdictVal", verdict);
-        setText("healthVal", `${score}/100`);
-        setText("flagVal", `${flag} RISK`);
-
-        let html = `
-          <li><span class="lbl">Reported Revenue</span><span class="val">${money(parsedExtractedRev)}</span></li>
-          <li><span class="lbl">Reported Expenses</span><span class="val">${money(parsedExtractedBurn)}</span></li>
-          <li><span class="lbl">Cash Reserves</span><span class="val">${money(parsedCashBalance)}</span></li>
-          <li><span class="lbl">Total Debt Identified</span><span class="val">${money(debt)}</span></li>
-          <li><span class="lbl">Key Risk Factors</span><span class="val">${risks.length > 0 ? escapeHTML(risks.join(", ")) : "None Detected"}</span></li>
-        `;
-
-        setHTML("tenkResults", html);
-        show("tenkOutput", true);
-
-      } catch (err) {
-        show("tenkSpinner", false);
-        setError("tenkError", err.message || "An error occurred while evaluating the filing.");
-      }
+    function unlockSimulator() {
+      $("simLockedNotice").style.display = "none";
+      $("simContent").style.display = "block";
+      syncToSimulator();
     }
-
-    /* =====================================================
-       TAB 3: FORECAST SIMULATOR & SYNC LOGIC
-       ===================================================== */
 
     function syncToSimulator() {
-      if (!parsedStatementReady) {
-        alert("Please parse a financial document first in Tab 1 or Tab 2.");
-        return;
-      }
-
+      if (!parsedStatementReady) return;
       $("simCash").value = parsedCashBalance;
       $("simRev").value = parsedExtractedRev;
       $("simBurn").value = parsedExtractedBurn;
-
-      show("simLockedNotice", false);
-      show("simContent", true);
-
-      // Navigate to Forecast Simulator tab
-      const tabBtn = document.querySelector('[data-tab="forecast"]');
-      if (tabBtn) switchTab("forecast", tabBtn);
-
       runSimulation();
     }
 
     function runSimulation() {
-      const openingCash = readAmount("simCash");
-      const baseRev = readAmount("simRev");
-      const baseBurn = readAmount("simBurn");
+      const cash = parseFloat($("simCash").value) || 0;
+      const baseRev = parseFloat($("simRev").value) || 0;
+      const baseBurn = parseFloat($("simBurn").value) || 0;
       const growthRate = (parseFloat($("simGrowth").value) || 0) / 100;
-      const scaleMultiplier = (parseInt($("scaleSlider").value, 10) || 100) / 100;
+      const scale = (parseFloat($("scaleSlider").value) || 100) / 100;
       const windowMode = $("simWindow").value;
 
-      setText("sliderVal", `${Math.round(scaleMultiplier * 100)}%`);
+      $("sliderVal").textContent = `${$("scaleSlider").value}%`;
 
-      const periods = windowMode === "monthly" ? 12 : 4;
-      const periodLabel = windowMode === "monthly" ? "Months" : "Weeks";
-
-      let totalProjectedRev = 0;
-      let totalProjectedBurn = 0;
-      let currentRev = baseRev * scaleMultiplier;
-      let currentBurn = baseBurn * scaleMultiplier;
+      const periods = windowMode === "weekly" ? 4 : 12;
+      let totalRev = 0;
+      let totalBurn = 0;
+      let currentRev = baseRev * scale;
+      const currentBurn = baseBurn * scale;
 
       for (let i = 0; i < periods; i++) {
-        totalProjectedRev += currentRev;
-        totalProjectedBurn += currentBurn;
+        totalRev += currentRev;
+        totalBurn += currentBurn;
         currentRev *= (1 + growthRate);
       }
 
-      const netCashYield = totalProjectedRev - totalProjectedBurn;
-      const endingCash = openingCash + netCashYield;
-      const opMargin = totalProjectedRev > 0 ? (netCashYield / totalProjectedRev) * 100 : 0;
+      const netYield = totalRev - totalBurn;
+      const endingCash = cash + netYield;
+      const margin = totalRev > 0 ? (netYield / totalRev) * 100 : 0;
 
-      // Runway Calculation
-      const netPeriodBurn = (totalProjectedBurn - totalProjectedRev) / periods;
-      let runwayText = "Infinite / Cash Positive";
-      let runwayViability = "HEALTHY";
-
-      if (netPeriodBurn > 0) {
-        const monthsOfRunway = openingCash / netPeriodBurn;
-        runwayText = `${monthsOfRunway.toFixed(1)} ${periodLabel}`;
-        if (monthsOfRunway < 3) runwayViability = "CRITICAL";
-        else if (monthsOfRunway < 6) runwayViability = "MODERATE";
-        else runwayViability = "STRONG";
+      const periodNetBurn = currentBurn - currentRev;
+      let runwayText = "SUSTAINABLE";
+      if (periodNetBurn > 0) {
+        const runway = cash / periodNetBurn;
+        runwayText = `${runway.toFixed(1)} ${windowMode === "weekly" ? "Weeks" : "Months"}`;
       }
 
-      setText("netVal", money(netCashYield));
-      setText("marginVal", `${opMargin.toFixed(1)}%`);
-      setText("endingCashVal", money(endingCash));
-      setText("runwayVal", runwayViability);
+      $("netVal").textContent = money(netYield);
+      $("marginVal").textContent = `${margin.toFixed(1)}%`;
+      $("endingCashVal").textContent = money(endingCash);
+      $("runwayVal").textContent = runwayText;
+      $("projectedRevVal").textContent = money(totalRev);
+      $("projectedBurnVal").textContent = money(totalBurn);
+    }
 
-      setText("projectionVal", `${periods} ${periodLabel}`);
-      setText("projectedRevVal", money(totalProjectedRev));
-      setText("projectedBurnVal", money(totalProjectedBurn));
-      setText("cashRunwayVal", runwayText);
+    /* =====================================================
+       7. EXPORT CAPABILITIES
+       ===================================================== */
+    function exportStmtAsCSV() {
+      const csvData = `Metric,Value\nRevenue,${parsedExtractedRev}\nOperating Expenses,${parsedExtractedBurn}\nCash Balance,${parsedCashBalance}\nCalculated Net Income,${parsedExtractedRev - parsedExtractedBurn}\n`;
+      const blob = new Blob([csvData], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "FORGE_Statement_Extraction.csv";
+      a.click();
+    }
+
+    function exportInvestorAuditJSON() {
+      const auditData = {
+        auditor: "FORGE Financial Engine (Yukti & Sahithya)",
+        timestamp: new Date().toISOString(),
+        user: localStorage.getItem(STORAGE_KEY),
+        extractedMetrics: {
+          revenue: parsedExtractedRev,
+          operatingExpenses: parsedExtractedBurn,
+          cashBalance: parsedCashBalance,
+          totalDebt: parsedExtractedDebt
+        },
+        evaluation: {
+          verdict: $("verdictVal").textContent,
+          healthScore: $("healthVal").textContent,
+          riskRating: $("flagVal").textContent
+        }
+      };
+      const blob = new Blob([JSON.stringify(auditData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "FORGE_Investor_Audit.json";
+      a.click();
     }
   </script>
 </body>
