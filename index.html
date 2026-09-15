@@ -1,1308 +1,6051 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="FORGE — Financial Intelligence & Investor Screening Platform built by Yukti and Sahithya." />
+  <meta
+    name="description"
+    content="FORGE — Financial Clarity Engine for financial document analysis, risk assessment and investor-ready reporting."
+  />
   <title>FORGE | Financial Clarity Engine</title>
 
-  <!-- External Parsers (Client-side, local execution, works on any connection) -->
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-  <script>
-    if (window['pdfjs-dist/build/pdf']) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-  </script>
-
-  <!-- SheetJS for XLSX/XLS/CSV parsing -->
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-  <!-- Mammoth for DOCX text extraction -->
-
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
   <style>
+    :root {
+      --bg: #070809;
+      --panel: #0d1012;
+      --panel-2: #111518;
+      --panel-3: #171b1e;
+      --border: #293036;
+      --border-soft: #1b2227;
+      --text: #f2f5f7;
+      --muted: #8b969f;
+      --muted-2: #626e77;
+      --accent: #a9f5d0;
+      --accent-2: #73c9aa;
+      --warning: #f3c66b;
+      --danger: #ff8585;
+      --blue: #9bbdff;
+      --radius: 16px;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .32);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    :root {
-      --bg-dark: #080808;
-      --panel-bg: #121212;
-      --card-bg: #1a1a1a;
-      --border-color: #2a2a2a;
-      --border-focus: #777777;
-      --text-main: #e5e5e5;
-      --text-muted: #888888;
-      --accent-white: #ffffff;
-      --alert-red: #d93838;
-      --warn-yellow: #d99b26;
-      --pass-green: #38d973;
+    html {
+      scroll-behavior: smooth;
     }
-
-    html { scroll-behavior: smooth; }
 
     body {
-      background: var(--bg-dark);
-      color: var(--text-main);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-      letter-spacing: -0.01em;
+      background:
+        radial-gradient(circle at 80% 0%, rgba(91, 116, 130, .11), transparent 32%),
+        linear-gradient(135deg, #070809, #0b0e10 55%, #080a0b);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
     }
 
-    button, input, select {
-      font: inherit;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    button:focus-visible, input:focus-visible, select:focus-visible {
-      outline: 2px solid var(--accent-white);
-      outline-offset: 3px;
-    }
-
-    /* ROBOTIC PRELOADER OVERLAY */
-    #loaderOverlay {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #000000;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-family: "Courier New", Courier, monospace;
-      color: #888;
-      transition: opacity 0.6s ease, visibility 0.6s ease;
-    }
-
-    .loader-box {
-      width: 90%;
-      max-width: 520px;
-      border: 1px solid #333;
-      padding: 30px;
-      background: #0a0a0a;
-      box-shadow: 0 0 30px rgba(255,255,255,0.05);
-      border-radius: 4px;
-    }
-
-    .loader-title {
-      color: #fff;
-      font-size: 1.1rem;
-      font-weight: 700;
-      letter-spacing: 2px;
-      margin-bottom: 5px;
-      text-transform: uppercase;
-    }
-
-    .loader-credits {
-      color: #aaa;
-      font-size: 0.8rem;
-      letter-spacing: 1px;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #222;
-      padding-bottom: 10px;
-    }
-
-    .terminal-logs {
-      font-size: 0.75rem;
-      color: #777;
-      min-height: 100px;
-      margin-bottom: 15px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      gap: 4px;
-    }
-
-    .terminal-logs .line {
-      color: #ccc;
-    }
-    .terminal-logs .line::before {
-      content: "> ";
-      color: #555;
-    }
-
-    .progress-bar-wrap {
-      width: 100%;
-      height: 6px;
-      background: #222;
-      border-radius: 3px;
+    body.locked {
       overflow: hidden;
     }
 
-    .progress-bar-fill {
-      width: 0%;
-      height: 100%;
-      background: #fff;
-      transition: width 0.15s ease;
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
     }
 
-    /* MANDATORY GATEWAY MODAL */
-    #loginModal {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.92);
-      backdrop-filter: blur(15px);
-      z-index: 8888;
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      height: 76px;
       display: flex;
-      justify-content: center;
       align-items: center;
-      padding: 20px;
-    }
-
-    .modal-card {
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 40px;
-      width: 100%;
-      max-width: 480px;
-      text-align: center;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.9);
-    }
-
-    .modal-card h2 {
-      font-size: 1.4rem;
-      color: #fff;
-      margin-bottom: 10px;
-      letter-spacing: 2px;
-    }
-
-    .modal-card p {
-      color: #888;
-      font-size: 0.85rem;
-      margin-bottom: 25px;
-      line-height: 1.5;
-    }
-
-    /* HERO SECTION WITH ATMOSPHERIC BACKGROUND */
-    .hero-banner {
-      position: relative;
-      width: 100%;
-      height: 280px;
-      background: linear-gradient(180deg, rgba(8,8,8,0.4) 0%, rgba(8,8,8,1) 100%), 
-                  url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 40px 6%;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .hero-content h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: 3px;
-    }
-
-    .hero-content p {
-      color: #aaa;
-      font-size: 0.95rem;
-      max-width: 650px;
-      margin-top: 8px;
-      line-height: 1.5;
-    }
-
-    /* HEADER */
-    header {
-      padding: 18px 6%;
-      display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-      border-bottom: 1px solid var(--border-color);
-      background: rgba(8, 8, 8, 0.95);
-      backdrop-filter: blur(12px);
+      padding: 0 42px;
+      border-bottom: 1px solid var(--border-soft);
+      background: rgba(7, 8, 9, .84);
+      backdrop-filter: blur(18px);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 50;
     }
 
     .brand {
-      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .brand-name {
+      font-size: 25px;
       font-weight: 800;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      color: var(--accent-white);
+      letter-spacing: 8px;
+    }
+
+    .brand-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    .brand-subtitle {
+      color: #a5afb7;
+      font-size: 14px;
+    }
+
+    .top-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .brand-dot {
-      width: 8px;
-      height: 8px;
-      background: #888;
-      border-radius: 50%;
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-    }
-
-    .user-badge {
-      font-size: 0.75rem;
-      letter-spacing: 1.5px;
-      color: #fff;
-      text-transform: uppercase;
-      border: 1px solid #333;
-      padding: 6px 14px;
-      border-radius: 4px;
-      background: #141414;
+    .analyst-badge {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #0c1012;
+      color: var(--muted);
+      font-size: 11px;
     }
 
-    /* FOOTER */
-    footer {
-      margin-top: auto;
-      padding: 30px 24px;
+    .analyst-badge strong {
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    .ghost-button,
+    .primary-button,
+    .danger-button,
+    .small-button {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 11px 17px;
+      background: transparent;
+      color: var(--text);
+      transition: .2s ease;
+    }
+
+    .ghost-button:hover,
+    .small-button:hover {
+      border-color: #65737d;
+      background: #151a1d;
+    }
+
+    .primary-button {
+      background: var(--text);
+      color: #080909;
+      border-color: var(--text);
+      font-weight: 700;
+    }
+
+    .primary-button:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .danger-button {
+      color: var(--danger);
+      border-color: rgba(255, 133, 133, .35);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 238px minmax(0, 1fr);
+      min-height: calc(100vh - 76px);
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border-soft);
+      padding: 28px 16px;
+      background: rgba(8, 10, 11, .72);
+    }
+
+    .sidebar-label {
+      color: var(--muted-2);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 12px 14px;
+    }
+
+    .nav-button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 14px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+      margin-bottom: 5px;
+    }
+
+    .nav-button:hover,
+    .nav-button.active {
+      color: var(--text);
+      background: #171c20;
+      border-color: var(--border);
+    }
+
+    .nav-icon {
+      width: 18px;
       text-align: center;
-      border-top: 1px solid var(--border-color);
-      color: var(--text-muted);
-      font-size: 0.75rem;
-      letter-spacing: 1px;
-      line-height: 1.6;
-      background: #050505;
+      color: #aab5bc;
     }
 
-    footer .disclaimer {
-      max-width: 850px;
-      margin: 12px auto 0;
-      font-size: 0.7rem;
-      color: #666;
-      border: 1px dashed #222;
-      padding: 12px;
-      border-radius: 4px;
+    .sidebar-bottom {
+      margin-top: 42px;
+      padding: 18px 14px;
+      border-top: 1px solid var(--border-soft);
+      color: var(--muted);
+      font-size: 12px;
     }
 
-    /* LAYOUT & CARDS */
-    .container {
-      width: 90%;
-      max-width: 1100px;
-      margin: 30px auto;
-      flex: 1;
+    .main {
+      min-width: 0;
+      padding: 34px;
     }
 
-    h2 {
-      font-size: 1.1rem;
-      margin-bottom: 8px;
-      color: #f5f5f5;
+    .hero {
+      min-height: 330px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      background:
+        linear-gradient(90deg, rgba(5, 7, 8, .98) 0%, rgba(5, 7, 8, .86) 37%, rgba(5, 7, 8, .28) 100%),
+        linear-gradient(180deg, rgba(5, 7, 8, .1), rgba(5, 7, 8, .72)),
+        url("assets/forge-hero.png") center / cover no-repeat,
+        url("forge-hero.png") center / cover no-repeat,
+        radial-gradient(circle at 80% 30%, #273039, #090b0c 65%);
+      box-shadow: var(--shadow);
     }
 
-    p.subtitle {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-bottom: 20px;
-      line-height: 1.5;
+    .hero-content {
+      width: min(680px, 100%);
+      padding: 42px;
+      position: relative;
+      z-index: 2;
     }
 
-    .input-group {
+    .eyebrow {
+      color: #b7c4cc;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 11px;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 4vw, 58px);
+      line-height: 1.05;
+      letter-spacing: -2px;
+      max-width: 620px;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 span {
+      color: #b8c6d0;
+    }
+
+    .hero p {
+      color: #b2bec7;
+      max-width: 560px;
+      font-size: 15px;
+      margin-bottom: 25px;
+    }
+
+    .hero-actions {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
     }
 
-    input[type="text"], input[type="number"], select, input[type="file"] {
-      background: #000;
-      border: 1px solid var(--border-color);
-      color: #fff;
-      padding: 12px 16px;
-      border-radius: 4px;
-      outline: none;
-      font-size: 0.88rem;
-      transition: border-color 0.2s;
+    .hero-note {
+      margin-top: 18px;
+      color: #87949d;
+      font-size: 11px;
+    }
+
+    .page-section {
+      margin-top: 28px;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 15px;
+    }
+
+    .section-heading h2 {
+      font-size: 19px;
+      letter-spacing: -.4px;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, .85fr);
+      gap: 18px;
+    }
+
+    .panel {
+      min-width: 0;
+      border: 1px solid var(--border);
+      background: linear-gradient(145deg, rgba(17, 21, 24, .96), rgba(10, 13, 15, .96));
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .panel-title h3 {
+      font-size: 15px;
+    }
+
+    .panel-title span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .upload-zone {
+      min-height: 235px;
+      border: 1px dashed #4a5963;
+      border-radius: 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 28px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(133, 158, 175, .09), transparent 60%),
+        rgba(4, 7, 8, .3);
+      transition: .2s ease;
+    }
+
+    .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(169, 245, 208, .06);
+    }
+
+    .upload-symbol {
+      width: 60px;
+      height: 60px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #48545d;
+      border-radius: 17px;
+      font-size: 28px;
+      margin-bottom: 16px;
+      color: #c4d0d8;
+    }
+
+    .upload-zone h3 {
+      font-size: 18px;
+      margin-bottom: 7px;
+    }
+
+    .upload-zone p {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 17px;
+    }
+
+    .format-list {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 17px;
+    }
+
+    .format-chip,
+    .status-chip,
+    .statement-chip {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: var(--muted);
+      font-size: 10px;
+      background: #101417;
+    }
+
+    .status-chip.success {
+      color: var(--accent);
+      border-color: rgba(169, 245, 208, .25);
+      background: rgba(169, 245, 208, .06);
+    }
+
+    .status-chip.warning {
+      color: var(--warning);
+      border-color: rgba(243, 198, 107, .25);
+    }
+
+    .status-chip.danger {
+      color: var(--danger);
+      border-color: rgba(255, 133, 133, .25);
+    }
+
+    .status-chip.info {
+      color: var(--blue);
+      border-color: rgba(155, 189, 255, .25);
+      background: rgba(155, 189, 255, .05);
+    }
+
+    .recent-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .recent-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px;
+      border: 1px solid var(--border-soft);
+      border-radius: 11px;
+      background: #0c1012;
+    }
+
+    .file-icon {
+      width: 37px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: #c6d0d6;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .recent-details {
+      flex: 1;
       min-width: 0;
     }
 
-    input[type="text"]:focus, input[type="number"]:focus, select:focus, input[type="file"]:focus {
-      border-color: var(--border-focus);
-      background: #050505;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: #a3a3a3;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    input[type="file"] {
-      width: 100%;
-      cursor: pointer;
-    }
-
-    input[type="file"]::file-selector-button {
-      background: #262626;
-      color: #e5e5e5;
-      border: 1px solid var(--border-color);
-      border-radius: 3px;
-      padding: 6px 10px;
-      margin-right: 10px;
-      cursor: pointer;
-    }
-
-    .btn {
-      background: var(--accent-white);
-      color: #000;
-      border: 1px solid transparent;
-      padding: 12px 24px;
-      border-radius: 4px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 1.5px;
-      white-space: nowrap;
-    }
-
-    .btn:hover {
-      background: #ccc;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: transparent;
-      color: #d4d4d4;
-      border-color: var(--border-color);
-    }
-
-    .btn-secondary:hover {
-      background: var(--card-bg);
-      color: #fff;
-      border-color: #525252;
-    }
-
-    .btn-danger {
-      background: #171717;
-      color: #aaa;
-      border-color: #333;
-    }
-
-    .btn-danger:hover {
-      background: #222;
-      color: #fff;
-    }
-
-    /* TABS */
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 12px;
-      overflow-x: auto;
-    }
-
-    .tab-btn {
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text-muted);
-      padding: 10px 18px;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-
-    .tab-btn.active {
-      color: var(--accent-white);
-      background: var(--panel-bg);
-      border-color: var(--border-color);
-    }
-
-    .feature-panel {
-      display: none;
-      background: var(--panel-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 32px;
-    }
-
-    .feature-panel.active { display: block; }
-
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      padding: 24px;
-      border-radius: 6px;
-    }
-
-    .field-label {
+    .recent-details strong {
       display: block;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .full-width { width: 100%; }
-
-    /* OUTPUT & METRICS */
-    .analysis-output {
-      margin-top: 24px;
-      background: #050505;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 24px;
-      display: none;
+    .recent-details span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 3px;
     }
 
-    .output-header {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #262626;
-      display: flex;
-      justify-content: space-between;
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 12px;
     }
 
-    .analysis-list { list-style: none; }
-    .analysis-list li {
-      padding: 12px 0;
-      border-bottom: 1px solid #171717;
-      font-size: 0.85rem;
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .analysis-list li .lbl { color: var(--text-muted); flex: 1; }
-    .analysis-list li .val { color: var(--accent-white); font-weight: 600; text-align: right; }
-
-    /* RED FLAGS LISTING */
-    .red-flag-box {
-      margin-top: 20px;
-      background: #110000;
-      border: 1px solid #441111;
-      padding: 18px;
-      border-radius: 6px;
+    .metric-card {
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 17px;
+      background: linear-gradient(145deg, #111619, #0b0f11);
+      min-width: 0;
     }
 
-    .red-flag-title {
-      color: #ff5555;
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+    .metric-label {
+      color: var(--muted);
+      font-size: 11px;
       margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 23px;
+      font-weight: 750;
+      letter-spacing: -.7px;
+      overflow-wrap: anywhere;
+    }
+
+    .metric-meta {
+      color: var(--muted-2);
+      font-size: 10px;
+      margin-top: 7px;
+    }
+
+    .metric-meta.good {
+      color: var(--accent-2);
+    }
+
+    .metric-meta.bad {
+      color: var(--danger);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .health-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 17px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border-soft);
     }
 
-    .red-flag-list {
-      list-style: disc;
-      padding-left: 20px;
-      color: #d8a0a0;
-      font-size: 0.82rem;
-      line-height: 1.6;
+    .health-row:last-child {
+      border-bottom: 0;
     }
 
-    .warning-banner {
-      background: #261a00;
-      border: 1px solid #664400;
-      color: #ffcc66;
-      padding: 12px 16px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      margin-top: 15px;
-      display: none;
-      line-height: 1.5;
+    .health-row strong {
+      display: block;
+      font-size: 12px;
     }
 
-    .metrics-row {
+    .health-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    .health-value {
+      margin-left: auto;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .risk-layout {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
-      margin-top: 20px;
+      grid-template-columns: 150px minmax(0, 1fr);
+      align-items: center;
+      gap: 22px;
     }
 
-    .metric-card {
-      background: #0a0a0a;
-      border: 1px solid var(--border-color);
-      padding: 20px;
-      border-radius: 4px;
+    .risk-ring {
+      width: 145px;
+      height: 145px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--accent) 0deg, var(--accent) 230deg, #354047 230deg, #354047 360deg);
+      position: relative;
+    }
+
+    .risk-ring::after {
+      content: "";
+      position: absolute;
+      inset: 11px;
+      background: #0d1113;
+      border-radius: 50%;
+    }
+
+    .risk-ring-content {
+      position: relative;
+      z-index: 2;
       text-align: center;
     }
 
-    .metric-card .val {
-      font-size: 1.2rem;
+    .risk-ring-content strong {
+      display: block;
+      font-size: 33px;
+      letter-spacing: -1px;
+    }
+
+    .risk-ring-content span {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .risk-legend {
+      display: grid;
+      gap: 13px;
+    }
+
+    .legend-line {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .legend-dot.warning {
+      background: var(--warning);
+    }
+
+    .legend-dot.danger {
+      background: var(--danger);
+    }
+
+    .statement-tabs {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-bottom: 17px;
+    }
+
+    .statement-tab {
+      border: 1px solid var(--border);
+      background: #0c1012;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 11px;
+    }
+
+    .statement-tab.active {
+      color: #07100c;
+      background: var(--accent);
+      border-color: var(--accent);
       font-weight: 700;
-      color: #fff;
-      margin-top: 8px;
     }
 
-    .metric-card .lbl {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border-soft);
+      border-radius: 11px;
     }
 
-    .spinner {
-      display: none;
-      margin: 20px 0;
-      color: var(--accent-white);
-      font-size: 0.85rem;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      font-size: 11px;
+    }
+
+    th,
+    td {
+      padding: 12px 13px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: top;
+    }
+
+    th {
+      background: #14191c;
+      color: #aebac2;
+      font-weight: 650;
+    }
+
+    td {
+      color: #cbd4da;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td.numeric,
+    th.numeric {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .evidence {
+      color: var(--muted);
+      max-width: 340px;
+      white-space: normal;
+      line-height: 1.45;
+    }
+
+    .risk-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .risk-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--border-soft);
+      border-radius: 11px;
+      background: #0b0f11;
+    }
+
+    .risk-mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: rgba(255, 133, 133, .08);
+      color: var(--danger);
+      border: 1px solid rgba(255, 133, 133, .2);
+      flex-shrink: 0;
+    }
+
+    .risk-item.warning .risk-mark {
+      color: var(--warning);
+      background: rgba(243, 198, 107, .08);
+      border-color: rgba(243, 198, 107, .2);
+    }
+
+    .risk-item.good .risk-mark {
+      color: var(--accent);
+      background: rgba(169, 245, 208, .08);
+      border-color: rgba(169, 245, 208, .2);
+    }
+
+    .risk-item.info .risk-mark {
+      color: var(--blue);
+      background: rgba(155, 189, 255, .08);
+      border-color: rgba(155, 189, 255, .2);
+    }
+
+    .risk-item strong {
+      font-size: 12px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .risk-item p {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .thesis {
+      display: grid;
+      gap: 15px;
+    }
+
+    .thesis-block {
+      padding: 15px;
+      border: 1px solid var(--border-soft);
+      border-radius: 11px;
+      background: #0b0f11;
+    }
+
+    .thesis-block h4 {
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .thesis-block p,
+    .thesis-block li {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .thesis-block ul {
+      padding-left: 18px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .export-button {
+      border: 1px solid var(--border);
+      background: #0c1012;
+      color: var(--text);
+      border-radius: 11px;
+      padding: 14px 10px;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .export-button:hover {
+      background: #171d21;
+      border-color: #64717b;
+    }
+
+    .audit-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .audit-card {
+      border: 1px solid var(--border-soft);
+      background: #0b0f11;
+      border-radius: 11px;
+      padding: 15px;
+    }
+
+    .audit-card strong {
+      display: block;
+      font-size: 21px;
+      margin-bottom: 4px;
+    }
+
+    .audit-card span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .empty-state {
+      padding: 32px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .progress-area {
+      margin-top: 18px;
+    }
+
+    .progress-track {
+      height: 5px;
+      background: #252d32;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width .2s ease;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 10px;
+      margin-bottom: 7px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      max-width: 360px;
+      padding: 15px 17px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #151b1f;
+      box-shadow: var(--shadow);
+      color: var(--text);
+      font-size: 12px;
+      z-index: 400;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .76);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      z-index: 500;
+      backdrop-filter: blur(8px);
+    }
+
+    .modal {
+      width: min(520px, 100%);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(169,245,208,.05), transparent 40%),
+        #0d1113;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-brand {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 4px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    .modal h2 {
+      font-size: 23px;
+      margin-bottom: 8px;
+    }
+
+    .modal p {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+
+    .modal input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: #080b0d;
+      color: var(--text);
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    .modal input:focus {
+      border-color: var(--accent);
+    }
+
+    .modal-error {
+      color: var(--danger);
+      font-size: 11px;
+      min-height: 17px;
+      margin-bottom: 10px;
+    }
+
+    .modal-note {
+      color: var(--muted-2);
+      font-size: 10px;
+      margin-top: 14px;
+    }
+
+    .loading-screen {
+      position: fixed;
+      inset: 0;
+      background: #070809;
+      display: grid;
+      place-items: center;
+      z-index: 600;
+      transition: opacity .5s ease;
+    }
+
+    .loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loader-content {
+      text-align: center;
+    }
+
+    .loader-logo {
+      font-size: 40px;
+      letter-spacing: 12px;
+      font-weight: 800;
+      margin-bottom: 22px;
+    }
+
+    .loader-line {
+      width: 220px;
+      height: 2px;
+      background: #252d32;
+      overflow: hidden;
+      margin: auto;
+    }
+
+    .loader-line span {
+      display: block;
+      height: 100%;
+      width: 45%;
+      background: var(--accent);
+      animation: loadLine 1.2s infinite ease-in-out;
+    }
+
+    .loader-status {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 14px;
       letter-spacing: 1px;
-      text-transform: uppercase;
     }
 
-    .error-msg {
-      display: none;
-      margin-top: 15px;
-      padding: 12px;
-      background: #1a0808;
-      border: 1px solid #4a1515;
-      color: #ff8888;
-      font-size: 0.8rem;
-      border-radius: 4px;
+    @keyframes loadLine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(320%); }
     }
 
-    /* MONOCHROME STATUS TAGS */
-    .status-tag {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 3px;
-      font-weight: 700;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-    }
-    .status-high { background: #fff; color: #000; }
-    .status-med { background: #666; color: #fff; }
-    .status-low { background: #222; color: #888; border: 1px solid #333; }
+    @media (max-width: 1250px) {
+      .metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
 
-    @media (max-width: 600px) {
-      .hero-banner { height: 220px; padding: 20px 5%; }
-      .hero-content h1 { font-size: 1.5rem; }
-      .container { width: 94%; }
-      .feature-panel { padding: 20px; }
-      .analysis-list li { flex-direction: column; gap: 4px; }
-      .analysis-list li .val { text-align: left; }
+      .layout {
+        grid-template-columns: 205px minmax(0, 1fr);
+      }
+
+      .main {
+        padding: 24px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        padding: 0 20px;
+      }
+
+      .brand-subtitle,
+      .brand-divider {
+        display: none;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      .sidebar {
+        display: flex;
+        gap: 5px;
+        overflow-x: auto;
+        padding: 12px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border-soft);
+      }
+
+      .sidebar-label,
+      .sidebar-bottom {
+        display: none;
+      }
+
+      .nav-button {
+        width: auto;
+        white-space: nowrap;
+        margin: 0;
+      }
+
+      .workspace-grid,
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-content {
+        padding: 30px;
+      }
+
+      .audit-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .topbar {
+        height: auto;
+        min-height: 70px;
+        gap: 15px;
+        padding: 15px;
+      }
+
+      .brand-name {
+        font-size: 21px;
+        letter-spacing: 5px;
+      }
+
+      .top-actions .ghost-button,
+      .analyst-badge {
+        display: none;
+      }
+
+      .main {
+        padding: 15px;
+      }
+
+      .hero {
+        min-height: 390px;
+        background-position: 66% center;
+      }
+
+      .hero-content {
+        padding: 24px;
+        align-self: flex-end;
+        background: linear-gradient(0deg, rgba(5, 7, 8, .95), transparent);
+      }
+
+      .hero h1 {
+        font-size: 34px;
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .metric-card {
+        padding: 13px;
+      }
+
+      .metric-value {
+        font-size: 20px;
+      }
+
+      .risk-layout {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .risk-legend {
+        width: 100%;
+      }
+
+      .export-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .audit-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
-
 </head>
-<body>
 
-  <!-- ROBOTIC SEQUENCE PRELOADER -->
+<body class="locked">
 
-  <div id="loaderOverlay">
-    <div class="loader-box">
-      <div class="loader-title">SYSTEM INITIALIZATION</div>
-      <div class="loader-credits">BUILT BY YUKTI AND SAHITHYA</div>
-      <div class="terminal-logs" id="terminalLogs">
-        <div class="line">Booting FORGE core kernel v4.0...</div>
-      </div>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" id="loaderBar"></div>
+  <!-- NAME GATE -->
+  <div class="modal-backdrop" id="nameGate">
+    <div class="modal">
+      <div class="modal-brand">FORGE</div>
+
+      <h2>Enter your name to continue</h2>
+
+      <p>
+        FORGE uses your name only to identify the analyst working in this
+        browser session. No account or server upload is required.
+      </p>
+
+      <input
+        type="text"
+        id="analystNameInput"
+        maxlength="60"
+        autocomplete="name"
+        placeholder="Enter your name"
+      />
+
+      <div class="modal-error" id="nameError"></div>
+
+      <button class="primary-button" id="enterForgeButton" style="width:100%;">
+        Enter FORGE →
+      </button>
+
+      <div class="modal-note">
+        Your financial documents remain in your browser during analysis.
       </div>
     </div>
   </div>
 
-  <!-- MANDATORY LOGIN GATEWAY MODAL -->
-
-  <div id="loginModal" style="display: none;">
-    <div class="modal-card">
-      <h2>AUTHENTICATION</h2>
-      <p>Please enter your full name to unlock the workspace. Access is restricted until identity is registered.</p>
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <input type="text" id="modalUserName" placeholder="Enter full name..." maxlength="80" autocomplete="off" />
-        <button class="btn" id="modalLoginBtn" type="button">Access Terminal</button>
-      </div>
-      <div id="modalErr" class="error-msg" style="margin-top:10px;"></div>
+  <!-- LOADING SCREEN -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loader-content">
+      <div class="loader-logo">FORGE</div>
+      <div class="loader-line"><span></span></div>
+      <div class="loader-status">INITIALISING FINANCIAL CLARITY ENGINE</div>
     </div>
   </div>
 
-  <!-- MAIN HEADER -->
+  <div class="app-shell" id="appShell">
 
-  <header>
-    <div class="brand">
-      <div class="brand-dot"></div>
-      FORGE
-    </div>
-    <div id="userBadgeDisplay" class="user-badge" style="display:none;">
-      <span id="userBadgeName">USER</span>
-      <button class="btn btn-danger" id="logoutBtn" style="padding: 2px 8px; font-size: 0.65rem;">Reset</button>
-    </div>
-  </header>
-
-  <!-- SERIOUS HERO SECTION -->
-
-  <section class="hero-banner">
-    <div class="hero-content">
-      <h1>FINANCIAL CLARITY ENGINE</h1>
-      <p>Institutional-grade quantitative analysis, financial document parsing, multi-variable runway projections, and accurate investor screening.</p>
-    </div>
-  </section>
-
-  <!-- MAIN WORKSPACE -->
-
-  <main class="container">
-
-<!-- TABS NAV -->
-<nav class="tabs" aria-label="Financial tools">
-  <button class="tab-btn active" type="button" data-tab="doc-intel">1. Statement Scanner</button>
-  <button class="tab-btn" type="button" data-tab="ten-k">2. 10-K &amp; Filing Screening</button>
-  <button class="tab-btn" type="button" data-tab="forecast">3. Forecast Simulator</button>
-</nav>
-
-<!-- TAB 1: STATEMENT SCANNER -->
-<section id="doc-intel" class="feature-panel active">
-  <h2>FINANCIAL STATEMENT SCANNER</h2>
-  <p class="subtitle">Upload financial statements across PDF, XLSX, XLS, CSV, DOC, DOCX, or TXT formats for real-time item detection.</p>
-
-  <div class="grid-2" style="margin-bottom:20px;">
-    <div>
-      <label class="field-label" for="stmtType">Document Classification</label>
-      <select id="stmtType" class="full-width">
-        <option value="auto">Auto-Detect Document Type</option>
-        <option value="income">Income Statement / P&amp;L</option>
-        <option value="balance_sheet">Balance Sheet</option>
-        <option value="cashflow">Cash Flow Statement</option>
-      </select>
-    </div>
-
-    <div>
-      <label class="field-label" for="stmtFile">Upload Document (PDF, XLSX, XLS, CSV, DOC, DOCX, TXT)</label>
-      <input type="file" id="stmtFile" accept=".pdf,.xlsx,.xls,.csv,.doc,.docx,.txt" />
-    </div>
-  </div>
-
-  <button class="btn" id="analyzeStatementBtn" type="button">Scan &amp; Extract Document</button>
-
-  <div id="stmtSpinner" class="spinner">⚙️ Extracting line items and executing quantitative analysis...</div>
-  <div id="stmtError" class="error-msg"></div>
-  <div id="stmtWarn" class="warning-banner"></div>
-
-  <div id="stmtOutput" class="analysis-output">
-    <div class="output-header">
-      <span>Extraction Summary</span>
-      <span class="status-tag status-high" id="detectedTag">SUCCESS</span>
-    </div>
-
-    <ul class="analysis-list" id="stmtResults"></ul>
-
-    <div class="flex-actions" style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
-      <button class="btn btn-secondary" id="syncBtn" type="button">Import Numbers into Simulator →</button>
-      <button class="btn btn-secondary" id="exportStmtCsv" type="button">Export Extracted CSV</button>
-    </div>
-  </div>
-</section>
-
-<!-- TAB 2: 10-K & FILING SCANNER -->
-<section id="ten-k" class="feature-panel">
-  <h2>10-K &amp; INVESTOR SCREENER</h2>
-  <p class="subtitle">Evaluate corporate filings for investment suitability. Calculates profit margins, debt ratios, and highlights specific red flags.</p>
-
-  <div class="subsection" style="margin-bottom:20px;">
-    <label class="field-label" for="tenkFile">Upload Corporate Filing / 10-K (PDF, XLSX, XLS, CSV, DOC, DOCX, TXT)</label>
-    <input type="file" id="tenkFile" accept=".pdf,.xlsx,.xls,.csv,.doc,.docx,.txt" />
-  </div>
-
-  <button class="btn" id="analyzeInvestorBtn" type="button">Run Investor Analysis</button>
-
-  <div id="tenkSpinner" class="spinner">⚙️ Evaluating investment criteria &amp; scanning red flags...</div>
-  <div id="tenkError" class="error-msg"></div>
-  <div id="tenkWarn" class="warning-banner"></div>
-
-  <div id="tenkOutput" class="analysis-output">
-    <div class="output-header">Investment Recommendation &amp; Audit</div>
-
-    <div class="metrics-row" style="margin-bottom:20px;">
-      <div class="metric-card">
-        <div class="lbl">Verdict</div>
-        <div class="val" id="verdictVal">--</div>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-name">FORGE</div>
+        <div class="brand-divider"></div>
+        <div class="brand-subtitle">Financial Clarity Engine</div>
       </div>
-      <div class="metric-card">
-        <div class="lbl">Health Score</div>
-        <div class="val" id="healthVal">--</div>
-      </div>
-      <div class="metric-card">
-        <div class="lbl">Risk Rating</div>
-        <div class="val" id="flagVal">--</div>
-      </div>
-    </div>
 
-    <!-- RED FLAGS CONTAINER -->
-    <div id="redFlagWrapper" class="red-flag-box" style="display:none;">
-      <div class="red-flag-title">⚠️ Detected Risk Factors &amp; Red Flags</div>
-      <ul class="red-flag-list" id="redFlagsList"></ul>
-    </div>
-
-    <ul class="analysis-list" id="tenkResults" style="margin-top:20px;"></ul>
-
-    <div class="flex-actions" style="margin-top:20px;">
-      <button class="btn btn-secondary" id="exportInvestorJson" type="button">Export Investor Audit (JSON)</button>
-    </div>
-  </div>
-</section>
-
-<!-- TAB 3: FORECAST SIMULATOR -->
-<section id="forecast" class="feature-panel">
-  <h2>FORECAST SIMULATOR</h2>
-  <p class="subtitle">Dynamic multi-period cash projection engine driven by imported document metrics.</p>
-
-  <div id="simLockedNotice" class="card" style="text-align:center; padding:30px;">
-    🔒 <strong>Simulator Locked:</strong> Scan and import a statement in Tab 1 or Tab 2 to unlock projections.
-  </div>
-
-  <div id="simContent" style="display:none;">
-    <div class="grid-3" style="margin-bottom:20px;">
-      <div>
-        <label class="field-label" for="simCash">Opening Cash Balance ($)</label>
-        <input type="number" id="simCash" value="0" min="0" step="0.01" class="full-width" />
-      </div>
-      <div>
-        <label class="field-label" for="simRev">Base Period Revenue ($)</label>
-        <input type="number" id="simRev" value="0" min="0" step="0.01" class="full-width" />
-      </div>
-      <div>
-        <label class="field-label" for="simBurn">Base Period Operating Expenses ($)</label>
-        <input type="number" id="simBurn" value="0" min="0" step="0.01" class="full-width" />
-      </div>
-    </div>
-
-    <div class="grid-2" style="margin-bottom:20px;">
-      <div>
-        <label class="field-label" for="simWindow">Projection Horizon</label>
-        <select id="simWindow" class="full-width">
-          <option value="monthly">12 Months Projections</option>
-          <option value="weekly">4 Weeks Projections</option>
-        </select>
-      </div>
-      <div>
-        <label class="field-label" for="simGrowth">Revenue Compound Growth Rate (%)</label>
-        <input type="number" id="simGrowth" value="0" min="-100" max="1000" step="0.1" class="full-width" />
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:20px;">
-      <div style="display:flex; justify-content:space-between;">
-        <span class="field-label">Operating Scale Multiplier</span>
-        <strong id="sliderVal" style="color:#fff;">100%</strong>
-      </div>
-      <input type="range" id="scaleSlider" min="50" max="200" value="100" step="5" />
-    </div>
-
-    <div id="simOutput" class="analysis-output" style="display:block;">
-      <div class="output-header">Simulation Calculations</div>
-      <div class="metrics-row">
-        <div class="metric-card">
-          <div class="lbl">Net Cash Yield</div>
-          <div class="val" id="netVal">$0.00</div>
+      <div class="top-actions">
+        <div class="analyst-badge">
+          Analyst:
+          <strong id="analystNameDisplay">—</strong>
         </div>
-        <div class="metric-card">
-          <div class="lbl">Operating Margin</div>
-          <div class="val" id="marginVal">0.0%</div>
-        </div>
-        <div class="metric-card">
-          <div class="lbl">Ending Cash</div>
-          <div class="val" id="endingCashVal">$0.00</div>
-        </div>
-        <div class="metric-card">
-          <div class="lbl">Estimated Runway</div>
-          <div class="val" id="runwayVal">--</div>
-        </div>
-      </div>
 
-      <ul class="analysis-list" style="margin-top:20px;">
-        <li><span class="lbl">Total Projected Revenue</span><span class="val" id="projectedRevVal">$0.00</span></li>
-        <li><span class="lbl">Total Projected Expenses</span><span class="val" id="projectedBurnVal">$0.00</span></li>
-      </ul>
+        <button class="ghost-button" id="resetButton">
+          Reset Workspace
+        </button>
+
+        <button class="primary-button" id="topUploadButton">
+          Get Started →
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+
+      <aside class="sidebar">
+        <div class="sidebar-label">Workspace</div>
+
+        <button class="nav-button active" data-section="home">
+          <span class="nav-icon">⌂</span>
+          Home
+        </button>
+
+        <button class="nav-button" data-section="analysis">
+          <span class="nav-icon">⌕</span>
+          Analyse
+        </button>
+
+        <button class="nav-button" data-section="statements">
+          <span class="nav-icon">▤</span>
+          Statements
+        </button>
+
+        <button class="nav-button" data-section="risks">
+          <span class="nav-icon">◈</span>
+          Risk Analysis
+        </button>
+
+        <button class="nav-button" data-section="reports">
+          <span class="nav-icon">↗</span>
+          Reports
+        </button>
+
+        <div class="sidebar-bottom">
+          Real data.<br />
+          Deeper insights.<br />
+          Smarter investors.
+        </div>
+      </aside>
+
+      <main class="main">
+
+        <!-- HERO -->
+        <section class="hero" id="home">
+          <div class="hero-content">
+
+            <div class="eyebrow">
+              From documents to decisions
+            </div>
+
+            <h1>
+              Smarter <span>Analysis.</span><br />
+              Better Investment<br />
+              Decisions.
+            </h1>
+
+            <p>
+              FORGE scans financial documents, identifies financial statements,
+              calculates meaningful ratios, highlights risk signals and creates
+              investor-ready reports without inventing missing figures.
+            </p>
+
+            <div class="hero-actions">
+              <button class="primary-button" id="heroUploadButton">
+                Upload Financial Document →
+              </button>
+
+              <button class="ghost-button" id="sampleButton">
+                Load Sample Workspace
+              </button>
+            </div>
+
+            <div class="hero-note">
+              Browser-based analysis · No account required · No financial data uploaded to a server
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ANALYSIS -->
+        <section class="page-section" id="analysis">
+
+          <div class="section-heading">
+            <div>
+              <h2>Financial Document Workspace</h2>
+              <p>
+                Upload a report to begin evidence-backed analysis.
+              </p>
+            </div>
+
+            <span class="status-chip" id="scanStatus">
+              Awaiting document
+            </span>
+          </div>
+
+          <div class="workspace-grid">
+
+            <div class="panel">
+
+              <div class="panel-title">
+                <h3>Upload Your Financial Document</h3>
+                <span>Table-aware extraction</span>
+              </div>
+
+              <div class="upload-zone" id="uploadZone">
+
+                <div class="upload-symbol">↥</div>
+
+                <h3>Drop your file here</h3>
+
+                <p>
+                  Or select a financial document from your computer.
+                </p>
+
+                <button class="primary-button" id="browseButton">
+                  Browse Files
+                </button>
+
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.txt"
+                  hidden
+                />
+
+                <div class="format-list">
+                  <span class="format-chip">PDF</span>
+                  <span class="format-chip">XLSX</span>
+                  <span class="format-chip">XLS</span>
+                  <span class="format-chip">CSV</span>
+                  <span class="format-chip">DOCX</span>
+                  <span class="format-chip">TXT</span>
+                </div>
+
+              </div>
+
+              <div class="progress-area hidden" id="progressArea">
+
+                <div class="progress-label">
+                  <span id="progressText">Reading document...</span>
+                  <span id="progressPercent">0%</span>
+                </div>
+
+                <div class="progress-track">
+                  <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="panel">
+
+              <div class="panel-title">
+                <h3>Recent Analysis</h3>
+                <span>Local workspace</span>
+              </div>
+
+              <div class="recent-list" id="recentList">
+                <div class="empty-state">
+                  No documents analysed yet.<br />
+                  Your recent files will appear here.
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- METRICS -->
+        <section class="page-section">
+
+          <div class="section-heading">
+            <div>
+              <h2>Key Metrics Overview</h2>
+              <p>
+                Verified values and calculated indicators from the selected document.
+              </p>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+
+            <div class="metric-card">
+              <div class="metric-label">Revenue</div>
+              <div class="metric-value" id="metricRevenue">—</div>
+              <div class="metric-meta" id="metricRevenueMeta">Not available</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Net Income</div>
+              <div class="metric-value" id="metricNetIncome">—</div>
+              <div class="metric-meta" id="metricNetIncomeMeta">Not available</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Cash</div>
+              <div class="metric-value" id="metricCash">—</div>
+              <div class="metric-meta" id="metricCashMeta">Not available</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Total Debt</div>
+              <div class="metric-value" id="metricDebt">—</div>
+              <div class="metric-meta" id="metricDebtMeta">Not available</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Operating Cash Flow</div>
+              <div class="metric-value" id="metricCfo">—</div>
+              <div class="metric-meta" id="metricCfoMeta">Not available</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Total Equity</div>
+              <div class="metric-value" id="metricEquity">—</div>
+              <div class="metric-meta" id="metricEquityMeta">Not available</div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- HEALTH / RISK -->
+        <section class="page-section">
+
+          <div class="dashboard-grid">
+
+            <div class="panel">
+
+              <div class="panel-title">
+                <h3>Financial Health</h3>
+                <span id="healthStatus">Awaiting analysis</span>
+              </div>
+
+              <div id="healthRows">
+                <div class="empty-state">
+                  Upload a document to calculate financial health indicators.
+                </div>
+              </div>
+
+            </div>
+
+            <div class="panel">
+
+              <div class="panel-title">
+                <h3>Risk Assessment</h3>
+                <span>Evidence-weighted</span>
+              </div>
+
+              <div class="risk-layout">
+
+                <div class="risk-ring" id="riskRing">
+
+                  <div class="risk-ring-content">
+                    <strong id="riskScore">—</strong>
+                    <span id="riskLabel">No score</span>
+                  </div>
+
+                </div>
+
+                <div class="risk-legend">
+
+                  <div class="legend-line">
+                    <span class="legend-dot"></span>
+                    <span id="positiveCount">Positive signals: —</span>
+                  </div>
+
+                  <div class="legend-line">
+                    <span class="legend-dot warning"></span>
+                    <span id="warningCount">Watch items: —</span>
+                  </div>
+
+                  <div class="legend-line">
+                    <span class="legend-dot danger"></span>
+                    <span id="dangerCount">Critical flags: —</span>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- STATEMENTS -->
+        <section class="page-section" id="statements">
+
+          <div class="section-heading">
+            <div>
+              <h2>Financial Statements</h2>
+              <p>
+                Extracted line items, reporting periods and source evidence.
+              </p>
+            </div>
+
+            <span class="status-chip" id="statementStatus">
+              No statement detected
+            </span>
+          </div>
+
+          <div class="panel">
+
+            <div class="statement-tabs" id="statementTabs">
+
+              <button class="statement-tab active" data-statement="all">
+                All Statements
+              </button>
+
+              <button class="statement-tab" data-statement="income">
+                Income Statement
+              </button>
+
+              <button class="statement-tab" data-statement="balance">
+                Balance Sheet
+              </button>
+
+              <button class="statement-tab" data-statement="cashflow">
+                Cash Flow
+              </button>
+
+              <button class="statement-tab" data-statement="equity">
+                Changes in Equity
+              </button>
+
+            </div>
+
+            <div class="table-wrap">
+
+              <table>
+
+                <thead>
+                  <tr>
+                    <th>Statement</th>
+                    <th>Line Item</th>
+                    <th>Reporting Period</th>
+                    <th class="numeric">Value</th>
+                    <th>Confidence</th>
+                    <th>Source Evidence</th>
+                  </tr>
+                </thead>
+
+                <tbody id="statementTableBody">
+
+                  <tr>
+                    <td colspan="6" class="empty-state">
+                      Upload a document to view extracted statement data.
+                    </td>
+                  </tr>
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- RISKS -->
+        <section class="page-section" id="risks">
+
+          <div class="dashboard-grid">
+
+            <div class="panel">
+
+              <div class="panel-title">
+                <h3>Risk Signals</h3>
+                <span>Why the signal matters</span>
+              </div>
+
+              <div class="risk-list" id="riskList">
+
+                <div class="empty-state">
+                  Risk signals will appear after analysis.
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="panel">
+
+              <div class="panel-title">
+                <h3>Investor Rationale</h3>
+                <span>Decision support, not a guarantee</span>
+              </div>
+
+              <div class="thesis" id="thesis">
+
+                <div class="empty-state">
+                  Investor rationale will be generated from available evidence.
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- REPORTS -->
+        <section class="page-section" id="reports">
+
+          <div class="section-heading">
+
+            <div>
+              <h2>Professional Report Export</h2>
+              <p>
+                Generate a structured report with metrics, risks, rationale and methodology.
+              </p>
+            </div>
+
+          </div>
+
+          <div class="panel">
+
+            <div class="export-grid">
+
+              <button class="export-button" id="exportPdf">
+                ▧ PDF Report
+              </button>
+
+              <button class="export-button" id="exportHtml">
+                ▤ HTML Report
+              </button>
+
+              <button class="export-button" id="exportCsv">
+                ▥ CSV Data
+              </button>
+
+              <button class="export-button" id="printReport">
+                ⎙ Print Report
+              </button>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- AUDIT -->
+        <section class="page-section">
+
+          <div class="section-heading">
+
+            <div>
+              <h2>Data Quality & Audit Trail</h2>
+              <p>
+                FORGE distinguishes extracted values, calculations and missing information.
+              </p>
+            </div>
+
+          </div>
+
+          <div class="audit-grid">
+
+            <div class="audit-card">
+              <strong id="auditVerified">0</strong>
+              <span>Verified or strongly matched values</span>
+            </div>
+
+            <div class="audit-card">
+              <strong id="auditCalculated">0</strong>
+              <span>Calculated indicators</span>
+            </div>
+
+            <div class="audit-card">
+              <strong id="auditMissing">0</strong>
+              <span>Missing or manual-verification items</span>
+            </div>
+
+            <div class="audit-card">
+              <strong id="auditQuality">—</strong>
+              <span>Extraction quality</span>
+            </div>
+
+          </div>
+        </section>
+
+      </main>
     </div>
   </div>
-</section>
 
-  </main>
-
-  <!-- FOOTER WITH MANDATORY DISCLAIMER -->
-
-  <footer>
-    <div>FORGE FINANCIAL ENGINE &copy; 2026 | BUILT BY YUKTI AND SAHITHYA</div>
-    <div class="disclaimer">
-      <strong>DISCLAIMER &amp; NOTICE:</strong> FORGE was constructed exclusively as an academic project by Yukti and Sahithya. The automated extractions, financial calculations, and investor screening outputs provided by this software are for illustrative and testing purposes only and DO NOT constitute professional financial, investment, accounting, or legal advice.
-    </div>
-  </footer>
-
-  <!-- CORE LOGIC & PARSING SUITE -->
+  <div class="toast hidden" id="toast"></div>
 
   <script>
     "use strict";
 
-    const STORAGE_KEY = "forge_active_user";
+    /* ============================================================
+       FORGE STATE
+    ============================================================ */
 
-    // Global Extracted State
-    let parsedExtractedRev = 0;
-    let parsedExtractedBurn = 0;
-    let parsedCashBalance = 0;
-    let parsedExtractedDebt = 0;
-    let parsedDocumentType = "";
-    let parsedStatementReady = false;
+    const state = {
+      analystName: "",
+      unlocked: false,
+
+      file: null,
+      rawText: "",
+      rawLines: [],
+      rows: [],
+
+      statements: [],
+      metrics: {},
+      metricSources: {},
+      ratios: {},
+      risks: [],
+      thesis: {},
+
+      activeStatement: "all",
+
+      company: "Unknown company",
+
+      periods: [],
+      units: "Reported units",
+      multiplier: 1,
+      currency: "",
+
+      verified: 0,
+      calculated: 0,
+      missing: 0,
+
+      extractionQuality: "—",
+
+      demoMode: false
+    };
 
     const $ = (id) => document.getElementById(id);
 
-    const money = (val) => "$" + Number(val || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    /* ============================================================
+       BASIC HELPERS
+    ============================================================ */
 
-    /* =====================================================
-       1. ROBOTIC PRELOADER & USER GATEWAY LOGIC
-       ===================================================== */
-    window.addEventListener("DOMContentLoaded", () => {
-      runRoboticBootSequence(() => {
-        checkUserSession();
-      });
-      bindEvents();
+    const escapeHtml = (value) => {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    };
+
+    const cleanText = (text) => {
+      return String(text || "")
+        .replace(/\u00a0/g, " ")
+        .replace(/[ \t]+/g, " ")
+        .replace(/\r/g, "")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    };
+
+    const normaliseLabel = (text) => {
+      return String(text || "")
+        .toLowerCase()
+        .replace(/&/g, " and ")
+        .replace(/[^a-z0-9 ]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    };
+
+    const formatNumber = (value) => {
+      if (
+        value === null ||
+        value === undefined ||
+        !Number.isFinite(Number(value))
+      ) {
+        return "—";
+      }
+
+      const number = Number(value);
+      const absolute = Math.abs(number);
+      const sign = number < 0 ? "-" : "";
+
+      if (absolute >= 1e12) {
+        return `${sign}${(absolute / 1e12).toFixed(2)}T`;
+      }
+
+      if (absolute >= 1e9) {
+        return `${sign}${(absolute / 1e9).toFixed(2)}B`;
+      }
+
+      if (absolute >= 1e6) {
+        return `${sign}${(absolute / 1e6).toFixed(2)}M`;
+      }
+
+      if (absolute >= 1e3) {
+        return `${sign}${(absolute / 1e3).toFixed(2)}K`;
+      }
+
+      return `${sign}${absolute.toLocaleString("en-IN", {
+        maximumFractionDigits: 2
+      })}`;
+    };
+
+    const currencySymbol = () => {
+      if (state.currency === "USD") return "$";
+      if (state.currency === "INR") return "₹";
+      if (state.currency === "EUR") return "€";
+      if (state.currency === "GBP") return "£";
+      if (state.currency === "JPY") return "¥";
+      return "";
+    };
+
+    const formatMoney = (value) => {
+      if (
+        value === null ||
+        value === undefined ||
+        !Number.isFinite(Number(value))
+      ) {
+        return "—";
+      }
+
+      const symbol = currencySymbol();
+
+      if (!symbol) {
+        return formatNumber(value);
+      }
+
+      const number = Number(value);
+      const absolute = Math.abs(number);
+
+      return `${number < 0 ? "-" : ""}${symbol}${formatNumber(absolute)}`;
+    };
+
+    const formatRatio = (value, decimals = 2) => {
+      if (
+        value === null ||
+        value === undefined ||
+        !Number.isFinite(Number(value))
+      ) {
+        return "—";
+      }
+
+      return Number(value).toFixed(decimals);
+    };
+
+    const formatPercent = (value) => {
+      if (
+        value === null ||
+        value === undefined ||
+        !Number.isFinite(Number(value))
+      ) {
+        return "—";
+      }
+
+      return `${(Number(value) * 100).toFixed(1)}%`;
+    };
+
+    const showToast = (message) => {
+      const toast = $("toast");
+
+      toast.textContent = message;
+      toast.classList.remove("hidden");
+
+      clearTimeout(showToast.timer);
+
+      showToast.timer = setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 4000);
+    };
+
+    const setProgress = (percent, message) => {
+      $("progressArea").classList.remove("hidden");
+      $("progressBar").style.width = `${percent}%`;
+      $("progressPercent").textContent = `${Math.round(percent)}%`;
+      $("progressText").textContent = message;
+    };
+
+    const setStatus = (text, type = "") => {
+      const status = $("scanStatus");
+
+      status.textContent = text;
+      status.className = `status-chip ${type}`;
+    };
+
+    /* ============================================================
+       NAME GATE
+    ============================================================ */
+
+    const unlockForge = () => {
+      const input = $("analystNameInput");
+      const error = $("nameError");
+
+      const name = String(input.value || "").trim();
+
+      if (!name) {
+        error.textContent = "Please enter your name to continue.";
+        input.focus();
+        return;
+      }
+
+      if (name.length < 2) {
+        error.textContent = "Please enter at least 2 characters.";
+        input.focus();
+        return;
+      }
+
+      state.analystName = name;
+      state.unlocked = true;
+
+      $("analystNameDisplay").textContent = name;
+
+      $("nameGate").classList.add("hidden");
+
+      document.body.classList.remove("locked");
+
+      showToast(`Welcome, ${name}. FORGE is ready.`);
+    };
+
+    const lockForge = () => {
+      state.analystName = "";
+      state.unlocked = false;
+
+      $("analystNameDisplay").textContent = "—";
+      $("analystNameInput").value = "";
+      $("nameError").textContent = "";
+
+      $("nameGate").classList.remove("hidden");
+
+      document.body.classList.add("locked");
+
+      $("analystNameInput").focus();
+    };
+
+    $("enterForgeButton").addEventListener("click", unlockForge);
+
+    $("analystNameInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        unlockForge();
+      }
     });
 
-    function runRoboticBootSequence(onComplete) {
-      const logsContainer = $("terminalLogs");
-      const progressBar = $("loaderBar");
-      const overlay = $("loaderOverlay");
+    /* ============================================================
+       SECURITY-LIKE INTERACTION GUARD
+       ============================================================ */
 
-      const logs = [
-        "Initializing neural parsing matrices...",
-        "Loading PDF, XLSX, CSV, and DOC parser modules...",
-        "Setting up quantitative screening rules...",
-        "System check complete. Credits: Built by Yukti and Sahithya.",
-        "Launching FORGE Terminal..."
+    const requireAccess = () => {
+      if (!state.unlocked) {
+        $("nameGate").classList.remove("hidden");
+        $("analystNameInput").focus();
+        return false;
+      }
+
+      return true;
+    };
+
+    /* ============================================================
+       UNIT / CURRENCY DETECTION
+    ============================================================ */
+
+    const detectUnitInfo = (text) => {
+      const lower = String(text || "").toLowerCase();
+
+      let multiplier = 1;
+      let units = "Reported units";
+
+      if (
+        /\bin billions?\b/.test(lower) ||
+        /\$\s*in billions?/.test(lower) ||
+        /₹\s*in billions?/.test(lower)
+      ) {
+        multiplier = 1e9;
+        units = "Billions";
+      } else if (
+        /\bin millions?\b/.test(lower) ||
+        /\$\s*in millions?/.test(lower) ||
+        /₹\s*in millions?/.test(lower)
+      ) {
+        multiplier = 1e6;
+        units = "Millions";
+      } else if (
+        /\bin thousands?\b/.test(lower) ||
+        /\$\s*in thousands?/.test(lower) ||
+        /₹\s*in thousands?/.test(lower)
+      ) {
+        multiplier = 1e3;
+        units = "Thousands";
+      }
+
+      return {
+        multiplier,
+        units
+      };
+    };
+
+    const detectCurrency = (text) => {
+      const source = String(text || "");
+
+      if (
+        /₹/.test(source) ||
+        /\bINR\b/i.test(source) ||
+        /\bindian rupees?\b/i.test(source)
+      ) {
+        return "INR";
+      }
+
+      if (
+        /\$/.test(source) ||
+        /\bUSD\b/i.test(source) ||
+        /\bus dollars?\b/i.test(source) ||
+        /\bU\.S\. dollars?\b/i.test(source)
+      ) {
+        return "USD";
+      }
+
+      if (/€/.test(source) || /\bEUR\b/i.test(source)) {
+        return "EUR";
+      }
+
+      if (/£/.test(source) || /\bGBP\b/i.test(source)) {
+        return "GBP";
+      }
+
+      if (/¥/.test(source) || /\bJPY\b/i.test(source)) {
+        return "JPY";
+      }
+
+      return "";
+    };
+
+    /* ============================================================
+       DATE / PERIOD DETECTION
+    ============================================================ */
+
+    const monthNames =
+      "January|February|March|April|May|June|July|August|September|October|November|December";
+
+    const dateRegex = new RegExp(
+      `\\b(?:${monthNames})\\s+\\d{1,2},\\s+(?:19|20)\\d{2}\\b`,
+      "gi"
+    );
+
+    const extractDates = (text) => {
+      return [...String(text || "").matchAll(dateRegex)]
+        .map((match) => match[0])
+        .filter((value, index, array) => array.indexOf(value) === index);
+    };
+
+    const extractYears = (text) => {
+      return [...String(text || "").matchAll(/\b(?:19|20)\d{2}\b/g)]
+        .map((match) => match[0])
+        .filter((value, index, array) => array.indexOf(value) === index);
+    };
+
+    const buildPeriodLabel = (statement, date, year) => {
+      if (date) {
+        if (statement === "balance") {
+          return `As of ${date}`;
+        }
+
+        return `Fiscal year ended ${date}`;
+      }
+
+      if (year) {
+        if (statement === "balance") {
+          return `As of FY ${year}`;
+        }
+
+        return `FY ${year}`;
+      }
+
+      return "Reporting period not stated";
+    };
+
+    /* ============================================================
+       STATEMENT DETECTION
+    ============================================================ */
+
+    const statementType = (text) => {
+      const lower = normaliseLabel(text);
+
+      if (
+        lower.includes("statements of income") ||
+        lower.includes("statement of income") ||
+        lower.includes("income statement") ||
+        lower.includes("statements of operations") ||
+        lower.includes("statement of operations") ||
+        lower.includes("statement of earnings") ||
+        lower.includes("profit and loss")
+      ) {
+        return "income";
+      }
+
+      if (
+        lower.includes("balance sheets") ||
+        lower.includes("balance sheet") ||
+        lower.includes("statement of financial position") ||
+        lower.includes("statements of financial position")
+      ) {
+        return "balance";
+      }
+
+      if (
+        lower.includes("statements of cash flows") ||
+        lower.includes("statement of cash flows") ||
+        lower.includes("cash flow statement") ||
+        lower.includes("cash flows")
+      ) {
+        return "cashflow";
+      }
+
+      if (
+        lower.includes("statements of changes in equity") ||
+        lower.includes("statement of changes in equity") ||
+        lower.includes("changes in shareholders equity") ||
+        lower.includes("changes in stockholders equity") ||
+        lower.includes("changes in total equity")
+      ) {
+        return "equity";
+      }
+
+      return "other";
+    };
+
+    const statementName = (type) => {
+      const names = {
+        income: "Income Statement",
+        balance: "Balance Sheet",
+        cashflow: "Cash Flow Statement",
+        equity: "Changes in Equity",
+        other: "Other"
+      };
+
+      return names[type] || "Other";
+    };
+
+    /* ============================================================
+       FINANCIAL METRIC DEFINITIONS
+    ============================================================ */
+
+    const metricDefinitions = [
+      {
+        key: "revenue",
+        statement: "income",
+        labels: [
+          "total revenues",
+          "total revenue",
+          "net revenues",
+          "net revenue",
+          "net sales",
+          "total net sales",
+          "revenue",
+          "revenues",
+          "sales"
+        ]
+      },
+
+      {
+        key: "costOfRevenue",
+        statement: "income",
+        labels: [
+          "cost of revenues",
+          "cost of revenue",
+          "cost of sales",
+          "cost of goods sold"
+        ]
+      },
+
+      {
+        key: "grossProfit",
+        statement: "income",
+        labels: [
+          "gross profit"
+        ]
+      },
+
+      {
+        key: "operatingIncome",
+        statement: "income",
+        labels: [
+          "income from operations",
+          "operating income",
+          "operating earnings"
+        ]
+      },
+
+      {
+        key: "netIncome",
+        statement: "income",
+        labels: [
+          "net income",
+          "net earnings",
+          "net profit",
+          "profit for the year",
+          "profit attributable to",
+          "net income attributable to"
+        ]
+      },
+
+      {
+        key: "cash",
+        statement: "balance",
+        labels: [
+          "cash and cash equivalents",
+          "cash and equivalents",
+          "cash and due from banks",
+          "cash equivalents"
+        ]
+      },
+
+      {
+        key: "currentAssets",
+        statement: "balance",
+        labels: [
+          "total current assets",
+          "current assets"
+        ]
+      },
+
+      {
+        key: "currentLiabilities",
+        statement: "balance",
+        labels: [
+          "total current liabilities",
+          "current liabilities"
+        ]
+      },
+
+      {
+        key: "totalAssets",
+        statement: "balance",
+        labels: [
+          "total assets"
+        ]
+      },
+
+      {
+        key: "totalLiabilities",
+        statement: "balance",
+        labels: [
+          "total liabilities"
+        ]
+      },
+
+      {
+        key: "debt",
+        statement: "balance",
+        labels: [
+          "total debt",
+          "total borrowings",
+          "total debt obligations",
+          "long term debt",
+          "long term borrowings",
+          "short term debt",
+          "short term borrowings"
+        ]
+      },
+
+      {
+        key: "equity",
+        statement: "balance",
+        labels: [
+          "total equity",
+          "total shareholders equity",
+          "total stockholders equity",
+          "shareholders equity",
+          "stockholders equity"
+        ]
+      },
+
+      {
+        key: "cfo",
+        statement: "cashflow",
+        labels: [
+          "net cash provided by operating activities",
+          "net cash used in operating activities",
+          "net cash from operating activities",
+          "cash generated from operations",
+          "cash provided by operating activities"
+        ]
+      },
+
+      {
+        key: "cfi",
+        statement: "cashflow",
+        labels: [
+          "net cash used in investing activities",
+          "net cash provided by investing activities",
+          "net cash from investing activities"
+        ]
+      },
+
+      {
+        key: "cff",
+        statement: "cashflow",
+        labels: [
+          "net cash provided by financing activities",
+          "net cash used in financing activities",
+          "net cash from financing activities"
+        ]
+      },
+
+      {
+        key: "capex",
+        statement: "cashflow",
+        labels: [
+          "capital expenditures",
+          "capital expenditure",
+          "purchases of property",
+          "purchase of property plant and equipment",
+          "purchases of property plant and equipment"
+        ]
+      }
+    ];
+
+    /* ============================================================
+       NUMBER PARSING
+    ============================================================ */
+
+    const parseFinancialNumber = (raw) => {
+      if (raw === null || raw === undefined) {
+        return null;
+      }
+
+      let text = String(raw)
+        .replace(/\u00a0/g, " ")
+        .trim();
+
+      if (
+        !text ||
+        text === "-" ||
+        text === "—" ||
+        text === "–" ||
+        /^n\/?a$/i.test(text)
+      ) {
+        return null;
+      }
+
+      let negative = false;
+
+      if (
+        text.startsWith("(") &&
+        text.endsWith(")")
+      ) {
+        negative = true;
+      }
+
+      text = text
+        .replace(/[()]/g, "")
+        .replace(/[$₹€£¥]/g, "")
+        .replace(/,/g, "")
+        .replace(/\s+/g, "")
+        .replace(/[†‡*]+/g, "");
+
+      if (/%$/.test(text)) {
+        const percent = Number(text.replace("%", ""));
+        return Number.isFinite(percent) ? percent / 100 : null;
+      }
+
+      const match = text.match(/^-?\d+(?:\.\d+)?$/);
+
+      if (!match) {
+        return null;
+      }
+
+      const number = Number(match[0]);
+
+      if (!Number.isFinite(number)) {
+        return null;
+      }
+
+      return negative ? -Math.abs(number) : number;
+    };
+
+    const isYearValue = (number) => {
+      return (
+        Number.isInteger(number) &&
+        number >= 1900 &&
+        number <= 2100
+      );
+    };
+
+    const extractFinancialTokens = (text) => {
+      const source = String(text || "");
+
+      const regex =
+        /(?:\(\s*)?(?:₹|\$|€|£|¥)?\s*\d[\d,]*(?:\.\d+)?\s*(?:\))?(?:%|\b)?/g;
+
+      const matches = [...source.matchAll(regex)];
+
+      const output = [];
+
+      for (const match of matches) {
+        const raw = match[0].trim();
+        const value = parseFinancialNumber(raw);
+
+        if (value === null) {
+          continue;
+        }
+
+        if (isYearValue(value)) {
+          continue;
+        }
+
+        output.push({
+          raw,
+          value
+        });
+      }
+
+      return output;
+    };
+
+    /* ============================================================
+       LABEL MATCHING
+    ============================================================ */
+
+    const findMetricDefinition = (line, statement) => {
+      const normal = normaliseLabel(line);
+
+      const candidates = metricDefinitions
+        .filter((definition) => definition.statement === statement)
+        .map((definition) => {
+          const matches = definition.labels
+            .filter((label) => {
+              const normalizedLabel = normaliseLabel(label);
+
+              return (
+                normal === normalizedLabel ||
+                normal.startsWith(`${normalizedLabel} `) ||
+                normal.includes(` ${normalizedLabel} `) ||
+                normal.includes(normalizedLabel)
+              );
+            })
+            .sort((a, b) => b.length - a.length);
+
+          return {
+            definition,
+            match: matches[0] || null
+          };
+        })
+        .filter((item) => item.match);
+
+      candidates.sort(
+        (a, b) =>
+          normaliseLabel(b.match).length -
+          normaliseLabel(a.match).length
+      );
+
+      return candidates[0] || null;
+    };
+
+    /* ============================================================
+       ROW LABEL CLEANING
+    ============================================================ */
+
+    const cleanRowLabel = (line, matchedLabel) => {
+      let result = String(line || "").trim();
+
+      if (matchedLabel) {
+        const index = result
+          .toLowerCase()
+          .indexOf(String(matchedLabel).toLowerCase());
+
+        if (index >= 0) {
+          result = result.slice(0, index + matchedLabel.length);
+        }
+      }
+
+      return result
+        .replace(/\s+/g, " ")
+        .trim();
+    };
+
+    /* ============================================================
+       PERIOD HEADER LOGIC
+    ============================================================ */
+
+    const detectHeaderPeriods = (lines, startIndex, statement) => {
+      const searchEnd = Math.min(
+        lines.length,
+        startIndex + 18
+      );
+
+      const nearbyText = lines
+        .slice(startIndex, searchEnd)
+        .join(" ");
+
+      const dates = extractDates(nearbyText);
+      const years = extractYears(nearbyText);
+
+      const uniqueDates = [
+        ...new Set(dates)
       ];
 
-      let step = 0;
-      const interval = setInterval(() => {
-        step++;
-        const pct = Math.min((step / logs.length) * 100, 100);
-        progressBar.style.width = pct + "%";
+      const uniqueYears = [
+        ...new Set(years)
+      ];
 
-        if (step <= logs.length) {
-          const div = document.createElement("div");
-          div.className = "line";
-          div.textContent = logs[step - 1];
-          logsContainer.appendChild(div);
-        }
+      let periods = [];
 
-        if (step >= logs.length) {
-          clearInterval(interval);
-          setTimeout(() => {
-            overlay.style.opacity = "0";
-            overlay.style.visibility = "hidden";
-            if (onComplete) onComplete();
-          }, 400);
-        }
-      }, 300);
-    }
-
-    function checkUserSession() {
-      const savedUser = localStorage.getItem(STORAGE_KEY);
-      if (savedUser && savedUser.trim() !== "") {
-        grantAccess(savedUser);
-      } else {
-        $("loginModal").style.display = "flex";
-      }
-    }
-
-    function grantAccess(name) {
-      localStorage.setItem(STORAGE_KEY, name);
-      $("loginModal").style.display = "none";
-      $("userBadgeName").textContent = name.toUpperCase();
-      $("userBadgeDisplay").style.display = "flex";
-    }
-
-    function bindEvents() {
-      $("modalLoginBtn").addEventListener("click", () => {
-        const name = $("modalUserName").value.trim();
-        if (!name) {
-          $("modalErr").textContent = "Please enter a valid name to proceed.";
-          $("modalErr").style.display = "block";
-          return;
-        }
-        grantAccess(name);
-      });
-
-      $("logoutBtn").addEventListener("click", () => {
-        localStorage.removeItem(STORAGE_KEY);
-        location.reload();
-      });
-
-      document.querySelectorAll(".tab-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          document.querySelectorAll(".tab-btn").forEach((t) => t.classList.remove("active"));
-          document.querySelectorAll(".feature-panel").forEach((p) => p.classList.remove("active"));
-          btn.classList.add("active");
-          $(btn.dataset.tab).classList.add("active");
-        });
-      });
-
-      $("analyzeStatementBtn").addEventListener("click", analyzeStatement);
-      $("analyzeInvestorBtn").addEventListener("click", analyzeInvestorFiling);
-      $("syncBtn").addEventListener("click", syncToSimulator);
-
-      ["simCash", "simRev", "simBurn", "simGrowth", "scaleSlider", "simWindow"].forEach((id) => {
-        $(id).addEventListener("input", runSimulation);
-      });
-
-      $("exportStmtCsv").addEventListener("click", exportStmtAsCSV);
-      $("exportInvestorJson").addEventListener("click", exportInvestorAuditJSON);
-    }
-
-    /* =====================================================
-       2. UNIVERSAL FILE READ ENGINE (PDF, XLSX, CSV, DOC, DOCX, TXT)
-       ===================================================== */
-    async function readUniversalFile(file) {
-      if (!file) throw new Error("No file selected.");
-      const name = file.name.toLowerCase();
-
-      // PDF PARSER
-      if (name.endsWith(".pdf") || file.type === "application/pdf") {
-        if (!window.pdfjsLib) throw new Error("PDF parsing engine unavailable.");
-        const buffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-        let text = "";
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          text += content.items.map((it) => it.str).join(" ") + "\n";
-        }
-        return text;
+      if (uniqueDates.length) {
+        periods = uniqueDates
+          .slice(0, 5)
+          .map((date) => ({
+            label: buildPeriodLabel(
+              statement,
+              date,
+              date.match(/\d{4}/)?.[0]
+            ),
+            date,
+            year: date.match(/\d{4}/)?.[0] || ""
+          }));
+      } else if (uniqueYears.length) {
+        periods = uniqueYears
+          .slice(0, 5)
+          .map((year) => ({
+            label: buildPeriodLabel(
+              statement,
+              null,
+              year
+            ),
+            date: "",
+            year
+          }));
       }
 
-      // EXCEL & CSV PARSER
-      if (name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".csv")) {
-        if (!window.XLSX) throw new Error("Excel/CSV parser module unavailable.");
-        const buffer = await file.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: "array" });
-        let text = "";
-        workbook.SheetNames.forEach((sheetName) => {
-          const sheet = workbook.Sheets[sheetName];
-          text += XLSX.utils.sheet_to_txt(sheet) + "\n";
-        });
-        return text;
-      }
+      return periods;
+    };
 
-      // DOCX PARSER
-      if (name.endsWith(".docx")) {
-        if (!window.mammoth) throw new Error("Docx parser module unavailable.");
-        const buffer = await file.arrayBuffer();
-        const res = await mammoth.extractRawText({ arrayBuffer: buffer });
-        return res.value;
-      }
+    /* ============================================================
+       TEXT ROW EXTRACTION
+    ============================================================ */
 
-      // FALLBACK PLAIN TEXT / DOC / TXT
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = () => reject(new Error("Error reading file text content."));
-        reader.readAsText(file);
-      });
-    }
+    const buildRowsFromText = (text, sourceName = "Document") => {
+      const source = cleanText(text);
 
-    /* =====================================================
-       3. METRIC EXTRACTION ENGINE
-       ===================================================== */
-    function extractMetric(text, keywords) {
-      const lines = text.split(/\r?\n/);
-      for (const line of lines) {
-        const lower = line.toLowerCase();
-        for (const kw of keywords) {
-          if (lower.includes(kw)) {
-            // Match numbers with optional currency formatting or parenthetical negative values
-            const matches = line.match(/\(?\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)\)?/g);
-            if (matches) {
-              const lastMatch = matches[matches.length - 1];
-              const isNegative = lastMatch.includes("(") && lastMatch.includes(")");
-              const rawNum = lastMatch.replace(/[\$\,\(\)]/g, "");
-              const val = parseFloat(rawNum);
-              if (!isNaN(val)) return isNegative ? -val : val;
-            }
+      const lines = source
+        .split(/\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      state.rawLines = lines;
+
+      const unitInfo = detectUnitInfo(source);
+
+      state.multiplier = unitInfo.multiplier;
+      state.units = unitInfo.units;
+
+      state.currency = detectCurrency(source);
+
+      const rows = [];
+
+      let currentStatement = "other";
+      let currentPeriods = [];
+
+      for (let index = 0; index < lines.length; index++) {
+        const line = lines[index];
+
+        const detected = statementType(line);
+
+        if (detected !== "other") {
+          currentStatement = detected;
+
+          const periods = detectHeaderPeriods(
+            lines,
+            index,
+            currentStatement
+          );
+
+          if (periods.length) {
+            currentPeriods = periods;
+          }
+
+          continue;
+        }
+
+        if (currentStatement === "other") {
+          continue;
+        }
+
+        const match = findMetricDefinition(
+          line,
+          currentStatement
+        );
+
+        if (!match) {
+          continue;
+        }
+
+        const numericTokens = extractFinancialTokens(line);
+
+        if (!numericTokens.length) {
+          continue;
+        }
+
+        const matchedLabel = match.match;
+
+        const label = cleanRowLabel(
+          line,
+          matchedLabel
+        );
+
+        const definition = match.definition;
+
+        /*
+          If there are multiple numbers on the row,
+          retain the values rather than silently choosing
+          the last number.
+
+          This is important for 10-K tables where a line
+          can contain FY2025, FY2024 and FY2023.
+        */
+
+        let usableValues = numericTokens
+          .map((token) => token.value)
+          .filter((value) => !isYearValue(value));
+
+        if (!usableValues.length) {
+          continue;
+        }
+
+        /*
+          Avoid treating tiny standalone note references as
+          actual financial values when the row contains several
+          values and one is clearly a footnote-style integer.
+        */
+
+        if (
+          usableValues.length > 1 &&
+          usableValues.some(
+            (value) =>
+              Number.isInteger(value) &&
+              value >= 1 &&
+              value <= 99
+          )
+        ) {
+          const filtered = usableValues.filter(
+            (value) =>
+              !(
+                Number.isInteger(value) &&
+                value >= 1 &&
+                value <= 99
+              )
+          );
+
+          if (filtered.length) {
+            usableValues = filtered;
           }
         }
-      }
-      return 0;
-    }
 
-    /* =====================================================
-       4. TAB 1: STATEMENT ANALYSIS LOGIC
-       ===================================================== */
-    async function analyzeStatement() {
-      $("stmtError").style.display = "none";
-      $("stmtWarn").style.display = "none";
-      $("stmtOutput").style.display = "none";
+        const periods =
+          currentPeriods.length
+            ? currentPeriods
+            : [{
+                label:
+                  "Reporting period not stated",
+                date: "",
+                year: ""
+              }];
 
-      const file = $("stmtFile").files[0];
-      if (!file) {
-        $("stmtError").textContent = "Please select a valid document to parse.";
-        $("stmtError").style.display = "block";
-        return;
-      }
+        /*
+          Create one row per value/period.
+          If we have 3 values and 3 periods,
+          each value gets the corresponding period.
+        */
 
-      $("stmtSpinner").style.display = "block";
+        usableValues.forEach((value, valueIndex) => {
+          const period =
+            periods[valueIndex] ||
+            periods[0];
 
-      try {
-        const text = await readUniversalFile(file);
-        $("stmtSpinner").style.display = "none";
-
-        if (!text || text.trim().length === 0) {
-          $("stmtWarn").textContent = "WARNING: Unreadable document format or empty file. Please check file formatting or input numbers manually.";
-          $("stmtWarn").style.display = "block";
-          return;
-        }
-
-        const rev = extractMetric(text, ["revenue", "total revenue", "sales", "gross sales"]);
-        const burn = extractMetric(text, ["operating expenses", "total expenses", "cost of goods", "cogs", "expenses"]);
-        const cash = extractMetric(text, ["cash", "cash and cash equivalents", "ending cash"]);
-
-        if (rev === 0 && burn === 0 && cash === 0) {
-          $("stmtWarn").textContent = "WARNING: File scanned successfully, but no explicit financial line items were recognized. Double-check your file content or input data directly into the simulator.";
-          $("stmtWarn").style.display = "block";
-        }
-
-        parsedExtractedRev = rev;
-        parsedExtractedBurn = burn;
-        parsedCashBalance = cash;
-        parsedStatementReady = true;
-
-        const results = $("stmtResults");
-        results.innerHTML = `
-          <li><span class="lbl">Extracted Revenue</span><span class="val">${money(rev)}</span></li>
-          <li><span class="lbl">Extracted Operating Expenses</span><span class="val">${money(burn)}</span></li>
-          <li><span class="lbl">Calculated Net Operating Income</span><span class="val">${money(rev - burn)}</span></li>
-          <li><span class="lbl">Extracted Cash Balance</span><span class="val">${money(cash)}</span></li>
-        `;
-
-        $("stmtOutput").style.display = "block";
-        unlockSimulator();
-      } catch (err) {
-        $("stmtSpinner").style.display = "none";
-        $("stmtError").textContent = err.message || "An error occurred while parsing the statement.";
-        $("stmtError").style.display = "block";
-      }
-    }
-
-    /* =====================================================
-       5. TAB 2: INVESTOR SCREENING & RED FLAGS ENGINE
-       ===================================================== */
-    async function analyzeInvestorFiling() {
-      $("tenkError").style.display = "none";
-      $("tenkWarn").style.display = "none";
-      $("tenkOutput").style.display = "none";
-
-      const file = $("tenkFile").files[0];
-      if (!file) {
-        $("tenkError").textContent = "Please select a 10-K or corporate filing report.";
-        $("tenkError").style.display = "block";
-        return;
-      }
-
-      $("tenkSpinner").style.display = "block";
-
-      try {
-        const text = await readUniversalFile(file);
-        $("tenkSpinner").style.display = "none";
-
-        if (!text || text.trim().length === 0) {
-          $("tenkWarn").textContent = "WARNING: File contains unreadable text or image-only scans. Manual verification recommended.";
-          $("tenkWarn").style.display = "block";
-          return;
-        }
-
-        const rev = extractMetric(text, ["revenue", "total revenue", "sales"]);
-        const burn = extractMetric(text, ["operating expenses", "total expenses", "cogs"]);
-        const cash = extractMetric(text, ["cash", "cash and cash equivalents"]);
-        const debt = extractMetric(text, ["total debt", "long-term debt", "liabilities"]);
-
-        parsedExtractedRev = rev;
-        parsedExtractedBurn = burn;
-        parsedCashBalance = cash;
-        parsedExtractedDebt = debt;
-        parsedStatementReady = true;
-
-        const netIncome = rev - burn;
-        const opMargin = rev > 0 ? (netIncome / rev) * 100 : -100;
-        const monthlyBurn = burn > rev ? (burn - rev) / 12 : 0;
-        const runwayMonths = monthlyBurn > 0 ? cash / monthlyBurn : 999;
-
-        // ACCURATE RED FLAGS DETECTION ENGINE
-        const redFlags = [];
-
-        if (opMargin < 0) {
-          redFlags.push(`Unprofitable Operations: Operating margin is negative (${opMargin.toFixed(1)}%). Expenses exceed revenue.`);
-        }
-        if (runwayMonths < 6 && monthlyBurn > 0) {
-          redFlags.push(`Severe Cash Runway Risk: Remaining liquidity provides under ${runwayMonths.toFixed(1)} months of operation before cash depletion.`);
-        }
-        if (debt > cash * 2 && debt > 0) {
-          redFlags.push(`Excessive Leverage: Total liabilities/debt (${money(debt)}) exceed liquid cash (${money(cash)}) by more than 2x.`);
-        }
-        if (rev === 0) {
-          redFlags.push("Zero Recorded Revenue: Company reports no top-line revenue generation in the evaluated period.");
-        }
-
-        // VERDICT & HEALTH SCORE LOGIC
-        let verdict = "INVESTMENT SUITABLE";
-        let risk = "LOW RISK";
-        let score = 90;
-
-        if (redFlags.length >= 3 || runwayMonths < 3) {
-          verdict = "DO NOT INVEST";
-          risk = "HIGH / CRITICAL RISK";
-          score = 25;
-        } else if (redFlags.length >= 1) {
-          verdict = "HIGH CAUTION / HOLD";
-          risk = "MODERATE RISK";
-          score = 55;
-        }
-
-        $("verdictVal").textContent = verdict;
-        $("healthVal").textContent = score + "/100";
-        $("flagVal").textContent = risk;
-
-        // Render Red Flags
-        const flagWrapper = $("redFlagWrapper");
-        const flagList = $("redFlagsList");
-        flagList.innerHTML = "";
-
-        if (redFlags.length > 0) {
-          redFlags.forEach((flag) => {
-            const li = document.createElement("li");
-            li.textContent = flag;
-            flagList.appendChild(li);
+          rows.push({
+            statement: definition.statement,
+            key: definition.key,
+            label,
+            period: period.label,
+            year: period.year || "",
+            date: period.date || "",
+            value:
+              value * state.multiplier,
+            raw: line,
+            source: sourceName,
+            confidence:
+              periods.length > 0
+                ? "Verified"
+                : "Manual verification",
+            confidenceType:
+              periods.length > 0
+                ? "verified"
+                : "manual"
           });
-          flagWrapper.style.display = "block";
+        });
+      }
+
+      /*
+        De-duplicate rows that can occur because PDF extraction
+        may repeat headers or table fragments.
+      */
+
+      const unique = [];
+      const seen = new Set();
+
+      rows.forEach((row) => {
+        const key = [
+          row.statement,
+          row.key,
+          row.label,
+          row.period,
+          row.value,
+          row.raw
+        ].join("|");
+
+        if (!seen.has(key)) {
+          seen.add(key);
+          unique.push(row);
+        }
+      });
+
+      return unique;
+    };
+
+    /* ============================================================
+       PDF READER
+    ============================================================ */
+
+    const readPdf = async (file) => {
+      const buffer = await file.arrayBuffer();
+
+      const pdf =
+        await pdfjsLib
+          .getDocument({
+            data: buffer
+          })
+          .promise;
+
+      let text = "";
+
+      for (
+        let pageNumber = 1;
+        pageNumber <= pdf.numPages;
+        pageNumber++
+      ) {
+        setProgress(
+          8 +
+            (pageNumber / pdf.numPages) * 67,
+          `Reading PDF page ${pageNumber} of ${pdf.numPages}...`
+        );
+
+        const page =
+          await pdf.getPage(pageNumber);
+
+        const content =
+          await page.getTextContent();
+
+        const items = content.items
+          .map((item) => ({
+            text: item.str,
+            x: item.transform[4],
+            y: item.transform[5],
+            width: item.width || 0
+          }))
+          .filter(
+            (item) =>
+              item.text &&
+              item.text.trim()
+          );
+
+        const grouped = {};
+
+        items.forEach((item) => {
+          const y =
+            Math.round(item.y / 3) * 3;
+
+          if (!grouped[y]) {
+            grouped[y] = [];
+          }
+
+          grouped[y].push(item);
+        });
+
+        const pageLines =
+          Object.keys(grouped)
+            .sort(
+              (a, b) =>
+                Number(b) - Number(a)
+            )
+            .map((key) => {
+              return grouped[key]
+                .sort(
+                  (a, b) =>
+                    a.x - b.x
+                )
+                .map(
+                  (item) =>
+                    item.text
+                )
+                .join(" ")
+                .trim();
+            })
+            .filter(Boolean);
+
+        text +=
+          `\n--- Page ${pageNumber} ---\n` +
+          pageLines.join("\n") +
+          "\n";
+      }
+
+      return text;
+    };
+
+    /* ============================================================
+       DOCX READER
+    ============================================================ */
+
+    const readDocx = async (file) => {
+      const buffer =
+        await file.arrayBuffer();
+
+      const result =
+        await mammoth.extractRawText({
+          arrayBuffer: buffer
+        });
+
+      return result.value || "";
+    };
+
+    /* ============================================================
+       WORKBOOK READER
+    ============================================================ */
+
+    const buildRowsFromWorkbook = (workbook) => {
+      let fullText = "";
+
+      workbook.SheetNames.forEach(
+        (sheetName) => {
+          const sheet =
+            workbook.Sheets[sheetName];
+
+          const data =
+            XLSX.utils.sheet_to_json(
+              sheet,
+              {
+                header: 1,
+                defval: "",
+                raw: false
+              }
+            );
+
+          fullText +=
+            `\n--- Sheet: ${sheetName} ---\n`;
+
+          data.forEach((row) => {
+            fullText +=
+              row
+                .map(
+                  (cell) =>
+                    String(cell ?? "")
+                )
+                .join(" | ") +
+              "\n";
+          });
+        }
+      );
+
+      return {
+        text: fullText,
+        rows: buildRowsFromText(
+          fullText,
+          "Workbook"
+        )
+      };
+    };
+
+    /* ============================================================
+       FILE READER
+    ============================================================ */
+
+    const readFile = async (file) => {
+      const extension =
+        file.name
+          .split(".")
+          .pop()
+          .toLowerCase();
+
+      if (extension === "pdf") {
+        return await readPdf(file);
+      }
+
+      if (
+        extension === "xlsx" ||
+        extension === "xls"
+      ) {
+        const buffer =
+          await file.arrayBuffer();
+
+        const workbook =
+          XLSX.read(
+            buffer,
+            {
+              type: "array",
+              cellDates: true
+            }
+          );
+
+        const result =
+          buildRowsFromWorkbook(
+            workbook
+          );
+
+        state.rows =
+          result.rows;
+
+        return result.text;
+      }
+
+      if (extension === "csv") {
+        return await file.text();
+      }
+
+      if (extension === "docx") {
+        return await readDocx(file);
+      }
+
+      return await file.text();
+    };
+
+    /* ============================================================
+       COMPANY DETECTION
+    ============================================================ */
+
+    const identifyCompany = (
+      text,
+      fileName
+    ) => {
+      const known = [
+        "Apple",
+        "Microsoft",
+        "Morgan Stanley",
+        "JPMorgan",
+        "JPMorgan Chase",
+        "Goldman Sachs",
+        "Alphabet",
+        "Amazon",
+        "Tesla",
+        "Meta Platforms",
+        "NVIDIA",
+        "Oracle",
+        "Walmart",
+        "Reliance",
+        "Tata",
+        "Infosys",
+        "Wipro",
+        "ICICI",
+        "HDFC"
+      ];
+
+      const lower =
+        String(text || "")
+          .toLowerCase();
+
+      const match =
+        known.find(
+          (name) =>
+            lower.includes(
+              name.toLowerCase()
+            )
+        );
+
+      if (match) {
+        return match;
+      }
+
+      return (
+        String(fileName || "")
+          .replace(
+            /\.[^/.]+$/,
+            ""
+          )
+          .replace(
+            /[_-]+/g,
+            " "
+          )
+          .replace(
+            /\b(annual report|10 k|10k|financial statements)\b/gi,
+            ""
+          )
+          .replace(
+            /\s+/g,
+            " "
+          )
+          .trim() ||
+        "Unknown company"
+      );
+    };
+
+    /* ============================================================
+       METRIC RETRIEVAL
+    ============================================================ */
+
+    const firstMetric = (
+      key
+    ) => {
+      const candidates =
+        state.rows.filter(
+          (row) =>
+            row.key === key
+        );
+
+      if (!candidates.length) {
+        return null;
+      }
+
+      /*
+        Prefer the most recent fiscal year when a year exists.
+      */
+
+      const sorted =
+        [...candidates].sort(
+          (a, b) => {
+            const yearA =
+              Number(a.year) || 0;
+
+            const yearB =
+              Number(b.year) || 0;
+
+            return (
+              yearB - yearA
+            );
+          }
+        );
+
+      return (
+        sorted[0]?.value ??
+        null
+      );
+    };
+
+    const sourceForMetric = (
+      key
+    ) => {
+      const candidates =
+        state.rows.filter(
+          (row) =>
+            row.key === key
+        );
+
+      if (!candidates.length) {
+        return null;
+      }
+
+      const sorted =
+        [...candidates].sort(
+          (a, b) => {
+            const yearA =
+              Number(a.year) || 0;
+
+            const yearB =
+              Number(b.year) || 0;
+
+            return (
+              yearB - yearA
+            );
+          }
+        );
+
+      return sorted[0];
+    };
+
+    /* ============================================================
+       METRIC RENDERING
+    ============================================================ */
+
+    const setMetric = (
+      key,
+      value,
+      meta
+    ) => {
+      state.metrics[key] =
+        value;
+
+      const map = {
+        revenue: [
+          "metricRevenue",
+          "metricRevenueMeta"
+        ],
+
+        netIncome: [
+          "metricNetIncome",
+          "metricNetIncomeMeta"
+        ],
+
+        cash: [
+          "metricCash",
+          "metricCashMeta"
+        ],
+
+        debt: [
+          "metricDebt",
+          "metricDebtMeta"
+        ],
+
+        cfo: [
+          "metricCfo",
+          "metricCfoMeta"
+        ],
+
+        equity: [
+          "metricEquity",
+          "metricEquityMeta"
+        ]
+      };
+
+      if (!map[key]) {
+        return;
+      }
+
+      const valueElement =
+        $(map[key][0]);
+
+      const metaElement =
+        $(map[key][1]);
+
+      valueElement.textContent =
+        formatMoney(value);
+
+      metaElement.textContent =
+        meta ||
+        (
+          value === null
+            ? "Not available"
+            : "Verified value"
+        );
+
+      metaElement.className =
+        `metric-meta ${
+          value === null
+            ? ""
+            : "good"
+        }`;
+    };
+
+    const renderMetrics = () => {
+      const keys = [
+        "revenue",
+        "netIncome",
+        "cash",
+        "debt",
+        "cfo",
+        "equity"
+      ];
+
+      keys.forEach(
+        (key) => {
+          const value =
+            state.metrics[key];
+
+          const source =
+            state.metricSources[key];
+
+          let meta =
+            "Not available";
+
+          if (source) {
+            meta =
+              source.period !==
+              "Reporting period not stated"
+                ? `Verified · ${source.period}`
+                : "Verified · period not stated";
+          }
+
+          setMetric(
+            key,
+            value,
+            meta
+          );
+        }
+      );
+    };
+
+    /* ============================================================
+       RATIO CALCULATIONS
+    ============================================================ */
+
+    const calculateRatios = () => {
+      const m =
+        state.metrics;
+
+      const ratios = {};
+
+      if (
+        Number.isFinite(
+          m.revenue
+        ) &&
+        m.revenue !== 0 &&
+        Number.isFinite(
+          m.netIncome
+        )
+      ) {
+        ratios.netMargin =
+          m.netIncome /
+          m.revenue;
+      }
+
+      if (
+        Number.isFinite(
+          m.revenue
+        ) &&
+        m.revenue !== 0 &&
+        Number.isFinite(
+          m.grossProfit
+        )
+      ) {
+        ratios.grossMargin =
+          m.grossProfit /
+          m.revenue;
+      }
+
+      if (
+        Number.isFinite(
+          m.revenue
+        ) &&
+        m.revenue !== 0 &&
+        Number.isFinite(
+          m.operatingIncome
+        )
+      ) {
+        ratios.operatingMargin =
+          m.operatingIncome /
+          m.revenue;
+      }
+
+      if (
+        Number.isFinite(
+          m.currentAssets
+        ) &&
+        Number.isFinite(
+          m.currentLiabilities
+        ) &&
+        m.currentLiabilities !== 0
+      ) {
+        ratios.currentRatio =
+          m.currentAssets /
+          m.currentLiabilities;
+      }
+
+      if (
+        Number.isFinite(
+          m.debt
+        ) &&
+        Number.isFinite(
+          m.equity
+        ) &&
+        m.equity !== 0
+      ) {
+        ratios.debtEquity =
+          m.debt /
+          m.equity;
+      }
+
+      if (
+        Number.isFinite(
+          m.debt
+        ) &&
+        Number.isFinite(
+          m.totalAssets
+        ) &&
+        m.totalAssets !== 0
+      ) {
+        ratios.debtAssets =
+          m.debt /
+          m.totalAssets;
+      }
+
+      if (
+        Number.isFinite(
+          m.cfo
+        ) &&
+        Number.isFinite(
+          m.netIncome
+        ) &&
+        m.netIncome !== 0
+      ) {
+        ratios.cashConversion =
+          m.cfo /
+          m.netIncome;
+      }
+
+      if (
+        Number.isFinite(
+          m.cfo
+        ) &&
+        Number.isFinite(
+          m.capex
+        )
+      ) {
+        ratios.freeCashFlow =
+          m.cfo -
+          Math.abs(
+            m.capex
+          );
+      }
+
+      if (
+        Number.isFinite(
+          m.netIncome
+        ) &&
+        Number.isFinite(
+          m.totalAssets
+        ) &&
+        m.totalAssets !== 0
+      ) {
+        ratios.roa =
+          m.netIncome /
+          m.totalAssets;
+      }
+
+      if (
+        Number.isFinite(
+          m.netIncome
+        ) &&
+        Number.isFinite(
+          m.equity
+        ) &&
+        m.equity !== 0
+      ) {
+        ratios.roe =
+          m.netIncome /
+          m.equity;
+      }
+
+      state.ratios =
+        ratios;
+
+      state.calculated =
+        Object.keys(
+          ratios
+        ).length;
+    };
+
+    /* ============================================================
+       BALANCE SHEET RECONCILIATION
+    ============================================================ */
+
+    const getReconciliation = () => {
+      const m =
+        state.metrics;
+
+      if (
+        !Number.isFinite(
+          m.totalAssets
+        ) ||
+        !Number.isFinite(
+          m.totalLiabilities
+        ) ||
+        !Number.isFinite(
+          m.equity
+        )
+      ) {
+        return null;
+      }
+
+      const expected =
+        m.totalLiabilities +
+        m.equity;
+
+      const difference =
+        m.totalAssets -
+        expected;
+
+      const tolerance =
+        Math.max(
+          Math.abs(
+            m.totalAssets
+          ) * 0.02,
+          1
+        );
+
+      return {
+        assets:
+          m.totalAssets,
+
+        liabilities:
+          m.totalLiabilities,
+
+        equity:
+          m.equity,
+
+        expected,
+        difference,
+        tolerance,
+
+        passed:
+          Math.abs(
+            difference
+          ) <= tolerance
+      };
+    };
+
+    /* ============================================================
+       RISK ENGINE
+    ============================================================ */
+
+    const addRisk = (
+      severity,
+      title,
+      description
+    ) => {
+      state.risks.push({
+        severity,
+        title,
+        description
+      });
+    };
+
+    const generateRisks = () => {
+      const m =
+        state.metrics;
+
+      const r =
+        state.ratios;
+
+      state.risks = [];
+
+      /*
+        Missing-data signals
+      */
+
+      if (
+        m.revenue === null
+      ) {
+        addRisk(
+          "warning",
+          "Revenue unavailable",
+          "FORGE could not reliably match revenue to a recognized income-statement line. Profitability ratios should not be interpreted without manual verification."
+        );
+      }
+
+      if (
+        m.netIncome === null
+      ) {
+        addRisk(
+          "warning",
+          "Net income unavailable",
+          "A verified net-income figure was not identified. Profitability therefore cannot be assessed reliably."
+        );
+      } else if (
+        m.netIncome < 0
+      ) {
+        addRisk(
+          "danger",
+          "Negative net income",
+          "The extracted net-income value is negative. Review whether the loss is recurring, operational, restructuring-related or driven by unusual items."
+        );
+      } else {
+        addRisk(
+          "good",
+          "Positive reported earnings",
+          "The extracted net-income value is positive. Earnings quality and recurrence should still be reviewed."
+        );
+      }
+
+      if (
+        m.cfo === null
+      ) {
+        addRisk(
+          "warning",
+          "Operating cash flow unavailable",
+          "FORGE could not verify operating cash generation from the cash-flow statement."
+        );
+      } else if (
+        m.cfo < 0
+      ) {
+        addRisk(
+          "danger",
+          "Negative operating cash flow",
+          "The extracted cash-flow statement shows negative operating cash flow for the selected reporting period."
+        );
+      } else {
+        addRisk(
+          "good",
+          "Positive operating cash flow",
+          "Operating activities generated positive cash in the selected reporting period."
+        );
+      }
+
+      /*
+        Liquidity
+      */
+
+      if (
+        r.currentRatio !==
+        undefined
+      ) {
+        if (
+          r.currentRatio < 1
+        ) {
+          addRisk(
+            "danger",
+            "Weak short-term liquidity",
+            `The current ratio is ${r.currentRatio.toFixed(2)}. Based on the extracted figures, current liabilities exceed current assets.`
+          );
+        } else if (
+          r.currentRatio < 1.5
+        ) {
+          addRisk(
+            "warning",
+            "Moderate liquidity buffer",
+            `The current ratio is ${r.currentRatio.toFixed(2)}. The liquidity position may warrant further review depending on the company's business model.`
+          );
         } else {
-          flagWrapper.style.display = "none";
+          addRisk(
+            "good",
+            "Stronger current ratio",
+            `The current ratio is ${r.currentRatio.toFixed(2)}, indicating a larger current-asset buffer relative to current liabilities.`
+          );
+        }
+      } else {
+        addRisk(
+          "warning",
+          "Liquidity ratio unavailable",
+          "Current assets or current liabilities could not both be verified."
+        );
+      }
+
+      /*
+        Leverage
+      */
+
+      if (
+        r.debtEquity !==
+        undefined
+      ) {
+        if (
+          r.debtEquity > 2
+        ) {
+          addRisk(
+            "danger",
+            "High leverage",
+            `Debt-to-equity is ${r.debtEquity.toFixed(2)} based on the extracted figures. This can increase financial and refinancing sensitivity.`
+          );
+        } else if (
+          r.debtEquity > 1
+        ) {
+          addRisk(
+            "warning",
+            "Elevated leverage",
+            `Debt-to-equity is ${r.debtEquity.toFixed(2)}. Capital structure and debt maturity should be reviewed.`
+          );
+        } else {
+          addRisk(
+            "good",
+            "Moderate leverage",
+            `Debt-to-equity is ${r.debtEquity.toFixed(2)} based on the extracted figures. Industry context remains important.`
+          );
+        }
+      } else {
+        addRisk(
+          "warning",
+          "Leverage unavailable",
+          "A sufficiently reliable debt or equity figure was not identified for the leverage calculation."
+        );
+      }
+
+      /*
+        Cash conversion
+      */
+
+      if (
+        r.cashConversion !==
+        undefined
+      ) {
+        if (
+          r.cashConversion < 0
+        ) {
+          addRisk(
+            "danger",
+            "Cash conversion is negative",
+            `Operating cash flow is ${r.cashConversion.toFixed(2)} times net income. Investigate working capital, non-cash items and earnings quality.`
+          );
+        } else if (
+          r.cashConversion < 0.8
+        ) {
+          addRisk(
+            "warning",
+            "Weak earnings-to-cash conversion",
+            `Operating cash flow is ${r.cashConversion.toFixed(2)} times net income. Review receivables, working capital and non-cash earnings.`
+          );
+        } else {
+          addRisk(
+            "good",
+            "Reasonable earnings-to-cash conversion",
+            `Operating cash flow is ${r.cashConversion.toFixed(2)} times net income.`
+          );
+        }
+      }
+
+      /*
+        Reconciliation
+      */
+
+      const reconciliation =
+        getReconciliation();
+
+      if (reconciliation) {
+        if (
+          reconciliation.passed
+        ) {
+          addRisk(
+            "good",
+            "Balance-sheet reconciliation passed",
+            `Total assets are within the defined 2% extraction tolerance of liabilities plus equity.`
+          );
+        } else {
+          addRisk(
+            "warning",
+            "Balance-sheet reconciliation difference",
+            `Extracted assets differ from liabilities plus equity by ${formatMoney(reconciliation.difference)}. This can result from parsing, reporting scope, units or an incomplete table and requires manual verification.`
+          );
+        }
+      } else {
+        addRisk(
+          "warning",
+          "Balance-sheet reconciliation incomplete",
+          "Total assets, total liabilities and total equity were not all verified, so a complete accounting-equation check could not be performed."
+        );
+      }
+
+      /*
+        Data completeness
+      */
+
+      const requiredKeys =
+        metricDefinitions.map(
+          (definition) =>
+            definition.key
+        );
+
+      const available =
+        requiredKeys.filter(
+          (key) =>
+            Number.isFinite(
+              state.metrics[key]
+            )
+        ).length;
+
+      state.missing =
+        Math.max(
+          0,
+          requiredKeys.length -
+            available
+        );
+    };
+
+    /* ============================================================
+       EXTRACTION QUALITY
+    ============================================================ */
+
+    const calculateExtractionQuality = () => {
+      const required = [
+        "revenue",
+        "netIncome",
+        "cash",
+        "debt",
+        "equity",
+        "cfo",
+        "totalAssets",
+        "totalLiabilities"
+      ];
+
+      const available =
+        required.filter(
+          (key) =>
+            Number.isFinite(
+              state.metrics[key]
+            )
+        ).length;
+
+      const percentage =
+        Math.round(
+          (available /
+            required.length) *
+            100
+        );
+
+      if (percentage >= 85) {
+        state.extractionQuality =
+          "High";
+      } else if (
+        percentage >= 60
+      ) {
+        state.extractionQuality =
+          "Moderate";
+      } else if (
+        percentage >= 35
+      ) {
+        state.extractionQuality =
+          "Limited";
+      } else {
+        state.extractionQuality =
+          "Low";
+      }
+    };
+
+    /* ============================================================
+       INVESTOR THESIS
+    ============================================================ */
+
+    const generateThesis = () => {
+      const m =
+        state.metrics;
+
+      const r =
+        state.ratios;
+
+      const positive = [];
+      const caution = [];
+      const conditions = [];
+
+      if (
+        Number.isFinite(
+          m.netIncome
+        ) &&
+        m.netIncome > 0
+      ) {
+        positive.push(
+          "The extracted financial statements report positive net income."
+        );
+      } else if (
+        m.netIncome === null
+      ) {
+        caution.push(
+          "Profitability could not be verified from the extracted statements."
+        );
+      } else {
+        caution.push(
+          "The extracted net-income value is negative."
+        );
+      }
+
+      if (
+        Number.isFinite(
+          m.cfo
+        ) &&
+        m.cfo > 0
+      ) {
+        positive.push(
+          "Operating activities generated positive cash."
+        );
+      } else if (
+        m.cfo === null
+      ) {
+        caution.push(
+          "Operating cash generation could not be verified."
+        );
+      } else {
+        caution.push(
+          "Operating cash flow is negative in the extracted period."
+        );
+      }
+
+      if (
+        r.currentRatio !==
+        undefined
+      ) {
+        if (
+          r.currentRatio >=
+          1.5
+        ) {
+          positive.push(
+            "The current ratio indicates a comparatively stronger short-term liquidity buffer."
+          );
+        } else {
+          caution.push(
+            "Liquidity should be reviewed before relying on reported profitability."
+          );
+        }
+      }
+
+      if (
+        r.debtEquity !==
+        undefined
+      ) {
+        if (
+          r.debtEquity <= 1
+        ) {
+          positive.push(
+            "Debt-to-equity is moderate based on the extracted values."
+          );
+        } else {
+          caution.push(
+            "Leverage may increase financial and refinancing sensitivity."
+          );
+        }
+      }
+
+      if (
+        r.freeCashFlow !==
+        undefined
+      ) {
+        if (
+          r.freeCashFlow > 0
+        ) {
+          positive.push(
+            "The extracted operating cash flow exceeds the identified capital-expenditure outflow, producing positive free cash flow."
+          );
+        } else {
+          caution.push(
+            "The extracted capital expenditure outflow exceeds operating cash flow."
+          );
+        }
+      }
+
+      conditions.push(
+        "Confirm every key figure against the original filing before relying on the analysis."
+      );
+
+      conditions.push(
+        "Review valuation, industry conditions, business outlook, competitive position and management quality separately."
+      );
+
+      conditions.push(
+        "Investigate warning signals and any manually verified or unavailable fields."
+      );
+
+      state.thesis = {
+        positive,
+        caution,
+        conditions
+      };
+    };
+
+    /* ============================================================
+       HEALTH RENDER
+    ============================================================ */
+
+    const renderHealth = () => {
+      const r =
+        state.ratios;
+
+      const rows = [
+        [
+          "Net margin",
+          r.netMargin,
+          (value) =>
+            formatPercent(value)
+        ],
+
+        [
+          "Gross margin",
+          r.grossMargin,
+          (value) =>
+            formatPercent(value)
+        ],
+
+        [
+          "Operating margin",
+          r.operatingMargin,
+          (value) =>
+            formatPercent(value)
+        ],
+
+        [
+          "Current ratio",
+          r.currentRatio,
+          (value) =>
+            formatRatio(value)
+        ],
+
+        [
+          "Debt to equity",
+          r.debtEquity,
+          (value) =>
+            formatRatio(value)
+        ],
+
+        [
+          "Debt to assets",
+          r.debtAssets,
+          (value) =>
+            formatPercent(value)
+        ],
+
+        [
+          "Cash conversion",
+          r.cashConversion,
+          (value) =>
+            formatRatio(value)
+        ],
+
+        [
+          "Free cash flow",
+          r.freeCashFlow,
+          (value) =>
+            formatMoney(value)
+        ]
+      ];
+
+      $("healthRows").innerHTML =
+        rows
+          .map(
+            ([
+              label,
+              value,
+              formatter
+            ]) => `
+              <div class="health-row">
+                <div>
+                  <strong>${escapeHtml(label)}</strong>
+                  <span>
+                    ${
+                      value ===
+                      undefined
+                        ? "Not enough verified data"
+                        : "Calculated from verified values"
+                    }
+                  </span>
+                </div>
+
+                <div class="health-value">
+                  ${
+                    value ===
+                    undefined
+                      ? "—"
+                      : formatter(value)
+                  }
+                </div>
+              </div>
+            `
+          )
+          .join("");
+
+      $("healthStatus").textContent =
+        Object.keys(r).length
+          ? "Calculated indicators"
+          : "Insufficient data";
+    };
+
+    /* ============================================================
+       RISK RENDER
+    ============================================================ */
+
+    const renderRisk = () => {
+      const danger =
+        state.risks.filter(
+          (risk) =>
+            risk.severity ===
+            "danger"
+        ).length;
+
+      const warning =
+        state.risks.filter(
+          (risk) =>
+            risk.severity ===
+            "warning"
+        ).length;
+
+      const good =
+        state.risks.filter(
+          (risk) =>
+            risk.severity ===
+            "good"
+        ).length;
+
+      const total =
+        danger +
+        warning +
+        good;
+
+      /*
+        Score is deliberately not presented as a
+        probability of investment success.
+
+        It reflects the balance of detected signals only.
+      */
+
+      const score =
+        total
+          ? Math.max(
+              0,
+              Math.min(
+                100,
+                Math.round(
+                  (good /
+                    total) *
+                    100 -
+                    danger *
+                      8 -
+                    warning *
+                      3
+                )
+              )
+            )
+          : 0;
+
+      $("riskScore").textContent =
+        total
+          ? score
+          : "—";
+
+      $("riskLabel").textContent =
+        !total
+          ? "No score"
+          : score >= 75
+            ? "Lower caution"
+            : score >= 50
+              ? "Moderate"
+              : "High caution";
+
+      $("riskRing").style.background =
+        total
+          ? `conic-gradient(
+              var(--accent) 0deg,
+              var(--accent) ${score * 3.6}deg,
+              #354047 ${score * 3.6}deg,
+              #354047 360deg
+            )`
+          : "conic-gradient(#354047 0deg, #354047 360deg)";
+
+      $("positiveCount").textContent =
+        `Positive signals: ${good}`;
+
+      $("warningCount").textContent =
+        `Watch items: ${warning}`;
+
+      $("dangerCount").textContent =
+        `Critical flags: ${danger}`;
+
+      $("riskList").innerHTML =
+        state.risks
+          .map(
+            (risk) => `
+              <div class="risk-item ${escapeHtml(risk.severity)}">
+
+                <div class="risk-mark">
+                  ${
+                    risk.severity ===
+                    "good"
+                      ? "✓"
+                      : risk.severity ===
+                        "warning"
+                        ? "!"
+                        : "×"
+                  }
+                </div>
+
+                <div>
+                  <strong>
+                    ${escapeHtml(risk.title)}
+                  </strong>
+
+                  <p>
+                    ${escapeHtml(
+                      risk.description
+                    )}
+                  </p>
+                </div>
+
+              </div>
+            `
+          )
+          .join("");
+    };
+
+    /* ============================================================
+       THESIS RENDER
+    ============================================================ */
+
+    const renderThesis = () => {
+      $("thesis").innerHTML = `
+        <div class="thesis-block">
+
+          <h4>
+            Why the company may be worth investigating
+          </h4>
+
+          <ul>
+            ${
+              state.thesis.positive.length
+                ? state.thesis.positive
+                    .map(
+                      (item) =>
+                        `<li>${escapeHtml(item)}</li>`
+                    )
+                    .join("")
+                : "<li>No positive conclusion can be supported from the extracted data.</li>"
+            }
+          </ul>
+
+        </div>
+
+        <div class="thesis-block">
+
+          <h4>
+            Why caution is required
+          </h4>
+
+          <ul>
+            ${
+              state.thesis.caution.length
+                ? state.thesis.caution
+                    .map(
+                      (item) =>
+                        `<li>${escapeHtml(item)}</li>`
+                    )
+                    .join("")
+                : "<li>No major caution was generated from the available indicators.</li>"
+            }
+          </ul>
+
+        </div>
+
+        <div class="thesis-block">
+
+          <h4>
+            Before making an investment decision
+          </h4>
+
+          <ul>
+            ${state.thesis.conditions
+              .map(
+                (item) =>
+                  `<li>${escapeHtml(item)}</li>`
+              )
+              .join("")}
+          </ul>
+
+        </div>
+      `;
+    };
+
+    /* ============================================================
+       STATEMENT RENDER
+    ============================================================ */
+
+    const renderStatements = () => {
+      const filtered =
+        state.activeStatement ===
+        "all"
+          ? state.rows
+          : state.rows.filter(
+              (row) =>
+                row.statement ===
+                state.activeStatement
+            );
+
+      $("statementTableBody").innerHTML =
+        filtered.length
+          ? filtered
+              .map(
+                (row) => `
+                  <tr>
+
+                    <td>
+                      ${escapeHtml(
+                        statementName(
+                          row.statement
+                        )
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        row.label
+                      )}
+                    </td>
+
+                    <td>
+                      ${escapeHtml(
+                        row.period
+                      )}
+                    </td>
+
+                    <td class="numeric">
+                      ${formatMoney(
+                        row.value
+                      )}
+                    </td>
+
+                    <td>
+                      <span class="status-chip ${
+                        row.confidenceType ===
+                        "verified"
+                          ? "success"
+                          : "warning"
+                      }">
+                        ${escapeHtml(
+                          row.confidence
+                        )}
+                      </span>
+                    </td>
+
+                    <td class="evidence">
+                      ${escapeHtml(
+                        row.raw
+                      )}
+                    </td>
+
+                  </tr>
+                `
+              )
+              .join("")
+          : `
+              <tr>
+                <td
+                  colspan="6"
+                  class="empty-state"
+                >
+                  No reliably matched rows for this statement.
+                </td>
+              </tr>
+            `;
+
+      const statementCount =
+        new Set(
+          state.rows.map(
+            (row) =>
+              row.statement
+          )
+        ).size;
+
+      $("statementStatus").textContent =
+        statementCount
+          ? `${statementCount} statement type(s) detected`
+          : "No statement detected";
+    };
+
+    /* ============================================================
+       AUDIT RENDER
+    ============================================================ */
+
+    const renderAudit = () => {
+      $("auditVerified").textContent =
+        state.verified;
+
+      $("auditCalculated").textContent =
+        state.calculated;
+
+      $("auditMissing").textContent =
+        state.missing;
+
+      $("auditQuality").textContent =
+        state.extractionQuality;
+    };
+
+    /* ============================================================
+       FULL ANALYSIS
+    ============================================================ */
+
+    const analyseDocument = () => {
+      state.company =
+        identifyCompany(
+          state.rawText,
+          state.file?.name ||
+            "Document"
+        );
+
+      if (!state.rows.length) {
+        state.rows =
+          buildRowsFromText(
+            state.rawText,
+            state.file?.name ||
+              "Document"
+          );
+      }
+
+      state.metrics = {};
+      state.metricSources = {};
+
+      metricDefinitions.forEach(
+        (definition) => {
+          const value =
+            firstMetric(
+              definition.key
+            );
+
+          const source =
+            sourceForMetric(
+              definition.key
+            );
+
+          state.metrics[
+            definition.key
+          ] = value;
+
+          state.metricSources[
+            definition.key
+          ] = source;
+        }
+      );
+
+      /*
+        Important:
+        Do NOT treat every row as a separate verified metric.
+        Verified count represents unique metric fields.
+      */
+
+      const uniqueVerified =
+        new Set(
+          state.rows
+            .filter(
+              (row) =>
+                row.confidenceType ===
+                "verified"
+            )
+            .map(
+              (row) =>
+                row.key
+            )
+        );
+
+      state.verified =
+        uniqueVerified.size;
+
+      calculateRatios();
+      generateRisks();
+      calculateExtractionQuality();
+      generateThesis();
+
+      renderMetrics();
+      renderHealth();
+      renderRisk();
+      renderThesis();
+      renderStatements();
+      renderAudit();
+
+      $("scanStatus").textContent =
+        "Analysis complete";
+
+      $("scanStatus").className =
+        "status-chip success";
+
+      $("statementStatus").textContent =
+        state.rows.length
+          ? `${new Set(
+              state.rows.map(
+                (row) =>
+                  row.statement
+              )
+            ).size} statement type(s) detected`
+          : "No statement detected";
+
+      if (
+        state.periods.length ===
+        0
+      ) {
+        const periods =
+          state.rows
+            .map(
+              (row) =>
+                row.period
+            )
+            .filter(
+              (period) =>
+                period &&
+                period !==
+                  "Reporting period not stated"
+            );
+
+        state.periods = [
+          ...new Set(periods)
+        ];
+      }
+
+      addRecentFile(
+        state.file?.name ||
+          "Document",
+        state.company
+      );
+    };
+
+    /* ============================================================
+       PROCESS FILE
+    ============================================================ */
+
+    const processFile = async (
+      file
+    ) => {
+      if (!requireAccess()) {
+        return;
+      }
+
+      if (!file) {
+        return;
+      }
+
+      state.file = file;
+      state.rows = [];
+      state.rawText = "";
+      state.rawLines = [];
+      state.metrics = {};
+      state.metricSources = {};
+      state.ratios = {};
+      state.risks = [];
+      state.thesis = {};
+      state.periods = [];
+      state.units = "Reported units";
+      state.multiplier = 1;
+      state.currency = "";
+      state.demoMode = false;
+
+      try {
+        setStatus(
+          "Reading document...",
+          "warning"
+        );
+
+        setProgress(
+          4,
+          "Preparing document..."
+        );
+
+        state.rawText =
+          await readFile(file);
+
+        setProgress(
+          84,
+          "Matching financial statement line items..."
+        );
+
+        if (!state.rows.length) {
+          state.rows =
+            buildRowsFromText(
+              state.rawText,
+              file.name
+            );
         }
 
-        const results = $("tenkResults");
-        results.innerHTML = `
-          <li><span class="lbl">Evaluated Revenue</span><span class="val">${money(rev)}</span></li>
-          <li><span class="lbl">Evaluated Operating Expenses</span><span class="val">${money(burn)}</span></li>
-          <li><span class="lbl">Operating Profit Margin</span><span class="val">${opMargin.toFixed(2)}%</span></li>
-          <li><span class="lbl">Liquid Cash Balance</span><span class="val">${money(cash)}</span></li>
-          <li><span class="lbl">Total Reported Liabilities / Debt</span><span class="val">${money(debt)}</span></li>
+        setProgress(
+          94,
+          "Checking periods, units and calculations..."
+        );
+
+        analyseDocument();
+
+        setProgress(
+          100,
+          "Analysis complete"
+        );
+
+        showToast(
+          `${file.name} analysed successfully.`
+        );
+      } catch (error) {
+        console.error(
+          "FORGE analysis error:",
+          error
+        );
+
+        setStatus(
+          "Analysis failed",
+          "danger"
+        );
+
+        showToast(
+          "The document could not be read. Try a text-based PDF, XLSX or CSV file."
+        );
+      } finally {
+        setTimeout(
+          () => {
+            $("progressArea").classList.add(
+              "hidden"
+            );
+          },
+          1000
+        );
+      }
+    };
+
+    /* ============================================================
+       RECENT FILE
+    ============================================================ */
+
+    const addRecentFile = (
+      name,
+      company
+    ) => {
+      const list =
+        $("recentList");
+
+      if (
+        list.querySelector(
+          ".empty-state"
+        )
+      ) {
+        list.innerHTML = "";
+      }
+
+      const item =
+        document.createElement(
+          "div"
+        );
+
+      item.className =
+        "recent-item";
+
+      item.innerHTML = `
+        <div class="file-icon">
+          ${escapeHtml(
+            String(name)
+              .split(".")
+              .pop()
+              .toUpperCase()
+          )}
+        </div>
+
+        <div class="recent-details">
+
+          <strong>
+            ${escapeHtml(name)}
+          </strong>
+
+          <span>
+            ${escapeHtml(company)}
+            · Analysed just now
+          </span>
+
+        </div>
+
+        <span class="status-chip success">
+          Complete
+        </span>
+      `;
+
+      list.prepend(item);
+    };
+
+    /* ============================================================
+       RESET
+    ============================================================ */
+
+    const resetWorkspace = () => {
+      if (!requireAccess()) {
+        return;
+      }
+
+      state.file = null;
+      state.rawText = "";
+      state.rawLines = [];
+      state.rows = [];
+      state.metrics = {};
+      state.metricSources = {};
+      state.ratios = {};
+      state.risks = [];
+      state.thesis = {};
+      state.activeStatement =
+        "all";
+
+      state.periods = [];
+      state.units =
+        "Reported units";
+      state.multiplier = 1;
+      state.currency = "";
+
+      state.verified = 0;
+      state.calculated = 0;
+      state.missing = 0;
+      state.extractionQuality =
+        "—";
+
+      state.demoMode = false;
+
+      [
+        "metricRevenue",
+        "metricNetIncome",
+        "metricCash",
+        "metricDebt",
+        "metricCfo",
+        "metricEquity"
+      ].forEach(
+        (id) => {
+          $(id).textContent =
+            "—";
+        }
+      );
+
+      [
+        "metricRevenueMeta",
+        "metricNetIncomeMeta",
+        "metricCashMeta",
+        "metricDebtMeta",
+        "metricCfoMeta",
+        "metricEquityMeta"
+      ].forEach(
+        (id) => {
+          $(id).textContent =
+            "Not available";
+          $(id).className =
+            "metric-meta";
+        }
+      );
+
+      $("healthRows").innerHTML =
+        `
+          <div class="empty-state">
+            Upload a document to calculate financial health indicators.
+          </div>
         `;
 
-        $("tenkOutput").style.display = "block";
-        unlockSimulator();
-      } catch (err) {
-        $("tenkSpinner").style.display = "none";
-        $("tenkError").textContent = err.message || "An error occurred during investor screening.";
-        $("tenkError").style.display = "block";
+      $("riskList").innerHTML =
+        `
+          <div class="empty-state">
+            Risk signals will appear after analysis.
+          </div>
+        `;
+
+      $("thesis").innerHTML =
+        `
+          <div class="empty-state">
+            Investor rationale will be generated from available evidence.
+          </div>
+        `;
+
+      $("statementTableBody").innerHTML =
+        `
+          <tr>
+            <td
+              colspan="6"
+              class="empty-state"
+            >
+              Upload a document to view extracted statement data.
+            </td>
+          </tr>
+        `;
+
+      $("recentList").innerHTML =
+        `
+          <div class="empty-state">
+            No documents analysed yet.<br />
+            Your recent files will appear here.
+          </div>
+        `;
+
+      $("riskScore").textContent =
+        "—";
+
+      $("riskLabel").textContent =
+        "No score";
+
+      $("riskRing").style.background =
+        "conic-gradient(#354047 0deg, #354047 360deg)";
+
+      $("positiveCount").textContent =
+        "Positive signals: —";
+
+      $("warningCount").textContent =
+        "Watch items: —";
+
+      $("dangerCount").textContent =
+        "Critical flags: —";
+
+      $("healthStatus").textContent =
+        "Awaiting analysis";
+
+      $("scanStatus").textContent =
+        "Awaiting document";
+
+      $("scanStatus").className =
+        "status-chip";
+
+      $("statementStatus").textContent =
+        "No statement detected";
+
+      renderAudit();
+
+      showToast(
+        "Workspace reset."
+      );
+    };
+
+    /* ============================================================
+       SAMPLE WORKSPACE
+    ============================================================ */
+
+    const loadSample = () => {
+      if (!requireAccess()) {
+        return;
       }
-    }
 
-    /* =====================================================
-       6. TAB 3: FORECAST SIMULATOR LOGIC
-       ===================================================== */
-    function unlockSimulator() {
-      $("simLockedNotice").style.display = "none";
-      $("simContent").style.display = "block";
-      syncToSimulator();
-    }
+      state.demoMode = true;
 
-    function syncToSimulator() {
-      if (!parsedStatementReady) return;
-      $("simCash").value = parsedCashBalance;
-      $("simRev").value = parsedExtractedRev;
-      $("simBurn").value = parsedExtractedBurn;
-      runSimulation();
-    }
-
-    function runSimulation() {
-      const cash = parseFloat($("simCash").value) || 0;
-      const baseRev = parseFloat($("simRev").value) || 0;
-      const baseBurn = parseFloat($("simBurn").value) || 0;
-      const growthRate = (parseFloat($("simGrowth").value) || 0) / 100;
-      const scale = (parseFloat($("scaleSlider").value) || 100) / 100;
-      const windowMode = $("simWindow").value;
-
-      $("sliderVal").textContent = `${$("scaleSlider").value}%`;
-
-      const periods = windowMode === "weekly" ? 4 : 12;
-      let totalRev = 0;
-      let totalBurn = 0;
-      let currentRev = baseRev * scale;
-      const currentBurn = baseBurn * scale;
-
-      for (let i = 0; i < periods; i++) {
-        totalRev += currentRev;
-        totalBurn += currentBurn;
-        currentRev *= (1 + growthRate);
-      }
-
-      const netYield = totalRev - totalBurn;
-      const endingCash = cash + netYield;
-      const margin = totalRev > 0 ? (netYield / totalRev) * 100 : 0;
-
-      const periodNetBurn = currentBurn - currentRev;
-      let runwayText = "SUSTAINABLE";
-      if (periodNetBurn > 0) {
-        const runway = cash / periodNetBurn;
-        runwayText = `${runway.toFixed(1)} ${windowMode === "weekly" ? "Weeks" : "Months"}`;
-      }
-
-      $("netVal").textContent = money(netYield);
-      $("marginVal").textContent = `${margin.toFixed(1)}%`;
-      $("endingCashVal").textContent = money(endingCash);
-      $("runwayVal").textContent = runwayText;
-      $("projectedRevVal").textContent = money(totalRev);
-      $("projectedBurnVal").textContent = money(totalBurn);
-    }
-
-    /* =====================================================
-       7. EXPORT CAPABILITIES
-       ===================================================== */
-    function exportStmtAsCSV() {
-      const csvData = `Metric,Value\nRevenue,${parsedExtractedRev}\nOperating Expenses,${parsedExtractedBurn}\nCash Balance,${parsedCashBalance}\nCalculated Net Income,${parsedExtractedRev - parsedExtractedBurn}\n`;
-      const blob = new Blob([csvData], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "FORGE_Statement_Extraction.csv";
-      a.click();
-    }
-
-    function exportInvestorAuditJSON() {
-      const auditData = {
-        auditor: "FORGE Financial Engine (Yukti & Sahithya)",
-        timestamp: new Date().toISOString(),
-        user: localStorage.getItem(STORAGE_KEY),
-        extractedMetrics: {
-          revenue: parsedExtractedRev,
-          operatingExpenses: parsedExtractedBurn,
-          cashBalance: parsedCashBalance,
-          totalDebt: parsedExtractedDebt
-        },
-        evaluation: {
-          verdict: $("verdictVal").textContent,
-          healthScore: $("healthVal").textContent,
-          riskRating: $("flagVal").textContent
-        }
+      state.file = {
+        name:
+          "FORGE Demo Financial Statements.txt"
       };
-      const blob = new Blob([JSON.stringify(auditData, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "FORGE_Investor_Audit.json";
-      a.click();
-    }
-  </script>
 
+      state.rawText = `
+SAMPLE COMPANY
+Currency: USD
+In millions
+
+Consolidated Statements of Income
+Fiscal year ended December 31, 2025
+Fiscal year ended December 31, 2024
+
+Total revenue 125 118
+Gross profit 52 48
+Operating income 21 18
+Net income 16 13
+
+Consolidated Balance Sheets
+As of December 31, 2025
+As of December 31, 2024
+
+Cash and cash equivalents 28 24
+Total current assets 65 59
+Total current liabilities 42 40
+Total assets 180 164
+Total liabilities 92 86
+Total equity 88 78
+Total debt 46 43
+
+Consolidated Statements of Cash Flows
+Fiscal year ended December 31, 2025
+Fiscal year ended December 31, 2024
+
+Net cash provided by operating activities 24 20
+Capital expenditures (8) (7)
+      `;
+
+      state.rows =
+        buildRowsFromText(
+          state.rawText,
+          state.file.name
+        );
+
+      analyseDocument();
+
+      setStatus(
+        "Demo loaded",
+        "info"
+      );
+
+      showToast(
+        "Demo workspace loaded. These are demonstration figures, not company data."
+      );
+    };
+
+    /* ============================================================
+       REPORT DATA
+    ============================================================ */
+
+    const reportData = () => {
+      return {
+        analyst:
+          state.analystName,
+
+        company:
+          state.company,
+
+        file:
+          state.file?.name ||
+          "No file",
+
+        periods:
+          state.periods,
+
+        units:
+          state.units,
+
+        currency:
+          state.currency,
+
+        extractionQuality:
+          state.extractionQuality,
+
+        metrics:
+          state.metrics,
+
+        ratios:
+          state.ratios,
+
+        risks:
+          state.risks,
+
+        thesis:
+          state.thesis,
+
+        rows:
+          state.rows
+      };
+    };
+
+    /* ============================================================
+       HTML REPORT
+    ============================================================ */
+
+    const reportHtml = () => {
+      const data =
+        reportData();
+
+      const metricRows =
+        Object.entries(
+          data.metrics
+        )
+          .map(
+            ([key, value]) => `
+              <tr>
+                <td>${escapeHtml(key)}</td>
+                <td>
+                  ${
+                    value ===
+                      null ||
+                    value ===
+                      undefined
+                      ? "Not available"
+                      : formatMoney(
+                          value
+                        )
+                  }
+                </td>
+              </tr>
+            `
+          )
+          .join("");
+
+      const ratioRows =
+        Object.entries(
+          data.ratios
+        )
+          .map(
+            ([key, value]) => `
+              <tr>
+                <td>${escapeHtml(key)}</td>
+                <td>
+                  ${
+                    typeof value ===
+                    "number"
+                      ? value.toFixed(
+                          4
+                        )
+                      : value
+                  }
+                </td>
+              </tr>
+            `
+          )
+          .join("");
+
+      const riskRows =
+        data.risks
+          .map(
+            (risk) => `
+              <li class="${escapeHtml(
+                risk.severity
+              )}">
+                <strong>
+                  ${escapeHtml(
+                    risk.title
+                  )}
+                </strong>:
+                ${escapeHtml(
+                  risk.description
+                )}
+              </li>
+            `
+          )
+          .join("");
+
+      const evidenceRows =
+        data.rows
+          .map(
+            (row) => `
+              <tr>
+                <td>
+                  ${escapeHtml(
+                    statementName(
+                      row.statement
+                    )
+                  )}
+                </td>
+
+                <td>
+                  ${escapeHtml(
+                    row.label
+                  )}
+                </td>
+
+                <td>
+                  ${escapeHtml(
+                    row.period
+                  )}
+                </td>
+
+                <td>
+                  ${formatMoney(
+                    row.value
+                  )}
+                </td>
+
+                <td>
+                  ${escapeHtml(
+                    row.confidence
+                  )}
+                </td>
+
+                <td>
+                  ${escapeHtml(
+                    row.raw
+                  )}
+                </td>
+              </tr>
+            `
+          )
+          .join("");
+
+      return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+
+<title>
+FORGE Investor Report - ${escapeHtml(
+        data.company
+      )}
+</title>
+
+<style>
+
+body {
+  font-family:
+    Arial,
+    sans-serif;
+
+  color: #171717;
+
+  margin: 40px;
+
+  line-height: 1.5;
+}
+
+h1 {
+  font-size: 30px;
+  margin-bottom: 5px;
+}
+
+h2 {
+  margin-top: 30px;
+  border-bottom:
+    1px solid #ccc;
+  padding-bottom: 8px;
+}
+
+.meta {
+  color: #666;
+  font-size: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+th,
+td {
+  border:
+    1px solid #ddd;
+
+  padding: 8px;
+
+  text-align: left;
+
+  font-size: 12px;
+
+  vertical-align: top;
+}
+
+th {
+  background: #eee;
+}
+
+.good {
+  color: #18794e;
+}
+
+.warning {
+  color: #9a6700;
+}
+
+.danger {
+  color: #b42318;
+}
+
+li {
+  margin-bottom: 6px;
+}
+
+.disclaimer {
+  margin-top: 35px;
+  font-size: 11px;
+  color: #666;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>
+FORGE Investor Report
+</h1>
+
+<p class="meta">
+Analyst: ${escapeHtml(
+        data.analyst
+      )}
+</p>
+
+<p class="meta">
+${escapeHtml(
+        data.company
+      )}
+ · Source:
+${escapeHtml(
+        data.file
+      )}
+</p>
+
+<p class="meta">
+Currency:
+${
+  data.currency ||
+  "Not detected"
+}
+ · Units:
+${escapeHtml(
+        data.units ||
+          "Reported units"
+      )}
+</p>
+
+<p class="meta">
+Reporting periods:
+${
+  data.periods?.length
+    ? data.periods
+        .map(
+          (period) =>
+            escapeHtml(
+              period
+            )
+        )
+        .join(" · ")
+    : "Not detected"
+}
+</p>
+
+<p class="meta">
+Extraction quality:
+${escapeHtml(
+        data.extractionQuality
+      )}
+</p>
+
+<h2>
+Executive Conclusion
+</h2>
+
+<p>
+This report provides analytical decision support based only on values
+identified in the selected document. Missing or uncertain values are not
+treated as verified facts.
+</p>
+
+<h2>
+Key Metrics
+</h2>
+
+<table>
+
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+
+${metricRows}
+
+</table>
+
+<h2>
+Calculated Ratios
+</h2>
+
+<table>
+
+<tr>
+<th>Ratio</th>
+<th>Value</th>
+</tr>
+
+${ratioRows}
+
+</table>
+
+<h2>
+Risk Signals
+</h2>
+
+<ul>
+${riskRows}
+</ul>
+
+<h2>
+Investor Rationale
+</h2>
+
+<h3>
+Potential positives
+</h3>
+
+<ul>
+${
+  data.thesis.positive
+    .map(
+      (item) =>
+        `<li>${escapeHtml(
+          item
+        )}</li>`
+    )
+    .join("")
+}
+</ul>
+
+<h3>
+Caution areas
+</h3>
+
+<ul>
+${
+  data.thesis.caution
+    .map(
+      (item) =>
+        `<li>${escapeHtml(
+          item
+        )}</li>`
+    )
+    .join("")
+}
+</ul>
+
+<h3>
+Decision conditions
+</h3>
+
+<ul>
+${
+  data.thesis.conditions
+    .map(
+      (item) =>
+        `<li>${escapeHtml(
+          item
+        )}</li>`
+    )
+    .join("")
+}
+</ul>
+
+<h2>
+Extracted Evidence
+</h2>
+
+<table>
+
+<tr>
+<th>Statement</th>
+<th>Line Item</th>
+<th>Reporting Period</th>
+<th>Value</th>
+<th>Confidence</th>
+<th>Source Text</th>
+</tr>
+
+${evidenceRows}
+
+</table>
+
+<p class="disclaimer">
+
+Methodology: FORGE uses browser-based document text extraction,
+statement-aware line-item matching and transparent calculations.
+
+This report is not investment advice.
+
+Original filings must be reviewed before relying on any result,
+especially where the source is scanned, image-only, multi-column,
+poorly structured or incomplete.
+
+</p>
+
+</body>
+</html>
+      `;
+    };
+
+    /* ============================================================
+       DOWNLOAD
+    ============================================================ */
+
+    const downloadFile = (
+      content,
+      filename,
+      type
+    ) => {
+      const blob =
+        new Blob(
+          [content],
+          {
+            type
+          }
+        );
+
+      const url =
+        URL.createObjectURL(
+          blob
+        );
+
+      const link =
+        document.createElement(
+          "a"
+        );
+
+      link.href = url;
+      link.download =
+        filename;
+
+      document.body.appendChild(
+        link
+      );
+
+      link.click();
+
+      link.remove();
+
+      setTimeout(
+        () =>
+          URL.revokeObjectURL(
+            url
+          ),
+        1000
+      );
+    };
+
+    /* ============================================================
+       SAFE FILE NAME
+    ============================================================ */
+
+    const safeFileName = (
+      value
+    ) => {
+      return String(value || "Report")
+        .replace(
+          /[^a-z0-9]+/gi,
+          "-"
+        )
+        .replace(
+          /^-+|-+$/g,
+          ""
+        );
+    };
+
+    /* ============================================================
+       EXPORT HTML
+    ============================================================ */
+
+    const exportHtmlReport = () => {
+      if (!requireAccess()) {
+        return;
+      }
+
+      if (!state.file) {
+        showToast(
+          "Analyse a document before exporting a report."
+        );
+        return;
+      }
+
+      downloadFile(
+        reportHtml(),
+        `FORGE-${safeFileName(
+          state.company
+        )}-Report.html`,
+        "text/html"
+      );
+    };
+
+    /* ============================================================
+       EXPORT CSV
+    ============================================================ */
+
+    const exportCsvReport = () => {
+      if (!requireAccess()) {
+        return;
+      }
+
+      if (!state.file) {
+        showToast(
+          "Analyse a document before exporting data."
+        );
+        return;
+      }
+
+      const rows = [
+        [
+          "Statement",
+          "Line Item",
+          "Reporting Period",
+          "Year",
+          "Value",
+          "Confidence",
+          "Source"
+        ],
+
+        ...state.rows.map(
+          (row) => [
+            statementName(
+              row.statement
+            ),
+            row.label,
+            row.period,
+            row.year,
+            row.value,
+            row.confidence,
+            row.raw
+          ]
+        )
+      ];
+
+      const csv =
+        rows
+          .map(
+            (row) =>
+              row
+                .map(
+                  (value) =>
+                    `"${String(
+                      value ??
+                        ""
+                    ).replace(
+                      /"/g,
+                      '""'
+                    )}"`
+                )
+                .join(",")
+          )
+          .join("\n");
+
+      downloadFile(
+        csv,
+        `FORGE-${safeFileName(
+          state.company
+        )}-Data.csv`,
+        "text/csv"
+      );
+    };
+
+    /* ============================================================
+       EXPORT PDF
+    ============================================================ */
+
+    const exportPdfReport = () => {
+      if (!requireAccess()) {
+        return;
+      }
+
+      if (!state.file) {
+        showToast(
+          "Analyse a document before exporting a report."
+        );
+        return;
+      }
+
+      if (!window.jspdf) {
+        showToast(
+          "PDF library is still loading. Try again in a moment."
+        );
+        return;
+      }
+
+      const {
+        jsPDF
+      } = window.jspdf;
+
+      const doc =
+        new jsPDF();
+
+      doc.setFontSize(
+        20
+      );
+
+      doc.text(
+        "FORGE Investor Report",
+        16,
+        18
+      );
+
+      doc.setFontSize(
+        10
+      );
+
+      doc.text(
+        `Analyst: ${state.analystName}`,
+        16,
+        26
+      );
+
+      doc.text(
+        `${state.company}`,
+        16,
+        32
+      );
+
+      doc.text(
+        `Source: ${
+          state.file?.name ||
+          "No file"
+        }`,
+        16,
+        38
+      );
+
+      doc.text(
+        `Currency: ${
+          state.currency ||
+          "Not detected"
+        } | Units: ${
+          state.units
+        }`,
+        16,
+        44
+      );
+
+      doc.setFontSize(
+        14
+      );
+
+      doc.text(
+        "Key Metrics",
+        16,
+        56
+      );
+
+      const metricRows =
+        Object.entries(
+          state.metrics
+        ).map(
+          ([key, value]) => [
+            key,
+            value ===
+                null ||
+              value ===
+                undefined
+              ? "Not available"
+              : formatMoney(
+                  value
+                )
+          ]
+        );
+
+      doc.autoTable({
+        startY: 61,
+
+        head: [
+          [
+            "Metric",
+            "Value"
+          ]
+        ],
+
+        body:
+          metricRows,
+
+        theme:
+          "grid",
+
+        styles: {
+          fontSize: 8
+        }
+      });
+
+      let y =
+        doc.lastAutoTable
+          .finalY +
+        13;
+
+      if (
+        y > 250
+      ) {
+        doc.addPage();
+        y = 18;
+      }
+
+      doc.setFontSize(
+        14
+      );
+
+      doc.text(
+        "Calculated Ratios",
+        16,
+        y
+      );
+
+      y += 5;
+
+      doc.autoTable({
+        startY: y,
+
+        head: [
+          [
+            "Ratio",
+            "Value"
+          ]
+        ],
+
+        body:
+          Object.entries(
+            state.ratios
+          ).map(
+            ([key, value]) => [
+              key,
+              typeof value ===
+              "number"
+                ? value.toFixed(
+                    4
+                  )
+                : value
+            ]
+          ),
+
+        theme:
+          "grid",
+
+        styles: {
+          fontSize: 8
+        }
+      });
+
+      y =
+        doc.lastAutoTable
+          .finalY +
+        13;
+
+      if (
+        y > 250
+      ) {
+        doc.addPage();
+        y = 18;
+      }
+
+      doc.setFontSize(
+        14
+      );
+
+      doc.text(
+        "Risk Signals",
+        16,
+        y
+      );
+
+      y += 5;
+
+      doc.autoTable({
+        startY: y,
+
+        head: [
+          [
+            "Severity",
+            "Risk",
+            "Explanation"
+          ]
+        ],
+
+        body:
+          state.risks.map(
+            (risk) => [
+              risk.severity
+                .toUpperCase(),
+
+              risk.title,
+
+              risk.description
+            ]
+          ),
+
+        theme:
+          "grid",
+
+        styles: {
+          fontSize: 7
+        },
+
+        columnStyles: {
+          2: {
+            cellWidth: 110
+          }
+        }
+      });
+
+      y =
+        doc.lastAutoTable
+          .finalY +
+        13;
+
+      if (
+        y > 250
+      ) {
+        doc.addPage();
+        y = 18;
+      }
+
+      doc.setFontSize(
+        14
+      );
+
+      doc.text(
+        "Investor Rationale",
+        16,
+        y
+      );
+
+      y += 8;
+
+      doc.setFontSize(
+        9
+      );
+
+      doc.text(
+        "Potential positives:",
+        16,
+        y
+      );
+
+      y += 5;
+
+      state.thesis.positive.forEach(
+        (item) => {
+          const lines =
+            doc.splitTextToSize(
+              `• ${item}`,
+              175
+            );
+
+          doc.text(
+            lines,
+            18,
+            y
+          );
+
+          y +=
+            lines.length *
+            4;
+        }
+      );
+
+      y += 4;
+
+      doc.text(
+        "Caution areas:",
+        16,
+        y
+      );
+
+      y += 5;
+
+      state.thesis.caution.forEach(
+        (item) => {
+          const lines =
+            doc.splitTextToSize(
+              `• ${item}`,
+              175
+            );
+
+          doc.text(
+            lines,
+            18,
+            y
+          );
+
+          y +=
+            lines.length *
+            4;
+        }
+      );
+
+      y += 8;
+
+      if (
+        y > 270
+      ) {
+        doc.addPage();
+        y = 18;
+      }
+
+      doc.setFontSize(
+        7
+      );
+
+      doc.text(
+        "FORGE is an analytical decision-support tool. Verify the original filing before relying on extracted values.",
+        16,
+        y
+      );
+
+      doc.save(
+        `FORGE-${safeFileName(
+          state.company
+        )}-Report.pdf`
+      );
+    };
+
+    /* ============================================================
+       PRINT
+    ============================================================ */
+
+    const printReport = () => {
+      if (!requireAccess()) {
+        return;
+      }
+
+      if (!state.file) {
+        showToast(
+          "Analyse a document before printing."
+        );
+        return;
+      }
+
+      const report =
+        reportHtml();
+
+      const printWindow =
+        window.open(
+          "",
+          "_blank"
+        );
+
+      if (!printWindow) {
+        showToast(
+          "Allow pop-ups to print the report."
+        );
+        return;
+      }
+
+      printWindow.document.open();
+
+      printWindow.document.write(
+        report
+      );
+
+      printWindow.document.close();
+
+      printWindow.focus();
+
+      setTimeout(
+        () => {
+          printWindow.print();
+        },
+        400
+      );
+    };
+
+    /* ============================================================
+       EVENT LISTENERS
+    ============================================================ */
+
+    $("browseButton").addEventListener(
+      "click",
+      () => {
+        if (
+          !requireAccess()
+        ) {
+          return;
+        }
+
+        $("fileInput").click();
+      }
+    );
+
+    $("heroUploadButton").addEventListener(
+      "click",
+      () => {
+        if (
+          !requireAccess()
+        ) {
+          return;
+        }
+
+        $("fileInput").click();
+      }
+    );
+
+    $("topUploadButton").addEventListener(
+      "click",
+      () => {
+        if (
+          !requireAccess()
+        ) {
+          return;
+        }
+
+        $("fileInput").click();
+      }
+    );
+
+    $("fileInput").addEventListener(
+      "change",
+      (event) => {
+        if (
+          !requireAccess()
+        ) {
+          return;
+        }
+
+        processFile(
+          event.target.files[0]
+        );
+
+        /*
+          Allows selecting the same file again
+          after reset.
+        */
+
+        event.target.value =
+          "";
+      }
+    );
+
+    $("uploadZone").addEventListener(
+      "dragover",
+      (event) => {
+        if (
+          !state.unlocked
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+
+        $("uploadZone")
+          .classList.add(
+            "dragover"
+          );
+      }
+    );
+
+    $("uploadZone").addEventListener(
+      "dragleave",
+      () => {
+        $("uploadZone")
+          .classList.remove(
+            "dragover"
+          );
+      }
+    );
+
+    $("uploadZone").addEventListener(
+      "drop",
+      (event) => {
+        if (
+          !requireAccess()
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+
+        $("uploadZone")
+          .classList.remove(
+            "dragover"
+          );
+
+        const file =
+          event.dataTransfer
+            .files[0];
+
+        processFile(file);
+      }
+    );
+
+    $("sampleButton").addEventListener(
+      "click",
+      loadSample
+    );
+
+    $("resetButton").addEventListener(
+      "click",
+      resetWorkspace
+    );
+
+    /* ============================================================
+       NAVIGATION
+    ============================================================ */
+
+    document
+      .querySelectorAll(
+        ".nav-button"
+      )
+      .forEach(
+        (button) => {
+          button.addEventListener(
+            "click",
+            () => {
+              if (
+                !requireAccess()
+              ) {
+                return;
+              }
+
+              document
+                .querySelectorAll(
+                  ".nav-button"
+                )
+                .forEach(
+                  (item) =>
+                    item.classList.remove(
+                      "active"
+                    )
+                );
+
+              button.classList.add(
+                "active"
+              );
+
+              const section =
+                $(
+                  button.dataset
+                    .section
+                );
+
+              if (section) {
+                section.scrollIntoView(
+                  {
+                    behavior:
+                      "smooth",
+                    block:
+                      "start"
+                  }
+                );
+              }
+            }
+          );
+        }
+      );
+
+    /* ============================================================
+       STATEMENT TABS
+    ============================================================ */
+
+    document
+      .querySelectorAll(
+        ".statement-tab"
+      )
+      .forEach(
+        (button) => {
+          button.addEventListener(
+            "click",
+            () => {
+              if (
+                !requireAccess()
+              ) {
+                return;
+              }
+
+              document
+                .querySelectorAll(
+                  ".statement-tab"
+                )
+                .forEach(
+                  (item) =>
+                    item.classList.remove(
+                      "active"
+                    )
+                );
+
+              button.classList.add(
+                "active"
+              );
+
+              state.activeStatement =
+                button.dataset
+                  .statement;
+
+              renderStatements();
+            }
+          );
+        }
+      );
+
+    /* ============================================================
+       EXPORT BUTTONS
+    ============================================================ */
+
+    $("exportPdf").addEventListener(
+      "click",
+      exportPdfReport
+    );
+
+    $("exportHtml").addEventListener(
+      "click",
+      exportHtmlReport
+    );
+
+    $("exportCsv").addEventListener(
+      "click",
+      exportCsvReport
+    );
+
+    $("printReport").addEventListener(
+      "click",
+      printReport
+    );
+
+    /* ============================================================
+       LOADING SCREEN
+    ============================================================ */
+
+    window.addEventListener(
+      "load",
+      () => {
+        setTimeout(
+          () => {
+            $("loadingScreen")
+              .classList.add(
+                "hidden"
+              );
+
+            /*
+              The name gate remains active.
+              The actual website is not accessible
+              until the user enters a name.
+            */
+
+            if (
+              !state.unlocked
+            ) {
+              setTimeout(
+                () => {
+                  $("analystNameInput")
+                    .focus();
+                },
+                150
+              );
+            }
+          },
+          850
+        );
+      }
+    );
+
+  </script>
 </body>
 </html>
