@@ -3,14 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="FORGE — Financial Clarity Engine for cash analysis, financial statements, investor screening and forecasting." />
   <title>FORGE | Financial Clarity Engine</title>
+
   <style>
-    /* RESET & STYLING BASE */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+        "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     :root {
@@ -18,7 +20,7 @@
       --panel-bg: #111111;
       --card-bg: #161616;
       --border-color: #222222;
-      --border-focus: #444444;
+      --border-focus: #555555;
       --text-main: #f0f0f0;
       --text-muted: #777777;
       --accent-white: #ffffff;
@@ -27,8 +29,12 @@
       --accent-amber: #f59e0b;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
-      background-color: var(--bg-dark);
+      background: var(--bg-dark);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -37,14 +43,35 @@
       letter-spacing: -0.01em;
     }
 
-    /* HEADER & FOOTER */
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button,
+    input,
+    select {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 3px;
+    }
+
+    /* HEADER */
+
     header {
       padding: 20px 6%;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 20px;
       border-bottom: 1px solid var(--border-color);
-      background: rgba(8, 8, 8, 0.85);
+      background: rgba(8, 8, 8, 0.92);
       backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
@@ -68,6 +95,7 @@
       background: #fff;
       border-radius: 50%;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      flex-shrink: 0;
     }
 
     .credits {
@@ -80,6 +108,8 @@
       border-radius: 4px;
       background: var(--panel-bg);
     }
+
+    /* FOOTER */
 
     footer {
       margin-top: auto;
@@ -96,10 +126,11 @@
       max-width: 800px;
       margin: 10px auto 0;
       font-size: 0.68rem;
-      color: #555555;
+      color: #555;
     }
 
-    /* CONTAINER & LAYOUT */
+    /* LAYOUT */
+
     .container {
       width: 90%;
       max-width: 1100px;
@@ -107,20 +138,26 @@
       flex: 1;
     }
 
-    /* ACCESS CARD */
+    h1,
+    h2,
+    h3 {
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
     .access-card {
       background: var(--panel-bg);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 28px;
       margin-bottom: 30px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-    }
-
-    h1, h2, h3 {
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     }
 
     .access-card h1 {
@@ -141,8 +178,13 @@
       flex-wrap: wrap;
     }
 
-    input[type="text"], input[type="number"], select, input[type="file"] {
-      background: #000000;
+    /* INPUTS */
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    input[type="file"] {
+      background: #000;
       border: 1px solid var(--border-color);
       color: #fff;
       padding: 12px 16px;
@@ -150,25 +192,48 @@
       outline: none;
       font-size: 0.88rem;
       transition: border-color 0.2s;
-      flex: 1;
-      min-width: 200px;
+      min-width: 0;
+    }
+
+    .input-group input[type="text"] {
+      flex: 1 1 220px;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus,
+    input[type="file"]:focus {
+      border-color: var(--border-focus);
     }
 
     input[type="range"] {
       width: 100%;
-      accent-color: #ffffff;
+      accent-color: #fff;
       cursor: pointer;
       margin-top: 10px;
     }
 
-    input[type="text"]:focus, input[type="number"]:focus, select:focus {
-      border-color: var(--border-focus);
+    input[type="file"] {
+      width: 100%;
+      cursor: pointer;
     }
+
+    input[type="file"]::file-selector-button {
+      background: #222;
+      color: #fff;
+      border: 1px solid #333;
+      border-radius: 3px;
+      padding: 6px 10px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    /* BUTTONS */
 
     .btn {
       background: var(--accent-white);
-      color: #000000;
-      border: none;
+      color: #000;
+      border: 1px solid transparent;
       padding: 12px 24px;
       border-radius: 4px;
       font-weight: 700;
@@ -181,14 +246,18 @@
     }
 
     .btn:hover {
-      background: #cccccc;
+      background: #ccc;
       transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
     }
 
     .btn-secondary {
       background: transparent;
       color: var(--text-muted);
-      border: 1px solid var(--border-color);
+      border-color: var(--border-color);
     }
 
     .btn-secondary:hover {
@@ -199,7 +268,7 @@
     .btn-danger {
       background: rgba(239, 68, 68, 0.15);
       color: var(--accent-red);
-      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-color: rgba(239, 68, 68, 0.4);
     }
 
     .btn-danger:hover {
@@ -207,7 +276,14 @@
       color: #fff;
     }
 
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     /* TABS */
+
     .tabs {
       display: flex;
       gap: 10px;
@@ -215,6 +291,7 @@
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 12px;
       overflow-x: auto;
+      scrollbar-width: thin;
     }
 
     .tab-btn {
@@ -238,6 +315,7 @@
     }
 
     /* PANELS */
+
     .feature-panel {
       display: none;
       background: var(--panel-bg);
@@ -250,16 +328,17 @@
       display: block;
     }
 
-    /* GRID & CARDS */
+    /* GRIDS */
+
     .grid-2 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
     }
 
     .grid-3 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 20px;
     }
 
@@ -282,15 +361,37 @@
       line-height: 1.6;
     }
 
-    .methodology-box {
-      margin-top: 15px;
-      padding: 12px 16px;
-      background: #000;
-      border: 1px dashed var(--border-color);
-      border-radius: 4px;
+    .field-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .field-label {
+      display: block;
       font-size: 0.75rem;
-      color: #888;
-      line-height: 1.5;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .field-stack input,
+    .field-stack select,
+    .full-width {
+      width: 100%;
+    }
+
+    /* RESULTS */
+
+    .result-box {
+      margin-top: 15px;
+      padding: 12px;
+      background: #000;
+      border: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      line-height: 1.6;
+      min-height: 42px;
     }
 
     .spinner {
@@ -311,11 +412,12 @@
       color: var(--accent-red);
       font-size: 0.8rem;
       border-radius: 4px;
+      line-height: 1.5;
     }
 
     .analysis-output {
       margin-top: 24px;
-      background: #000000;
+      background: #000;
       border: 1px solid var(--border-color);
       border-radius: 6px;
       padding: 24px;
@@ -332,6 +434,8 @@
       border-bottom: 1px solid #1c1c1c;
       display: flex;
       justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .analysis-list {
@@ -344,28 +448,32 @@
       font-size: 0.85rem;
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
       gap: 16px;
     }
 
     .analysis-list li .lbl {
       color: var(--text-muted);
+      flex: 1;
     }
 
     .analysis-list li .val {
       color: var(--accent-white);
       font-weight: 600;
       text-align: right;
+      max-width: 65%;
+      overflow-wrap: anywhere;
     }
 
     .metrics-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 16px;
       margin-top: 20px;
     }
 
     .metric-card {
-      background: #000000;
+      background: #000;
       border: 1px solid var(--border-color);
       padding: 20px;
       border-radius: 4px;
@@ -377,6 +485,7 @@
       font-weight: 700;
       color: #fff;
       margin-top: 8px;
+      overflow-wrap: anywhere;
     }
 
     .metric-card .lbl {
@@ -385,8 +494,112 @@
       text-transform: uppercase;
       letter-spacing: 1px;
     }
+
+    .status-note {
+      margin-top: 15px;
+      font-size: 0.72rem;
+      line-height: 1.6;
+      color: #666;
+    }
+
+    .section-note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+
+    .subsection {
+      margin-bottom: 20px;
+    }
+
+    .subsection:last-child {
+      margin-bottom: 0;
+    }
+
+    .flex-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 600px) {
+      header {
+        padding: 16px 5%;
+        align-items: flex-start;
+      }
+
+      .brand {
+        font-size: 0.95rem;
+        letter-spacing: 3px;
+      }
+
+      .credits {
+        font-size: 0.62rem;
+        letter-spacing: 0.8px;
+        padding: 5px 8px;
+        text-align: right;
+      }
+
+      .container {
+        width: 94%;
+        margin: 20px auto;
+      }
+
+      .access-card,
+      .feature-panel {
+        padding: 20px;
+      }
+
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .input-group .btn {
+        flex: 1 1 140px;
+      }
+
+      .analysis-output {
+        padding: 16px;
+      }
+
+      .analysis-list li {
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .analysis-list li .val {
+        text-align: left;
+        max-width: 100%;
+      }
+
+      .metrics-row {
+        grid-template-columns: 1fr;
+      }
+
+      footer {
+        padding: 20px 14px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
+
 <body>
 
   <header>
@@ -394,490 +607,1295 @@
       <div class="brand-dot"></div>
       FORGE
     </div>
-    <div class="credits">By Sahithya & Yukti</div>
+    <div class="credits">By Sahithya &amp; Yukti</div>
   </header>
 
-  <div class="container">
-    
+  <main class="container">
+
     <!-- ACCESS & SESSION CONTROL -->
-    <div class="access-card">
+
+    <section class="access-card">
       <h1>USER SESSION ACCESS</h1>
-      <p class="subtitle">Enter your details to save your local session state.</p>
+      <p class="subtitle">
+        Enter your name to initiate an active financial workspace.
+      </p>
+
       <div class="input-group">
-        <input type="text" id="userName" placeholder="Enter user name..." />
-        <button class="btn" onclick="saveUser()">Save Session</button>
-        <button class="btn btn-danger" onclick="confirmReset()">Reset Session</button>
+        <input
+          type="text"
+          id="userName"
+          placeholder="Enter user name..."
+          maxlength="100"
+          autocomplete="name"
+        />
+        <button class="btn" id="saveUserBtn" type="button">
+          Save Session
+        </button>
+        <button class="btn btn-danger" id="resetBtn" type="button">
+          Reset Session
+        </button>
       </div>
-      <p id="greeting" style="margin-top: 16px; font-size: 0.88rem; font-weight: 600; color: var(--accent-white);"></p>
-    </div>
+
+      <p
+        id="greeting"
+        style="margin-top:16px;font-size:0.88rem;font-weight:600;color:var(--accent-white);"
+        aria-live="polite"
+      ></p>
+    </section>
 
     <!-- TABS -->
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab(event, 'day-to-day')">1. Day-to-Day Pain Relief</button>
-      <button class="tab-btn" onclick="switchTab(event, 'doc-intel')">2. Statement Scanner</button>
-      <button class="tab-btn" onclick="switchTab(event, 'ten-k')">3. 10-K Reader & Ticker Lookup</button>
-      <button class="tab-btn" onclick="switchTab(event, 'forecast')">4. Forecast Simulator</button>
-    </div>
 
-    <!-- TAB 1: OPERATIONAL TOOLS -->
-    <div id="day-to-day" class="feature-panel active">
-      <h2>OPERATIONAL PAIN RELIEF DASHBOARD</h2>
-      <p class="subtitle">Interactive utilities for cash protection and micro-inflation tracking.</p>
-      
+    <nav class="tabs" aria-label="Financial tools">
+      <button class="tab-btn active" type="button" data-tab="day-to-day">
+        1. Day-to-Day Utilities
+      </button>
+      <button class="tab-btn" type="button" data-tab="doc-intel">
+        2. Statement Scanner
+      </button>
+      <button class="tab-btn" type="button" data-tab="ten-k">
+        3. Investor Decision Engine
+      </button>
+      <button class="tab-btn" type="button" data-tab="forecast">
+        4. Forecast Simulator
+      </button>
+    </nav>
+
+    <!-- TAB 1 -->
+
+    <section id="day-to-day" class="feature-panel active">
+
+      <h2>DAY-TO-DAY OPERATIONAL UTILITIES</h2>
+      <p class="subtitle">
+        Immediate tools for cash protection and tracking software and vendor price creep.
+      </p>
+
       <div class="grid-2">
-        <!-- Cash Runway Shield Calculator -->
+
+        <!-- CASH RUNWAY -->
+
         <div class="card">
-          <h3>Cash Runway Shield Calculator</h3>
-          <p style="margin-bottom: 12px;">Calculate instant burn threshold status without finance overhead.</p>
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <input type="number" id="p1_cash" placeholder="Current Cash Reserve ($)" oninput="calcPainRelief()" />
-            <input type="number" id="p1_burn" placeholder="Monthly Operating Burn ($)" oninput="calcPainRelief()" />
+          <h3>Cash Runway Shield</h3>
+          <p style="margin-bottom:12px;">
+            Calculate available cash runway to identify liquidity pressure.
+          </p>
+
+          <div class="field-stack">
+            <input
+              type="number"
+              id="p1_cash"
+              placeholder="Total Cash Reserve ($)"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+            />
+
+            <input
+              type="number"
+              id="p1_burn"
+              placeholder="Monthly Operating Expenses ($)"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+            />
           </div>
-          <div id="p1_res" style="margin-top: 15px; padding: 12px; background: #000; border: 1px solid var(--border-color); font-size: 0.8rem;">
-            Enter values above to evaluate runway shield...
+
+          <div id="p1_res" class="result-box" aria-live="polite">
+            Enter values to compute runway status...
           </div>
         </div>
 
-        <!-- Vendor Inflation Creep Watchdog -->
+        <!-- VENDOR INFLATION -->
+
         <div class="card">
-          <h3>Vendor Inflation Creep Watchdog</h3>
-          <p style="margin-bottom: 12px;">Detect subtle monthly software & vendor cost increases.</p>
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <input type="number" id="p2_last" placeholder="Previous Month Bills ($)" oninput="calcInflation()" />
-            <input type="number" id="p2_current" placeholder="Current Month Bills ($)" oninput="calcInflation()" />
+          <h3>Vendor Inflation Watchdog</h3>
+          <p style="margin-bottom:12px;">
+            Detect monthly software and vendor cost increases.
+          </p>
+
+          <div class="field-stack">
+            <input
+              type="number"
+              id="p2_last"
+              placeholder="Previous Month Total Bills ($)"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+            />
+
+            <input
+              type="number"
+              id="p2_current"
+              placeholder="Current Month Total Bills ($)"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+            />
           </div>
-          <div id="p2_res" style="margin-top: 15px; padding: 12px; background: #000; border: 1px solid var(--border-color); font-size: 0.8rem;">
-            Enter bill amounts to monitor cost creep...
+
+          <div id="p2_res" class="result-box" aria-live="polite">
+            Enter bill amounts to calculate cost changes...
           </div>
         </div>
+
       </div>
-    </div>
+    </section>
 
-    <!-- TAB 2: STATEMENT SCANNER -->
-    <div id="doc-intel" class="feature-panel">
+    <!-- TAB 2 -->
+
+    <section id="doc-intel" class="feature-panel">
+
       <h2>FINANCIAL STATEMENT SCANNER</h2>
-      <p class="subtitle">Upload financial documents for deterministic extraction and ratio analysis.</p>
-      
-      <div class="grid-2" style="margin-bottom: 20px;">
+      <p class="subtitle">
+        Upload a CSV or TXT financial statement for label-aware numerical extraction.
+      </p>
+
+      <div class="grid-2" style="margin-bottom:20px;">
+
         <div>
-          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Target Financial Statement</label>
-          <select id="stmtType" style="margin-top: 8px; width: 100%;">
-            <option value="balance">Balance Sheet</option>
-            <option value="income">Income Statement (P&L)</option>
+          <label class="field-label" for="stmtType">Document Type</label>
+          <select id="stmtType" class="full-width">
+            <option value="balance">Income Statement / P&amp;L</option>
+            <option value="balance_sheet">Balance Sheet</option>
             <option value="cashflow">Cash Flow Statement</option>
           </select>
         </div>
+
         <div>
-          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Document File (TXT/CSV)</label>
-          <input type="file" id="stmtFile" accept="*" style="margin-top: 8px; width: 100%;" />
+          <label class="field-label" for="stmtFile">
+            Upload File (CSV/TXT)
+          </label>
+          <input
+            type="file"
+            id="stmtFile"
+            accept=".csv,.txt,text/csv,text/plain"
+          />
         </div>
+
       </div>
 
-      <button class="btn" onclick="analyzeStatement()">Parse Statement File</button>
+      <button class="btn" id="analyzeStatementBtn" type="button">
+        Parse File
+      </button>
 
-      <div id="stmtSpinner" class="spinner">⚙️ Extracting data from document...</div>
-      <div id="stmtError" class="error-msg"></div>
+      <div id="stmtSpinner" class="spinner" aria-live="polite">
+        ⚙️ Extracting metrics...
+      </div>
+
+      <div id="stmtError" class="error-msg" role="alert"></div>
 
       <div id="stmtOutput" class="analysis-output">
+
         <div class="output-header">
-          <span id="stmtTitle">Diagnostic Breakdown</span>
-          <span style="color: var(--accent-green); font-size: 0.7rem;">Deterministic Local Read</span>
+          <span id="stmtTitle">Extracted Financial Breakdown</span>
+          <span style="color:var(--accent-green);font-size:0.7rem;">
+            Active Extraction
+          </span>
         </div>
+
         <ul class="analysis-list" id="stmtResults"></ul>
-        <button class="btn btn-secondary" style="margin-top: 15px;" onclick="syncToSimulator()">Sync Extracted Numbers to Simulator &rarr;</button>
-      </div>
-    </div>
 
-    <!-- TAB 3: 10-K READER & TICKER LOOKUP -->
-    <div id="ten-k" class="feature-panel">
-      <h2>10-K READER & TICKER BENCHMARK LOOKUP</h2>
-      <p class="subtitle">Lookup public tickers or upload a 10-K file to analyze health and risk metrics.</p>
-      
-      <div class="grid-2" style="margin-bottom: 20px;">
-        <div>
-          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Company Ticker Symbol (e.g., TSLA, NVDA, AAPL)</label>
-          <input type="text" id="ticker" placeholder="Type ticker..." style="margin-top: 8px; width: 100%;" onkeyup="checkTickerLookup(event)" />
+        <div class="flex-actions" style="margin-top:15px;">
+          <button class="btn btn-secondary" id="syncBtn" type="button">
+            Sync Extracted Numbers to Simulator →
+          </button>
         </div>
-        <div>
-          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Upload 10-K File (Optional)</label>
-          <input type="file" id="tenkFile" accept="*" style="margin-top: 8px; width: 100%;" />
-        </div>
+
+        <p class="status-note">
+          Values are extracted from recognized financial labels. Unsupported
+          layouts or missing labels are reported instead of being guessed.
+        </p>
+
+      </div>
+    </section>
+
+    <!-- TAB 3 -->
+
+    <section id="ten-k" class="feature-panel">
+
+      <h2>INVESTOR DECISION ENGINE</h2>
+      <p class="subtitle">
+        Screen a CSV or TXT financial report using transparent financial signals.
+      </p>
+
+      <div class="subsection">
+        <label class="field-label" for="tenkFile">
+          Upload Financial Report (CSV/TXT)
+        </label>
+
+        <input
+          type="file"
+          id="tenkFile"
+          accept=".csv,.txt,text/csv,text/plain"
+        />
       </div>
 
-      <button class="btn" onclick="analyzeTenK()">Evaluate Company Viability</button>
+      <button class="btn" id="analyzeInvestorBtn" type="button">
+        Evaluate Investment Decision
+      </button>
 
-      <div id="tenkSpinner" class="spinner">⚙️ Running benchmark and risk analysis...</div>
-      <div id="tenkError" class="error-msg"></div>
+      <div id="tenkSpinner" class="spinner" aria-live="polite">
+        ⚙️ Evaluating financial criteria...
+      </div>
+
+      <div id="tenkError" class="error-msg" role="alert"></div>
 
       <div id="tenkOutput" class="analysis-output">
-        <div class="output-header" id="tenkTitle">Viability Verdict</div>
-        
-        <div class="metrics-row" style="margin-bottom: 20px;">
+
+        <div class="output-header" id="tenkTitle">
+          Investor Verdict
+        </div>
+
+        <div class="metrics-row" style="margin-bottom:20px;">
+
           <div class="metric-card">
-            <div class="lbl">Recommendation</div>
+            <div class="lbl">Investment Screening</div>
             <div class="val" id="verdictVal">--</div>
           </div>
+
           <div class="metric-card">
-            <div class="lbl">Health Index Score</div>
+            <div class="lbl">Health Score</div>
             <div class="val" id="healthVal">--</div>
           </div>
+
           <div class="metric-card">
-            <div class="lbl">Primary Risk Profile</div>
-            <div class="val" id="flagVal" style="font-size: 0.85rem;">--</div>
+            <div class="lbl">Risk Rating</div>
+            <div class="val" id="flagVal" style="font-size:0.85rem;">
+              --
+            </div>
           </div>
+
         </div>
 
         <ul class="analysis-list" id="tenkResults"></ul>
-      </div>
-    </div>
 
-    <!-- TAB 4: FORECAST SIMULATOR -->
-    <div id="forecast" class="feature-panel">
+        <p class="status-note">
+          This is a local rule-based screening tool, not a verified investment
+          recommendation. It does not assess valuation, market conditions,
+          management quality, or all financial risks.
+        </p>
+
+      </div>
+    </section>
+
+    <!-- TAB 4 -->
+
+    <section id="forecast" class="feature-panel">
+
       <h2>FORECAST SIMULATOR</h2>
-      <p class="subtitle">Interactive mathematical cash forecast model with direct scale meters.</p>
-      
-      <div style="margin-bottom: 15px;">
-        <button class="btn btn-secondary" onclick="syncToSimulator()">Import Extracted Data From Scanner</button>
+      <p class="subtitle">
+        Dynamic cash model driven by statement data or custom inputs.
+      </p>
+
+      <div class="flex-actions" style="margin-bottom:20px;">
+        <button class="btn btn-secondary" id="syncBtnForecast" type="button">
+          Import Scanner Numbers
+        </button>
       </div>
 
-      <div class="grid-3" style="margin-bottom: 20px;">
+      <div class="grid-3" style="margin-bottom:20px;">
+
         <div>
-          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Monthly Revenue ($)</label>
-          <input type="number" id="simRev" value="50000" oninput="runSimulation()" style="margin-top: 8px; width: 100%;" />
+          <label class="field-label" for="simCash">
+            Opening Cash Balance ($)
+          </label>
+          <input
+            type="number"
+            id="simCash"
+            value="100000"
+            min="0"
+            step="0.01"
+            inputmode="decimal"
+            class="full-width"
+          />
         </div>
+
         <div>
-          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Monthly Expenses ($)</label>
-          <input type="number" id="simBurn" value="35000" oninput="runSimulation()" style="margin-top: 8px; width: 100%;" />
+          <label class="field-label" for="simRev">
+            Monthly Revenue ($)
+          </label>
+          <input
+            type="number"
+            id="simRev"
+            value="50000"
+            min="0"
+            step="0.01"
+            inputmode="decimal"
+            class="full-width"
+          />
         </div>
+
         <div>
-          <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Projection Mode</label>
-          <select id="simWindow" onchange="runSimulation()" style="margin-top: 8px; width: 100%;">
-            <option value="monthly">Monthly Horizon (12 Months)</option>
-            <option value="weekly">Weekly Horizon (4 Weeks)</option>
+          <label class="field-label" for="simBurn">
+            Monthly Expenses ($)
+          </label>
+          <input
+            type="number"
+            id="simBurn"
+            value="35000"
+            min="0"
+            step="0.01"
+            inputmode="decimal"
+            class="full-width"
+          />
+        </div>
+
+      </div>
+
+      <div class="grid-2" style="margin-bottom:20px;">
+
+        <div>
+          <label class="field-label" for="simWindow">
+            Projection Mode
+          </label>
+          <select id="simWindow" class="full-width">
+            <option value="monthly">12 Months Projections</option>
+            <option value="weekly">4 Weeks Projections</option>
           </select>
         </div>
-      </div>
 
-      <!-- SCALE METER ADJUSTMENT SLIDER -->
-      <div style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 6px; margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; align-size: 0.8rem;">
-          <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Scale Adjustment Meter: <strong id="sliderVal" style="color:#fff;">100%</strong></span>
+        <div>
+          <label class="field-label" for="simGrowth">
+            Revenue Growth Per Period (%)
+          </label>
+          <input
+            type="number"
+            id="simGrowth"
+            value="0"
+            min="-100"
+            max="1000"
+            step="0.1"
+            class="full-width"
+          />
         </div>
-        <input type="range" id="scaleSlider" min="50" max="200" value="100" oninput="runSimulation()" />
+
       </div>
 
-      <div id="simOutput" class="analysis-output" style="display: block;">
-        <div class="output-header">Live Forecast Calculations</div>
+      <div class="card" style="margin-bottom:20px;">
+
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <span class="field-label" style="margin:0;">
+            Operations Scale Multiplier
+          </span>
+          <strong id="sliderVal" style="color:#fff;font-size:0.8rem;">
+            100%
+          </strong>
+        </div>
+
+        <input
+          type="range"
+          id="scaleSlider"
+          min="50"
+          max="200"
+          value="100"
+          step="5"
+        />
+
+        <p class="section-note">
+          Changes both revenue and expenses proportionally. Revenue growth
+          separately controls the forecast's revenue trend.
+        </p>
+
+      </div>
+
+      <div id="simOutput" class="analysis-output" style="display:block;">
+
+        <div class="output-header">
+          Live Simulation Calculations
+        </div>
+
         <div class="metrics-row">
+
           <div class="metric-card">
-            <div class="lbl">Adjusted Net Yield</div>
+            <div class="lbl">Net Cash Yield</div>
             <div class="val" id="netVal">$15,000</div>
           </div>
+
           <div class="metric-card">
             <div class="lbl">Operating Margin</div>
             <div class="val" id="marginVal">30.0%</div>
           </div>
+
+          <div class="metric-card">
+            <div class="lbl">Ending Cash</div>
+            <div class="val" id="endingCashVal">$280,000</div>
+          </div>
+
           <div class="metric-card">
             <div class="lbl">Runway Viability</div>
-            <div class="val" id="runwayVal" style="color: var(--accent-green);">Sustainable</div>
+            <div class="val" id="runwayVal" style="color:var(--accent-green);">
+              Sustainable
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-  </div>
+        </div>
+
+        <ul class="analysis-list" style="margin-top:20px;">
+          <li>
+            <span class="lbl">Projection Horizon</span>
+            <span class="val" id="projectionVal">12 Months</span>
+          </li>
+          <li>
+            <span class="lbl">Projected Revenue</span>
+            <span class="val" id="projectedRevVal">$600,000</span>
+          </li>
+          <li>
+            <span class="lbl">Projected Expenses</span>
+            <span class="val" id="projectedBurnVal">$420,000</span>
+          </li>
+          <li>
+            <span class="lbl">Cash Runway</span>
+            <span class="val" id="cashRunwayVal">6.7 Months</span>
+          </li>
+        </ul>
+
+        <p class="status-note">
+          Forecasts are illustrative calculations based on your inputs.
+          They do not account for taxes, financing, working capital timing,
+          seasonality, or unexpected expenses.
+        </p>
+
+      </div>
+    </section>
+
+  </main>
 
   <footer>
-    <div>FORGE &copy; 2026 | BUILT BY SAHITHYA & YUKTI</div>
+    <div>FORGE &copy; 2026 | BUILT BY SAHITHYA &amp; YUKTI</div>
     <div class="disclaimer">
-      <strong>Notice:</strong> Forge is an analytical tool. Generated outputs do not constitute formal investment or financial advice.
+      Notice: FORGE provides analytical models for financial evaluations.
+      Outputs do not constitute formal financial or legal advice.
     </div>
   </footer>
 
   <script>
-    // GLOBAL STATE FOR STATEMENT DATA SYNCHRONIZATION
+    "use strict";
+
+    /* =====================================================
+       FORGE | FINANCIAL CLARITY ENGINE
+       Complete local-only application logic
+       ===================================================== */
+
+    const STORAGE_KEY = "forge_user_name";
+
     let parsedExtractedRev = 0;
     let parsedExtractedBurn = 0;
+    let parsedCashBalance = 0;
+    let parsedDocumentType = "";
+    let parsedStatementReady = false;
 
-    // INITIALIZATION
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedName = localStorage.getItem('forge_user_name');
+    const $ = (id) => document.getElementById(id);
+
+    const money = (value) =>
+      "$" + Number(value).toLocaleString("en-US", {
+        maximumFractionDigits: 2
+      });
+
+    const escapeHTML = (value) =>
+      String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+
+    function setText(id, value) {
+      const element = $(id);
+      if (element) element.textContent = String(value);
+    }
+
+    function setHTML(id, html) {
+      const element = $(id);
+      if (element) element.innerHTML = html;
+    }
+
+    function show(id, visible) {
+      const element = $(id);
+      if (element) element.style.display = visible ? "block" : "none";
+    }
+
+    function setError(id, message) {
+      setText(id, message);
+      show(id, Boolean(message));
+    }
+
+    function setColor(id, color) {
+      const element = $(id);
+      if (element) element.style.color = color;
+    }
+
+    function readAmount(id) {
+      const element = $(id);
+      if (!element) return 0;
+
+      const raw = element.value.trim();
+
+      if (raw === "") return 0;
+
+      const value = Number(raw);
+
+      return Number.isFinite(value) && value >= 0 ? value : 0;
+    }
+
+    function formatMonths(months) {
+      if (!Number.isFinite(months)) return "Not available";
+      return months.toFixed(1) + " Months";
+    }
+
+    /* =====================================================
+       INITIALIZATION
+       ===================================================== */
+
+    function initialize() {
+      const savedName = localStorage.getItem(STORAGE_KEY);
+
       if (savedName) {
-        document.getElementById('userName').value = savedName;
-        document.getElementById('greeting').textContent = `ACTIVE SESSION: ${savedName.toUpperCase()}`;
+        $("userName").value = savedName;
+        setText("greeting", `ACTIVE SESSION: ${savedName.toUpperCase()}`);
       }
+
+      bindEvents();
       runSimulation();
-    });
+    }
 
-    // USER PERSISTENCE & CONFIRMED RESET
+    function bindEvents() {
+      $("saveUserBtn").addEventListener("click", saveUser);
+      $("resetBtn").addEventListener("click", confirmReset);
+
+      document.querySelectorAll(".tab-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          switchTab(button.dataset.tab, button);
+        });
+      });
+
+      $("p1_cash").addEventListener("input", calcRunway);
+      $("p1_burn").addEventListener("input", calcRunway);
+      $("p2_last").addEventListener("input", calcInflation);
+      $("p2_current").addEventListener("input", calcInflation);
+
+      $("analyzeStatementBtn").addEventListener("click", analyzeStatement);
+      $("analyzeInvestorBtn").addEventListener("click", analyzeInvestorDecision);
+      $("syncBtn").addEventListener("click", syncToSimulator);
+      $("syncBtnForecast").addEventListener("click", syncToSimulator);
+
+      [
+        "simCash",
+        "simRev",
+        "simBurn",
+        "simGrowth",
+        "scaleSlider",
+        "simWindow"
+      ].forEach((id) => {
+        $(id).addEventListener("input", runSimulation);
+        $(id).addEventListener("change", runSimulation);
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initialize, { once: true });
+    } else {
+      initialize();
+    }
+
+    /* =====================================================
+       SESSION
+       ===================================================== */
+
     function saveUser() {
-      const name = document.getElementById('userName').value.trim();
-      const g = document.getElementById('greeting');
-      if (name) {
-        localStorage.setItem('forge_user_name', name);
-        g.textContent = `SESSION SAVED: ${name.toUpperCase()}`;
-      } else {
-        g.textContent = "Please enter a valid user name.";
-      }
-    }
+      const name = $("userName").value.trim();
 
-    function confirmReset() {
-      const confirmAction = confirm("WARNING: Resetting will erase your saved user session and clear all active input forms. Are you sure you want to proceed?");
-      if (confirmAction) {
-        localStorage.clear();
-        document.getElementById('userName').value = '';
-        document.getElementById('greeting').textContent = 'Session reset successfully.';
-        
-        // Reset Inputs
-        document.getElementById('p1_cash').value = '';
-        document.getElementById('p1_burn').value = '';
-        document.getElementById('p2_last').value = '';
-        document.getElementById('p2_current').value = '';
-        document.getElementById('ticker').value = '';
-        document.getElementById('stmtFile').value = '';
-        document.getElementById('tenkFile').value = '';
-        
-        // Hide Outputs
-        document.getElementById('stmtOutput').style.display = 'none';
-        document.getElementById('tenkOutput').style.display = 'none';
-        
-        // Reset Simulator
-        document.getElementById('simRev').value = 50000;
-        document.getElementById('simBurn').value = 35000;
-        document.getElementById('scaleSlider').value = 100;
-        runSimulation();
-      }
-    }
-
-    // TAB NAVIGATION
-    function switchTab(evt, id) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.feature-panel').forEach(p => p.classList.remove('active'));
-      
-      evt.target.classList.add('active');
-      document.getElementById(id).classList.add('active');
-    }
-
-    // TAB 1: OPERATIONAL CALCULATORS
-    function calcPainRelief() {
-      const cash = parseFloat(document.getElementById('p1_cash').value) || 0;
-      const burn = parseFloat(document.getElementById('p1_burn').value) || 0;
-      const res = document.getElementById('p1_res');
-
-      if (burn <= 0) {
-        res.innerHTML = "Enter a valid monthly burn rate above $0.";
+      if (!name || name.length > 100) {
+        setText("greeting", "Please enter a valid name (1–100 characters).");
         return;
       }
 
-      const months = (cash / burn).toFixed(1);
+      localStorage.setItem(STORAGE_KEY, name);
+      setText("greeting", `SESSION SAVED: ${name.toUpperCase()}`);
+    }
+
+    function confirmReset() {
+      const proceed = window.confirm(
+        "WARNING: Resetting will clear your FORGE session and current inputs. Proceed?"
+      );
+
+      if (!proceed) return;
+
+      localStorage.removeItem(STORAGE_KEY);
+
+      $("userName").value = "";
+      setText("greeting", "Session reset completed.");
+
+      [
+        "p1_cash",
+        "p1_burn",
+        "p2_last",
+        "p2_current",
+        "stmtFile",
+        "tenkFile"
+      ].forEach((id) => {
+        $(id).value = "";
+      });
+
+      parsedExtractedRev = 0;
+      parsedExtractedBurn = 0;
+      parsedCashBalance = 0;
+      parsedDocumentType = "";
+      parsedStatementReady = false;
+
+      show("stmtOutput", false);
+      show("tenkOutput", false);
+      show("stmtSpinner", false);
+      show("tenkSpinner", false);
+
+      setError("stmtError", "");
+      setError("tenkError", "");
+
+      $("simCash").value = 100000;
+      $("simRev").value = 50000;
+      $("simBurn").value = 35000;
+      $("simGrowth").value = 0;
+      $("scaleSlider").value = 100;
+      $("simWindow").value = "monthly";
+
+      runSimulation();
+      calcRunway();
+      calcInflation();
+    }
+
+    /* =====================================================
+       TAB NAVIGATION
+       ===================================================== */
+
+    function switchTab(id, button) {
+      document.querySelectorAll(".tab-btn").forEach((tab) => {
+        tab.classList.remove("active");
+      });
+
+      document.querySelectorAll(".feature-panel").forEach((panel) => {
+        panel.classList.remove("active");
+      });
+
+      button.classList.add("active");
+
+      const panel = $(id);
+      if (panel) panel.classList.add("active");
+    }
+
+    /* =====================================================
+       TAB 1 — CASH RUNWAY
+       ===================================================== */
+
+    function calcRunway() {
+      const cash = readAmount("p1_cash");
+      const burn = readAmount("p1_burn");
+
+      if (burn <= 0) {
+        setText("p1_res", "Enter a valid monthly operating expense rate.");
+        return;
+      }
+
+      const months = cash / burn;
+      const formatted = months.toFixed(1);
+
       if (months < 3) {
-        res.innerHTML = `<span style="color: var(--accent-red);">CRITICAL: ${months} Months Runway. Immediate cash intervention required!</span>`;
+        setHTML("p1_res",
+          `<span style="color:var(--accent-red);">
+            CRITICAL: ${formatted} Months Runway Remaining.
+            Emergency cash conservation required.
+          </span>`
+        );
       } else if (months < 6) {
-        res.innerHTML = `<span style="color: var(--accent-amber);">WARNING: ${months} Months Runway. Plan capital allocation closely.</span>`;
+        setHTML("p1_res",
+          `<span style="color:var(--accent-amber);">
+            WARNING: ${formatted} Months Runway Remaining.
+            Monitor capital allocation closely.
+          </span>`
+        );
       } else {
-        res.innerHTML = `<span style="color: var(--accent-green);">HEALTHY: ${months} Months Runway available.</span>`;
+        setHTML("p1_res",
+          `<span style="color:var(--accent-green);">
+            HEALTHY: ${formatted} Months Runway Remaining.
+            Operational buffer intact.
+          </span>`
+        );
       }
     }
 
+    /* =====================================================
+       TAB 1 — VENDOR INFLATION
+       ===================================================== */
+
     function calcInflation() {
-      const last = parseFloat(document.getElementById('p2_last').value) || 0;
-      const current = parseFloat(document.getElementById('p2_current').value) || 0;
-      const res = document.getElementById('p2_res');
+      const last = readAmount("p2_last");
+      const current = readAmount("p2_current");
 
       if (last <= 0) {
-        res.innerHTML = "Enter previous month bill amount.";
+        setText("p2_res", "Enter previous month bill amount.");
         return;
       }
 
       const diff = current - last;
-      const pct = ((diff / last) * 100).toFixed(1);
+      const pct = (diff / last) * 100;
 
       if (diff > 0) {
-        res.innerHTML = `<span style="color: var(--accent-red);">COST CREEP DETECTED: +${pct}% increase (+$${diff.toLocaleString()} higher this month).</span>`;
+        setHTML("p2_res",
+          `<span style="color:var(--accent-red);">
+            VENDOR CREEP DETECTED: Expenses increased by
+            +${pct.toFixed(1)}% (+${money(diff)} higher).
+          </span>`
+        );
       } else if (diff < 0) {
-        res.innerHTML = `<span style="color: var(--accent-green);">SAVINGS DETECTED: ${pct}% decrease (-$${Math.abs(diff).toLocaleString()} lower).</span>`;
+        setHTML("p2_res",
+          `<span style="color:var(--accent-green);">
+            SAVINGS GAINED: Expenses decreased by
+            ${Math.abs(pct).toFixed(1)}% (-${money(Math.abs(diff))}).
+          </span>`
+        );
       } else {
-        res.innerHTML = `<span style="color: var(--text-muted);">NO VARIATION: Operational bills are stable month-over-month.</span>`;
+        setText("p2_res", "FLAT: No cost variations detected month-over-month.");
       }
     }
 
-    // TAB 2: DETERMINISTIC FILE PARSER
-    function analyzeStatement() {
-      const type = document.getElementById('stmtType').value;
-      const fileInput = document.getElementById('stmtFile');
-      const file = fileInput.files[0];
-      const box = document.getElementById('stmtOutput');
-      const res = document.getElementById('stmtResults');
-      const title = document.getElementById('stmtTitle');
-      const spinner = document.getElementById('stmtSpinner');
-      const error = document.getElementById('stmtError');
+    /* =====================================================
+       FILE VALIDATION
+       ===================================================== */
 
-      error.style.display = 'none';
-      box.style.display = 'none';
-
+    function validateFile(file, errorId) {
       if (!file) {
-        error.textContent = "Error: Please upload a document file (CSV or TXT) first.";
-        error.style.display = 'block';
-        return;
+        setError(errorId, "Please attach a financial document.");
+        return false;
       }
 
-      spinner.style.display = 'block';
+      const extension = file.name.toLowerCase().split(".").pop();
+      const allowed = ["csv", "txt"];
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        spinner.style.display = 'none';
-        box.style.display = 'block';
+      if (!allowed.includes(extension)) {
+        setError(errorId, "Unsupported file type. Upload a CSV or TXT file.");
+        return false;
+      }
 
-        const text = e.target.result;
-        
-        // DETERMINISTIC NUMBER EXTRACTION
-        const numbers = text.match(/\d[\d,]*\.?\d*/g);
-        let extractedNums = numbers ? numbers.map(n => parseFloat(n.replace(/,/g, ''))).filter(n => !isNaN(n) && n > 100) : [];
+      if (file.size === 0) {
+        setError(errorId, "The selected file is empty.");
+        return false;
+      }
 
-        // Fallback to deterministic text hash if no direct numbers exist
-        let primaryVal = extractedNums[0] || (text.length * 12);
-        let secondaryVal = extractedNums[1] || (text.length * 7);
+      if (file.size > 10 * 1024 * 1024) {
+        setError(errorId, "File is too large. Maximum size is 10 MB.");
+        return false;
+      }
 
-        parsedExtractedRev = Math.max(primaryVal, secondaryVal);
-        parsedExtractedBurn = Math.min(primaryVal, secondaryVal);
-
-        title.textContent = `PARSED DATA: ${file.name.toUpperCase()}`;
-        res.innerHTML = `
-          <li><span class="lbl">Detected Revenue / Asset Line:</span><span class="val">$${parsedExtractedRev.toLocaleString()}</span></li>
-          <li><span class="lbl">Detected Expense / Liability Line:</span><span class="val">$${parsedExtractedBurn.toLocaleString()}</span></li>
-          <li><span class="lbl">Calculated Operational Spread:</span><span class="val">$${(parsedExtractedRev - parsedExtractedBurn).toLocaleString()}</span></li>
-          <li><span class="lbl">Parsing Quality Index:</span><span class="val" style="color: var(--accent-green);">100% Deterministic Match</span></li>
-        `;
-      };
-
-      reader.onerror = function() {
-        spinner.style.display = 'none';
-        error.textContent = "Error reading document file.";
-        error.style.display = 'block';
-      };
-
-      reader.readAsText(file);
+      return true;
     }
 
-    // SYNC EXTRACTED DATA TO SIMULATOR
+    function readFileAsText(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("Unable to read document."));
+        reader.readAsText(file);
+      });
+    }
+
+    /* =====================================================
+       CSV / TXT PARSING
+       ===================================================== */
+
+    function parseCSVLine(line) {
+      const values = [];
+      let current = "";
+      let quoted = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (char === '"') {
+          if (quoted && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            quoted = !quoted;
+          }
+        } else if (char === "," && !quoted) {
+          values.push(current.trim());
+          current = "";
+        } else {
+          current += char;
+        }
+      }
+
+      values.push(current.trim());
+      return values;
+    }
+
+    function parseFinancialDocument(text) {
+      const lines = text.split(/\r?\n/).filter((line) => line.trim());
+      const rows = lines.map(parseCSVLine);
+      const values = [];
+
+      rows.forEach((row) => {
+        row.forEach((cell) => {
+          const cleaned = cell
+            .replace(/₹/g, "")
+            .replace(/\$/g, "")
+            .replace(/,/g, "")
+            .replace(/\(([\d.]+)\)/g, "-$1")
+            .trim();
+
+          if (/^-?\d+(?:\.\d+)?$/.test(cleaned)) {
+            const amount = Number(cleaned);
+
+            if (Number.isFinite(amount)) {
+              values.push(amount);
+            }
+          }
+        });
+      });
+
+      return { lines, rows, values };
+    }
+
+    /* =====================================================
+       LABEL-AWARE EXTRACTION
+       ===================================================== */
+
+    function findLabeledAmount(lines, labels) {
+      for (const line of lines) {
+        const lower = line.toLowerCase();
+
+        if (!labels.some((label) => lower.includes(label))) {
+          continue;
+        }
+
+        const matches = line.match(/-?[\d,]+(?:\.\d+)?/g);
+
+        if (matches) {
+          for (const match of matches) {
+            const amount = Number(match.replace(/,/g, ""));
+
+            if (Number.isFinite(amount) && amount !== 0) {
+              return amount;
+            }
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function extractStatementMetrics(text, documentType) {
+      const parsed = parseFinancialDocument(text);
+      const values = parsed.values.filter((value) => Math.abs(value) > 0);
+
+      const revenue = findLabeledAmount(parsed.lines, [
+        "revenue",
+        "sales",
+        "turnover",
+        "operating income",
+        "total income",
+        "cash inflow",
+        "cash from operations"
+      ]);
+
+      const expenses = findLabeledAmount(parsed.lines, [
+        "total expenses",
+        "total expense",
+        "operating expenses",
+        "expenses",
+        "expenditure",
+        "cost of sales",
+        "cash outflow"
+      ]);
+
+      const cash = findLabeledAmount(parsed.lines, [
+        "cash and cash equivalents",
+        "cash balance",
+        "cash on hand",
+        "closing cash",
+        "ending cash"
+      ]);
+
+      let extractedRev = revenue;
+      let extractedBurn = expenses;
+
+      if (documentType === "balance_sheet") {
+        extractedRev = null;
+        extractedBurn = null;
+      }
+
+      if (documentType === "cashflow") {
+        extractedRev = findLabeledAmount(parsed.lines, [
+          "net cash from operating activities",
+          "operating cash flow",
+          "cash inflow"
+        ]);
+
+        extractedBurn = findLabeledAmount(parsed.lines, [
+          "cash outflow",
+          "cash paid",
+          "operating expenses"
+        ]);
+      }
+
+      return {
+        values,
+        revenue: extractedRev,
+        expenses: extractedBurn,
+        cash,
+        documentType
+      };
+    }
+
+    /* =====================================================
+       TAB 2 — STATEMENT SCANNER
+       ===================================================== */
+
+    async function analyzeStatement() {
+      const file = $("stmtFile").files[0];
+      const documentType = $("stmtType").value;
+
+      setError("stmtError", "");
+      show("stmtOutput", false);
+
+      if (!validateFile(file, "stmtError")) return;
+
+      show("stmtSpinner", true);
+
+      try {
+        const text = await readFileAsText(file);
+        const metrics = extractStatementMetrics(text, documentType);
+
+        show("stmtSpinner", false);
+
+        if (!metrics.values.length) {
+          setError("stmtError", "No numerical financial values were found.");
+          return;
+        }
+
+        parsedDocumentType = documentType;
+
+        if (metrics.revenue !== null && metrics.expenses !== null) {
+          parsedExtractedRev = Math.abs(metrics.revenue);
+          parsedExtractedBurn = Math.abs(metrics.expenses);
+          parsedStatementReady = true;
+        } else {
+          parsedExtractedRev = 0;
+          parsedExtractedBurn = 0;
+          parsedStatementReady = false;
+        }
+
+        parsedCashBalance = metrics.cash !== null
+          ? Math.abs(metrics.cash)
+          : 0;
+
+        const title = documentType === "balance_sheet"
+          ? "Balance Sheet"
+          : documentType === "cashflow"
+            ? "Cash Flow Statement"
+            : "Income Statement / P&L";
+
+        setText("stmtTitle", `FILE READOUT: ${file.name.toUpperCase()}`);
+
+        const net = parsedExtractedRev - parsedExtractedBurn;
+
+        setHTML("stmtResults", `
+          <li>
+            <span class="lbl">Document Type:</span>
+            <span class="val">${escapeHTML(title)}</span>
+          </li>
+          <li>
+            <span class="lbl">Extracted Revenue / Inflow:</span>
+            <span class="val">${parsedStatementReady ? money(parsedExtractedRev) : "Not identified"}</span>
+          </li>
+          <li>
+            <span class="lbl">Extracted Expenses / Outflow:</span>
+            <span class="val">${parsedStatementReady ? money(parsedExtractedBurn) : "Not identified"}</span>
+          </li>
+          <li>
+            <span class="lbl">Extracted Net Operating Result:</span>
+            <span class="val">${parsedStatementReady ? money(net) : "Not available"}</span>
+          </li>
+          <li>
+            <span class="lbl">Cash Balance:</span>
+            <span class="val">${parsedCashBalance > 0 ? money(parsedCashBalance) : "Not identified"}</span>
+          </li>
+          <li>
+            <span class="lbl">Extraction Status:</span>
+            <span class="val" style="color:var(--accent-green);">Parsing Complete</span>
+          </li>
+        `);
+
+        show("stmtOutput", true);
+
+      } catch (error) {
+        show("stmtSpinner", false);
+        setError("stmtError", error.message || "Failed to process the document.");
+      }
+    }
+
+    /* =====================================================
+       SYNC TO FORECAST
+       ===================================================== */
+
     function syncToSimulator() {
-      if (parsedExtractedRev === 0 && parsedExtractedBurn === 0) {
-        alert("Please upload and scan a financial statement in Tab 2 first!");
+      if (!parsedStatementReady) {
+        alert(
+          "Please upload and scan a statement containing identifiable revenue and expense values first."
+        );
         return;
       }
-      document.getElementById('simRev').value = parsedExtractedRev;
-      document.getElementById('simBurn').value = parsedExtractedBurn;
-      
-      // Switch to Forecast Tab
-      const forecastTabBtn = document.querySelectorAll('.tab-btn')[3];
-      forecastTabBtn.click();
+
+      $("simRev").value = parsedExtractedRev;
+      $("simBurn").value = parsedExtractedBurn;
+
+      if (parsedCashBalance > 0) {
+        $("simCash").value = parsedCashBalance;
+      }
+
+      const forecastTabBtn = document.querySelectorAll(".tab-btn")[3];
+
+      if (forecastTabBtn) {
+        switchTab("forecast", forecastTabBtn);
+      }
+
       runSimulation();
     }
 
-    // TAB 3: TICKER BENCHMARK & 10-K READER
-    function checkTickerLookup(e) {
-      if (e.key === 'Enter') analyzeTenK();
+    /* =====================================================
+       TAB 3 — INVESTOR DECISION ENGINE
+       ===================================================== */
+
+    function countTerms(text, terms) {
+      const lower = text.toLowerCase();
+
+      return terms.reduce((count, term) => {
+        const pattern = new RegExp(
+          `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+          "g"
+        );
+
+        return count + (lower.match(pattern) || []).length;
+      }, 0);
     }
 
-    function analyzeTenK() {
-      const tickerInput = document.getElementById('ticker').value.trim().toUpperCase();
-      const fileInput = document.getElementById('tenkFile').files[0];
-      const box = document.getElementById('tenkOutput');
-      const res = document.getElementById('tenkResults');
-      const title = document.getElementById('tenkTitle');
-      const spinner = document.getElementById('tenkSpinner');
-      const error = document.getElementById('tenkError');
+    function calculateInvestorSignals(text) {
+      const metrics = extractStatementMetrics(text, "balance");
 
-      const v = document.getElementById('verdictVal');
-      const h = document.getElementById('healthVal');
-      const f = document.getElementById('flagVal');
+      const riskTerms = [
+        "loss",
+        "debt",
+        "liability",
+        "decline",
+        "litigation",
+        "deficit",
+        "default",
+        "impairment"
+      ];
 
-      error.style.display = 'none';
-      box.style.display = 'none';
+      const growthTerms = [
+        "profit",
+        "growth",
+        "revenue",
+        "cash flow",
+        "expansion",
+        "surplus"
+      ];
 
-      if (!tickerInput && !fileInput) {
-        error.textContent = "Error: Please enter a Ticker Symbol or upload a 10-K file.";
-        error.style.display = 'block';
-        return;
+      const riskCount = countTerms(text, riskTerms);
+      const growthCount = countTerms(text, growthTerms);
+
+      let healthScore = 50;
+      let rationale = "Insufficient financial data for a reliable score.";
+
+      if (metrics.revenue !== null && metrics.expenses !== null) {
+        const revenue = Math.abs(metrics.revenue);
+        const expenses = Math.abs(metrics.expenses);
+
+        if (revenue > 0) {
+          const margin = ((revenue - expenses) / revenue) * 100;
+
+          healthScore = Math.max(
+            0,
+            Math.min(100, Math.round(50 + margin * 1.5))
+          );
+
+          rationale = margin >= 0
+            ? "Reported revenue exceeds identified expenses."
+            : "Identified expenses exceed reported revenue.";
+        }
       }
 
-      spinner.style.display = 'block';
+      const recommendation = healthScore >= 75
+        ? "STRONG BACKING"
+        : healthScore >= 50
+          ? "CAUTION REQUIRED"
+          : "DO NOT INVEST";
 
-      setTimeout(() => {
-        spinner.style.display = 'none';
-        box.style.display = 'block';
+      const riskRating = healthScore >= 75
+        ? "Lower Financial Exposure"
+        : healthScore >= 50
+          ? "Moderate Financial Exposure"
+          : "Higher Financial Exposure";
 
-        const entityName = tickerInput || (fileInput ? fileInput.name.toUpperCase() : "TARGET");
-        title.textContent = `BENCHMARK ANALYSIS: ${entityName}`;
-
-        // TICKER BENCHMARK PROFILES
-        if (tickerInput === "TSLA") {
-          v.textContent = "MODERATE VIABILITY";
-          v.style.color = "var(--accent-amber)";
-          h.textContent = "78 / 100";
-          f.textContent = "Margin Compression";
-          res.innerHTML = `
-            <li><span class="lbl">Ticker Industry:</span><span class="val">Automotive / EV & Clean Energy</span></li>
-            <li><span class="lbl">Liquidity Profile:</span><span class="val">High Cash Reserves</span></li>
-            <li><span class="lbl">Primary Risk Marker:</span><span class="val">Capital Expenditure Creep</span></li>
-          `;
-        } else if (tickerInput === "NVDA") {
-          v.textContent = "HIGH VIABILITY";
-          v.style.color = "var(--accent-green)";
-          h.textContent = "94 / 100";
-          f.textContent = "Supply Concentration";
-          res.innerHTML = `
-            <li><span class="lbl">Ticker Industry:</span><span class="val">Semiconductors / AI Infrastructure</span></li>
-            <li><span class="lbl">Operating Margin:</span><span class="val">Robust (>60%)</span></li>
-            <li><span class="lbl">Primary Risk Marker:</span><span class="val">Customer Concentration</span></li>
-          `;
-        } else {
-          v.textContent = "VIABLE";
-          v.style.color = "var(--accent-green)";
-          h.textContent = "82 / 100";
-          f.textContent = "Standard Volatility";
-          res.innerHTML = `
-            <li><span class="lbl">Entity Target:</span><span class="val">${entityName}</span></li>
-            <li><span class="lbl">Solvency Ratio:</span><span class="val">Adequate Capital Coverage</span></li>
-            <li><span class="lbl">Audit Profile:</span><span class="val">Clean Verification Read</span></li>
-          `;
-        }
-      }, 500);
+      return {
+        healthScore,
+        recommendation,
+        riskRating,
+        riskCount,
+        growthCount,
+        rationale
+      };
     }
 
-    // TAB 4: FORECAST SIMULATOR WITH METER ADJUSTMENT
-    function runSimulation() {
-      const baseRev = parseFloat(document.getElementById('simRev').value) || 0;
-      const baseBurn = parseFloat(document.getElementById('simBurn').value) || 0;
-      const scalePct = parseFloat(document.getElementById('scaleSlider').value) || 100;
-      const windowType = document.getElementById('simWindow').value;
+    async function analyzeInvestorDecision() {
+      const file = $("tenkFile").files[0];
 
-      document.getElementById('sliderVal').textContent = `${scalePct}%`;
+      setError("tenkError", "");
+      show("tenkOutput", false);
+
+      if (!validateFile(file, "tenkError")) return;
+
+      show("tenkSpinner", true);
+
+      try {
+        const text = await readFileAsText(file);
+        const result = calculateInvestorSignals(text);
+
+        show("tenkSpinner", false);
+        show("tenkOutput", true);
+
+        setText(
+          "tenkTitle",
+          `INVESTOR DECISION REPORT: ${file.name.toUpperCase()}`
+        );
+
+        setText("verdictVal", result.recommendation);
+        setText("healthVal", `${result.healthScore} / 100`);
+        setText("flagVal", result.riskRating);
+
+        const verdictColor = result.healthScore >= 75
+          ? "var(--accent-green)"
+          : result.healthScore >= 50
+            ? "var(--accent-amber)"
+            : "var(--accent-red)";
+
+        setColor("verdictVal", verdictColor);
+        setColor("healthVal", verdictColor);
+        setColor("flagVal", verdictColor);
+
+        setHTML("tenkResults", `
+          <li>
+            <span class="lbl">Investment Screening:</span>
+            <span class="val" style="color:${verdictColor};">
+              ${escapeHTML(result.recommendation)}
+            </span>
+          </li>
+          <li>
+            <span class="lbl">Financial Health Score:</span>
+            <span class="val">${result.healthScore} / 100</span>
+          </li>
+          <li>
+            <span class="lbl">Growth Indicators:</span>
+            <span class="val">${result.growthCount} Signals</span>
+          </li>
+          <li>
+            <span class="lbl">Risk Terms:</span>
+            <span class="val">${result.riskCount} Factors</span>
+          </li>
+          <li>
+            <span class="lbl">Core Rationale:</span>
+            <span class="val">${escapeHTML(result.rationale)}</span>
+          </li>
+          <li>
+            <span class="lbl">Decision Integrity:</span>
+            <span class="val">Rule-based screening; not a verified investment recommendation.</span>
+          </li>
+        `);
+
+      } catch (error) {
+        show("tenkSpinner", false);
+        setError("tenkError", error.message || "Failed to process the document.");
+      }
+    }
+
+    /* =====================================================
+       TAB 4 — FORECAST SIMULATOR
+       ===================================================== */
+
+    function runSimulation() {
+      const baseCash = readAmount("simCash");
+      const baseRev = readAmount("simRev");
+      const baseBurn = readAmount("simBurn");
+
+      const scalePct = Math.max(
+        50,
+        Math.min(200, readAmount("scaleSlider") || 100)
+      );
+
+      const growthPct = Math.max(
+        -100,
+        Math.min(1000, Number($("simGrowth").value) || 0)
+      );
+
+      const windowType = $("simWindow").value;
+
+      const periods = windowType === "weekly" ? 4 : 12;
+      const periodLabel = windowType === "weekly"
+        ? "4 Weeks"
+        : "12 Months";
 
       const multiplier = scalePct / 100;
+
       const rev = baseRev * multiplier;
       const burn = baseBurn * multiplier;
 
-      const netVal = document.getElementById('netVal');
-      const marginVal = document.getElementById('marginVal');
-      const runwayVal = document.getElementById('runwayVal');
-
       const net = rev - burn;
-      const margin = rev > 0 ? ((net / rev) * 100).toFixed(1) : "0.0";
+      const margin = rev > 0 ? (net / rev) * 100 : 0;
 
-      netVal.textContent = `$${Math.round(net).toLocaleString()}`;
-      marginVal.textContent = `${margin}%`;
+      let projectedRevenue = 0;
+      let projectedExpenses = 0;
+      let endingCash = baseCash;
 
-      if (net >= 0) {
-        runwayVal.textContent = "Sustainable";
-        runwayVal.style.color = "var(--accent-green)";
+      for (let i = 0; i < periods; i++) {
+        const periodRevenue = rev * Math.pow(1 + growthPct / 100, i);
+
+        projectedRevenue += periodRevenue;
+        projectedExpenses += burn;
+        endingCash += periodRevenue - burn;
+      }
+
+      setText("sliderVal", `${scalePct}%`);
+      setText("netVal", money(net));
+      setText("marginVal", `${margin.toFixed(1)}%`);
+      setText("endingCashVal", money(endingCash));
+      setText("projectionVal", periodLabel);
+      setText("projectedRevVal", money(projectedRevenue));
+      setText("projectedBurnVal", money(projectedExpenses));
+
+      const cashRunway = burn > 0
+        ? baseCash / burn
+        : Infinity;
+
+      setText(
+        "cashRunwayVal",
+        Number.isFinite(cashRunway)
+          ? formatMonths(cashRunway)
+          : "No monthly burn"
+      );
+
+      if (endingCash >= 0 && net >= 0) {
+        setText("runwayVal", "Sustainable");
+        setColor("runwayVal", "var(--accent-green)");
+      } else if (endingCash >= 0) {
+        setText("runwayVal", "Cash Pressure");
+        setColor("runwayVal", "var(--accent-amber)");
       } else {
-        const cashBuffer = rev * 3;
-        const months = Math.abs(cashBuffer / net).toFixed(1);
-        runwayVal.textContent = windowType === "weekly" ? `${(months * 4.3).toFixed(0)} Wks Remaining` : `${months} Mos Remaining`;
-        runwayVal.style.color = "var(--accent-red)";
+        setText("runwayVal", "Cash Deficit");
+        setColor("runwayVal", "var(--accent-red)");
       }
     }
+
   </script>
+
 </body>
 </html>
