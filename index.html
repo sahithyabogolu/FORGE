@@ -1,1954 +1,1308 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FORGE | Financial Clarity Engine</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-
-<style>
-:root {
-  --bg: #07090b;
-  --panel: #0d1216;
-  --panel2: #11191f;
-  --line: #26333b;
-  --text: #eef4f7;
-  --muted: #8da0ad;
-  --green: #42e6b0;
-  --cyan: #6bd7ff;
-  --amber: #f4c96b;
-  --red: #ff727d;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background:
-    radial-gradient(circle at 80% 0%, #17252d 0%, transparent 35%),
-    var(--bg);
-  color: var(--text);
-  font-family: Inter, Arial, sans-serif;
-}
-
-button,
-input,
-select {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.muted {
-  color: var(--muted);
-}
-
-.small {
-  font-size: 12px;
-}
-
-.app {
-  min-height: 100vh;
-}
-
-.top {
-  height: 64px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  padding: 0 28px;
-  background: #080d10ee;
-  position: sticky;
-  top: 0;
-  z-index: 5;
-}
-
-.brand {
-  font-weight: 900;
-  letter-spacing: 8px;
-  font-size: 25px;
-}
-
-.brand span {
-  color: var(--cyan);
-}
-
-.topright {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.pill {
-  border: 1px solid #245c52;
-  color: var(--green);
-  background: #09231e;
-  padding: 6px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-.layout {
-  display: grid;
-  grid-template-columns: 210px 1fr;
-  min-height: calc(100vh - 64px);
-}
-
-.side {
-  border-right: 1px solid var(--line);
-  padding: 24px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.nav {
-  padding: 12px 14px;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  color: #a9bac5;
-  background: transparent;
-  text-align: left;
-}
-
-.nav.active,
-.nav:hover {
-  background: #152129;
-  border-color: #28414b;
-  color: white;
-}
-
-.sidebottom {
-  margin-top: auto;
-  padding: 20px 12px;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-.main {
-  padding: 22px;
-  max-width: 1500px;
-  width: 100%;
-  margin: auto;
-}
-
-.hero {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid #29404b;
-  border-radius: 10px;
-  min-height: 250px;
-  padding: 34px;
-  background:
-    linear-gradient(
-      90deg,
-      #091014 0%,
-      #091014e8 42%,
-      #09101455 100%
-    ),
-    url("assets/forge-hero.png") center/cover no-repeat;
-}
-
-.hero:after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(#6bd7ff08 1px, transparent 1px),
-    linear-gradient(90deg, #6bd7ff08 1px, transparent 1px);
-  background-size: 30px 30px;
-}
-
-.hero > * {
-  position: relative;
-  z-index: 1;
-}
-
-.eyebrow {
-  color: var(--cyan);
-  letter-spacing: 3px;
-  font-size: 11px;
-}
-
-.hero h1 {
-  font-size: clamp(28px, 4vw, 48px);
-  line-height: 1.02;
-  margin: 13px 0;
-}
-
-.hero h1 span {
-  color: #a5b9d9;
-}
-
-.hero p {
-  max-width: 620px;
-  color: #b4c5ce;
-  line-height: 1.7;
-}
-
-.heroactions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 20px;
-}
-
-.btn {
-  border: 1px solid #38515d;
-  background: #17232b;
-  color: white;
-  border-radius: 7px;
-  padding: 11px 15px;
-}
-
-.btn.primary {
-  background: #baf9e7;
-  color: #07120f;
-  border-color: #baf9e7;
-}
-
-.btn.ghost {
-  background: transparent;
-}
-
-.grid {
-  display: grid;
-  gap: 12px;
-}
-
-.g2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.g3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.g4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.card {
-  background: linear-gradient(145deg, #10181e, #0b1115);
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  padding: 17px;
-  min-width: 0;
-}
-
-.section {
-  margin-top: 12px;
-}
-
-.cardhead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 13px;
-}
-
-.card h3 {
-  font-size: 15px;
-  margin: 0;
-}
-
-.metric .label {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.metric .value {
-  font-size: 25px;
-  font-weight: 750;
-  margin: 8px 0;
-  overflow-wrap: anywhere;
-}
-
-.metric .delta {
-  font-size: 12px;
-  color: var(--green);
-}
-
-.upload {
-  border: 1px dashed #3c6879;
-  border-radius: 8px;
-  padding: 25px;
-  text-align: center;
-  background: #0a171d;
-}
-
-.upload input {
-  display: none;
-}
-
-.dropicon {
-  font-size: 35px;
-  color: var(--cyan);
-}
-
-.statusrow {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  border-bottom: 1px solid #203039;
-  padding: 10px 0;
-}
-
-.progress {
-  height: 5px;
-  background: #203039;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.progress i {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, var(--cyan), var(--green));
-  width: 0;
-}
-
-.tablewrap {
-  overflow: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 750px;
-}
-
-th,
-td {
-  text-align: left;
-  padding: 10px;
-  border-bottom: 1px solid #203039;
-  font-size: 12px;
-  vertical-align: top;
-}
-
-th {
-  color: #a8c0cd;
-  font-weight: 600;
-}
-
-td {
-  color: #dbe6eb;
-}
-
-.tag {
-  display: inline-block;
-  padding: 4px 7px;
-  border-radius: 5px;
-  background: #18252c;
-  color: #b9d4df;
-  font-size: 11px;
-}
-
-.good {
-  color: var(--green);
-}
-
-.warn {
-  color: var(--amber);
-}
-
-.bad {
-  color: var(--red);
-}
-
-.risk {
-  border-left: 3px solid var(--amber);
-  background: #1c1810;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 5px;
-}
-
-.risk.bad {
-  border-color: var(--red);
-  background: #211114;
-}
-
-.risk.good {
-  border-color: var(--green);
-  background: #0d211b;
-}
-
-.notice {
-  padding: 12px;
-  border: 1px solid #354650;
-  background: #101a20;
-  border-radius: 7px;
-  color: #b6c8d1;
-  line-height: 1.6;
-  margin: 8px 0;
-}
-
-.modal {
-  position: fixed;
-  inset: 0;
-  background: #030607f2;
-  display: grid;
-  place-items: center;
-  z-index: 20;
-  padding: 20px;
-}
-
-.modalbox {
-  width: min(440px, 100%);
-  background: #0d151a;
-  border: 1px solid #35515d;
-  border-radius: 12px;
-  padding: 28px;
-  box-shadow: 0 25px 100px #000;
-}
-
-.modalbox h2 {
-  margin-top: 0;
-}
-
-.field {
-  width: 100%;
-  background: #080d10;
-  border: 1px solid #334651;
-  color: white;
-  padding: 13px;
-  border-radius: 7px;
-  margin: 12px 0;
-}
-
-.empty {
-  padding: 30px;
-  text-align: center;
-  color: var(--muted);
-}
-
-.footer {
-  color: #71838e;
-  font-size: 11px;
-  line-height: 1.6;
-  margin: 20px 0;
-}
-
-@media (max-width: 900px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-
-  .side {
-    display: none;
-  }
-
-  .main {
-    padding: 12px;
-  }
-
-  .top {
-    padding: 0 15px;
-  }
-
-  .topright #welcome {
-    display: none;
-  }
-
-  .g4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .g3,
-  .g2 {
-    grid-template-columns: 1fr;
-  }
-
-  .hero {
-    padding: 25px;
-    min-height: 280px;
-  }
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="FORGE — Financial Intelligence & Investor Screening Platform built by Yukti and Sahithya." />
+  <title>FORGE | Financial Clarity Engine</title>
+
+  <!-- External Parsers (Client-side, local execution, works on any connection) -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <script>
+    if (window['pdfjs-dist/build/pdf']) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+
+  <!-- SheetJS for XLSX/XLS/CSV parsing -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Mammoth for DOCX text extraction -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    :root {
+      --bg-dark: #080808;
+      --panel-bg: #121212;
+      --card-bg: #1a1a1a;
+      --border-color: #2a2a2a;
+      --border-focus: #777777;
+      --text-main: #e5e5e5;
+      --text-muted: #888888;
+      --accent-white: #ffffff;
+      --alert-red: #d93838;
+      --warn-yellow: #d99b26;
+      --pass-green: #38d973;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      letter-spacing: -0.01em;
+    }
+
+    button, input, select {
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 2px solid var(--accent-white);
+      outline-offset: 3px;
+    }
+
+    /* ROBOTIC PRELOADER OVERLAY */
+    #loaderOverlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #000000;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: "Courier New", Courier, monospace;
+      color: #888;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    .loader-box {
+      width: 90%;
+      max-width: 520px;
+      border: 1px solid #333;
+      padding: 30px;
+      background: #0a0a0a;
+      box-shadow: 0 0 30px rgba(255,255,255,0.05);
+      border-radius: 4px;
+    }
+
+    .loader-title {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .loader-credits {
+      color: #aaa;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #222;
+      padding-bottom: 10px;
+    }
+
+    .terminal-logs {
+      font-size: 0.75rem;
+      color: #777;
+      min-height: 100px;
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+
+    .terminal-logs .line {
+      color: #ccc;
+    }
+    .terminal-logs .line::before {
+      content: "> ";
+      color: #555;
+    }
+
+    .progress-bar-wrap {
+      width: 100%;
+      height: 6px;
+      background: #222;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: #fff;
+      transition: width 0.15s ease;
+    }
+
+    /* MANDATORY GATEWAY MODAL */
+    #loginModal {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(15px);
+      z-index: 8888;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+    }
+
+    .modal-card h2 {
+      font-size: 1.4rem;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+
+    .modal-card p {
+      color: #888;
+      font-size: 0.85rem;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    /* HERO SECTION WITH ATMOSPHERIC BACKGROUND */
+    .hero-banner {
+      position: relative;
+      width: 100%;
+      height: 280px;
+      background: linear-gradient(180deg, rgba(8,8,8,0.4) 0%, rgba(8,8,8,1) 100%), 
+                  url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 40px 6%;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .hero-content h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 3px;
+    }
+
+    .hero-content p {
+      color: #aaa;
+      font-size: 0.95rem;
+      max-width: 650px;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    /* HEADER */
+    header {
+      padding: 18px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(8, 8, 8, 0.95);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent-white);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      background: #888;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    }
+
+    .user-badge {
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      color: #fff;
+      text-transform: uppercase;
+      border: 1px solid #333;
+      padding: 6px 14px;
+      border-radius: 4px;
+      background: #141414;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* FOOTER */
+    footer {
+      margin-top: auto;
+      padding: 30px 24px;
+      text-align: center;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      line-height: 1.6;
+      background: #050505;
+    }
+
+    footer .disclaimer {
+      max-width: 850px;
+      margin: 12px auto 0;
+      font-size: 0.7rem;
+      color: #666;
+      border: 1px dashed #222;
+      padding: 12px;
+      border-radius: 4px;
+    }
+
+    /* LAYOUT & CARDS */
+    .container {
+      width: 90%;
+      max-width: 1100px;
+      margin: 30px auto;
+      flex: 1;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      color: #f5f5f5;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    input[type="text"], input[type="number"], select, input[type="file"] {
+      background: #000;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 4px;
+      outline: none;
+      font-size: 0.88rem;
+      transition: border-color 0.2s;
+      min-width: 0;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus, select:focus, input[type="file"]:focus {
+      border-color: var(--border-focus);
+      background: #050505;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #a3a3a3;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      cursor: pointer;
+    }
+
+    input[type="file"]::file-selector-button {
+      background: #262626;
+      color: #e5e5e5;
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      padding: 6px 10px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .btn {
+      background: var(--accent-white);
+      color: #000;
+      border: 1px solid transparent;
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: #ccc;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #d4d4d4;
+      border-color: var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--card-bg);
+      color: #fff;
+      border-color: #525252;
+    }
+
+    .btn-danger {
+      background: #171717;
+      color: #aaa;
+      border-color: #333;
+    }
+
+    .btn-danger:hover {
+      background: #222;
+      color: #fff;
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 10px 18px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      color: var(--accent-white);
+      background: var(--panel-bg);
+      border-color: var(--border-color);
+    }
+
+    .feature-panel {
+      display: none;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 32px;
+    }
+
+    .feature-panel.active { display: block; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 24px;
+      border-radius: 6px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .full-width { width: 100%; }
+
+    /* OUTPUT & METRICS */
+    .analysis-output {
+      margin-top: 24px;
+      background: #050505;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 24px;
+      display: none;
+    }
+
+    .output-header {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #262626;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .analysis-list { list-style: none; }
+    .analysis-list li {
+      padding: 12px 0;
+      border-bottom: 1px solid #171717;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .analysis-list li .lbl { color: var(--text-muted); flex: 1; }
+    .analysis-list li .val { color: var(--accent-white); font-weight: 600; text-align: right; }
+
+    /* RED FLAGS LISTING */
+    .red-flag-box {
+      margin-top: 20px;
+      background: #110000;
+      border: 1px solid #441111;
+      padding: 18px;
+      border-radius: 6px;
+    }
+
+    .red-flag-title {
+      color: #ff5555;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .red-flag-list {
+      list-style: disc;
+      padding-left: 20px;
+      color: #d8a0a0;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+
+    .warning-banner {
+      background: #261a00;
+      border: 1px solid #664400;
+      color: #ffcc66;
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-top: 15px;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .metric-card {
+      background: #0a0a0a;
+      border: 1px solid var(--border-color);
+      padding: 20px;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .metric-card .val {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 8px;
+    }
+
+    .metric-card .lbl {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .spinner {
+      display: none;
+      margin: 20px 0;
+      color: var(--accent-white);
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .error-msg {
+      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      background: #1a0808;
+      border: 1px solid #4a1515;
+      color: #ff8888;
+      font-size: 0.8rem;
+      border-radius: 4px;
+    }
+
+    /* MONOCHROME STATUS TAGS */
+    .status-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+    .status-high { background: #fff; color: #000; }
+    .status-med { background: #666; color: #fff; }
+    .status-low { background: #222; color: #888; border: 1px solid #333; }
+
+    @media (max-width: 600px) {
+      .hero-banner { height: 220px; padding: 20px 5%; }
+      .hero-content h1 { font-size: 1.5rem; }
+      .container { width: 94%; }
+      .feature-panel { padding: 20px; }
+      .analysis-list li { flex-direction: column; gap: 4px; }
+      .analysis-list li .val { text-align: left; }
+    }
+  </style>
+
 </head>
-
 <body>
 
-<div id="login" class="modal">
-  <div class="modalbox">
-    <div class="brand">F<span>O</span>RGE</div>
-    <p class="muted">Financial Clarity Engine</p>
+  <!-- ROBOTIC SEQUENCE PRELOADER -->
 
-    <h2>Enter your name to begin</h2>
-
-    <p class="muted">
-      Your workspace stays locked until a name is entered.
-      No account or server upload is required.
-    </p>
-
-    <input
-      id="nameInput"
-      class="field"
-      maxlength="80"
-      placeholder="Your name"
-      autocomplete="name"
-    >
-
-    <button id="enterBtn" class="btn primary" style="width:100%">
-      Enter private workspace →
-    </button>
-
-    <p id="loginError" class="bad small hidden">
-      Please enter your name.
-    </p>
+  <div id="loaderOverlay">
+    <div class="loader-box">
+      <div class="loader-title">SYSTEM INITIALIZATION</div>
+      <div class="loader-credits">BUILT BY YUKTI AND SAHITHYA</div>
+      <div class="terminal-logs" id="terminalLogs">
+        <div class="line">Booting FORGE core kernel v4.0...</div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="loaderBar"></div>
+      </div>
+    </div>
   </div>
-</div>
 
-<div id="app" class="app hidden">
+  <!-- MANDATORY LOGIN GATEWAY MODAL -->
 
-<header class="top">
-  <div class="brand">F<span>O</span>RGE</div>
-
-  <div class="topright">
-    <span class="pill">LOCAL WORKSPACE</span>
-    <span id="welcome">Welcome</span>
-    <button id="lockBtn" class="btn ghost">Lock</button>
+  <div id="loginModal" style="display: none;">
+    <div class="modal-card">
+      <h2>AUTHENTICATION</h2>
+      <p>Please enter your full name to unlock the workspace. Access is restricted until identity is registered.</p>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <input type="text" id="modalUserName" placeholder="Enter full name..." maxlength="80" autocomplete="off" />
+        <button class="btn" id="modalLoginBtn" type="button">Access Terminal</button>
+      </div>
+      <div id="modalErr" class="error-msg" style="margin-top:10px;"></div>
+    </div>
   </div>
-</header>
 
-<div class="layout">
+  <!-- MAIN HEADER -->
 
-<aside class="side">
-  <button class="nav active" data-view="home">⌂ &nbsp; Home</button>
-  <button class="nav" data-view="analyse">◈ &nbsp; Analyse</button>
-  <button class="nav" data-view="statements">▤ &nbsp; Statements</button>
-  <button class="nav" data-view="risk">◉ &nbsp; Risk Analysis</button>
-  <button class="nav" data-view="reports">⇩ &nbsp; Reports</button>
+  <header>
+    <div class="brand">
+      <div class="brand-dot"></div>
+      FORGE
+    </div>
+    <div id="userBadgeDisplay" class="user-badge" style="display:none;">
+      <span id="userBadgeName">USER</span>
+      <button class="btn btn-danger" id="logoutBtn" style="padding: 2px 8px; font-size: 0.65rem;">Reset</button>
+    </div>
+  </header>
 
-  <div class="sidebottom">
-    Better information.<br>
-    Lower uncertainty.<br>
-    Smarter capital.
+  <!-- SERIOUS HERO SECTION -->
+
+  <section class="hero-banner">
+    <div class="hero-content">
+      <h1>FINANCIAL CLARITY ENGINE</h1>
+      <p>Institutional-grade quantitative analysis, financial document parsing, multi-variable runway projections, and accurate investor screening.</p>
+    </div>
+  </section>
+
+  <!-- MAIN WORKSPACE -->
+
+  <main class="container">
+
+<!-- TABS NAV -->
+<nav class="tabs" aria-label="Financial tools">
+  <button class="tab-btn active" type="button" data-tab="doc-intel">1. Statement Scanner</button>
+  <button class="tab-btn" type="button" data-tab="ten-k">2. 10-K &amp; Filing Screening</button>
+  <button class="tab-btn" type="button" data-tab="forecast">3. Forecast Simulator</button>
+</nav>
+
+<!-- TAB 1: STATEMENT SCANNER -->
+<section id="doc-intel" class="feature-panel active">
+  <h2>FINANCIAL STATEMENT SCANNER</h2>
+  <p class="subtitle">Upload financial statements across PDF, XLSX, XLS, CSV, DOC, DOCX, or TXT formats for real-time item detection.</p>
+
+  <div class="grid-2" style="margin-bottom:20px;">
+    <div>
+      <label class="field-label" for="stmtType">Document Classification</label>
+      <select id="stmtType" class="full-width">
+        <option value="auto">Auto-Detect Document Type</option>
+        <option value="income">Income Statement / P&amp;L</option>
+        <option value="balance_sheet">Balance Sheet</option>
+        <option value="cashflow">Cash Flow Statement</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="field-label" for="stmtFile">Upload Document (PDF, XLSX, XLS, CSV, DOC, DOCX, TXT)</label>
+      <input type="file" id="stmtFile" accept=".pdf,.xlsx,.xls,.csv,.doc,.docx,.txt" />
+    </div>
   </div>
-</aside>
 
-<main class="main">
+  <button class="btn" id="analyzeStatementBtn" type="button">Scan &amp; Extract Document</button>
 
-<section class="hero">
-  <div class="eyebrow">FROM DOCUMENTS TO DECISIONS</div>
+  <div id="stmtSpinner" class="spinner">⚙️ Extracting line items and executing quantitative analysis...</div>
+  <div id="stmtError" class="error-msg"></div>
+  <div id="stmtWarn" class="warning-banner"></div>
 
-  <h1>
-    Smarter Analysis.<br>
-    <span>Better Investment Decisions.</span>
-  </h1>
+  <div id="stmtOutput" class="analysis-output">
+    <div class="output-header">
+      <span>Extraction Summary</span>
+      <span class="status-tag status-high" id="detectedTag">SUCCESS</span>
+    </div>
 
-  <p>
-    FORGE reads financial documents, separates extracted facts from
-    calculations, identifies the four core statements, and explains
-    what the evidence may mean for an investor.
-  </p>
+    <ul class="analysis-list" id="stmtResults"></ul>
 
-  <div class="heroactions">
-    <button class="btn primary" id="heroUpload">
-      Upload financial document
-    </button>
-
-    <button class="btn ghost" id="sampleBtn">
-      Load sample workspace
-    </button>
+    <div class="flex-actions" style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="syncBtn" type="button">Import Numbers into Simulator →</button>
+      <button class="btn btn-secondary" id="exportStmtCsv" type="button">Export Extracted CSV</button>
+    </div>
   </div>
 </section>
 
-<section class="section grid g4" id="metrics">
+<!-- TAB 2: 10-K & FILING SCANNER -->
+<section id="ten-k" class="feature-panel">
+  <h2>10-K &amp; INVESTOR SCREENER</h2>
+  <p class="subtitle">Evaluate corporate filings for investment suitability. Calculates profit margins, debt ratios, and highlights specific red flags.</p>
 
-  <div class="card metric">
-    <div class="label">Revenue</div>
-    <div class="value" id="mRevenue">—</div>
-    <div class="delta" id="mRevenueSub">Not verified</div>
+  <div class="subsection" style="margin-bottom:20px;">
+    <label class="field-label" for="tenkFile">Upload Corporate Filing / 10-K (PDF, XLSX, XLS, CSV, DOC, DOCX, TXT)</label>
+    <input type="file" id="tenkFile" accept=".pdf,.xlsx,.xls,.csv,.doc,.docx,.txt" />
   </div>
 
-  <div class="card metric">
-    <div class="label">Net income</div>
-    <div class="value" id="mIncome">—</div>
-    <div class="delta" id="mIncomeSub">Not verified</div>
-  </div>
+  <button class="btn" id="analyzeInvestorBtn" type="button">Run Investor Analysis</button>
 
-  <div class="card metric">
-    <div class="label">Cash & equivalents</div>
-    <div class="value" id="mCash">—</div>
-    <div class="delta" id="mCashSub">Not verified</div>
-  </div>
+  <div id="tenkSpinner" class="spinner">⚙️ Evaluating investment criteria &amp; scanning red flags...</div>
+  <div id="tenkError" class="error-msg"></div>
+  <div id="tenkWarn" class="warning-banner"></div>
 
-  <div class="card metric">
-    <div class="label">Total equity</div>
-    <div class="value" id="mEquity">—</div>
-    <div class="delta" id="mEquitySub">Not verified</div>
-  </div>
+  <div id="tenkOutput" class="analysis-output">
+    <div class="output-header">Investment Recommendation &amp; Audit</div>
 
-</section>
-
-<section class="section grid g2">
-
-  <div class="card">
-    <div class="cardhead">
-      <h3>Upload financial document</h3>
-      <span class="tag">PDF · XLSX · XLS · CSV · DOCX · TXT</span>
-    </div>
-
-    <div id="drop" class="upload">
-      <div class="dropicon">⇧</div>
-      <b>Drop your file here</b>
-      <p class="muted">or choose a file from your device</p>
-
-      <input
-        id="fileInput"
-        type="file"
-        accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.txt"
-      >
-
-      <button id="chooseBtn" class="btn">
-        Choose file
-      </button>
-    </div>
-
-    <div id="fileInfo" class="muted small" style="margin-top:12px">
-      No document loaded.
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="cardhead">
-      <h3>Analysis progress</h3>
-      <span id="scanState" class="pill">Waiting</span>
-    </div>
-
-    <div id="steps">
-      <div class="statusrow">
-        <span>Extracting document structure</span>
-        <span class="muted">—</span>
+    <div class="metrics-row" style="margin-bottom:20px;">
+      <div class="metric-card">
+        <div class="lbl">Verdict</div>
+        <div class="val" id="verdictVal">--</div>
       </div>
-
-      <div class="statusrow">
-        <span>Identifying financial statements</span>
-        <span class="muted">—</span>
+      <div class="metric-card">
+        <div class="lbl">Health Score</div>
+        <div class="val" id="healthVal">--</div>
       </div>
-
-      <div class="statusrow">
-        <span>Parsing values and fiscal dates</span>
-        <span class="muted">—</span>
-      </div>
-
-      <div class="statusrow">
-        <span>Checking reconciliations</span>
-        <span class="muted">—</span>
-      </div>
-
-      <div class="statusrow">
-        <span>Generating evidence-based analysis</span>
-        <span class="muted">—</span>
+      <div class="metric-card">
+        <div class="lbl">Risk Rating</div>
+        <div class="val" id="flagVal">--</div>
       </div>
     </div>
 
-    <div class="progress" style="margin-top:14px">
-      <i id="bar"></i>
-    </div>
-  </div>
-
-</section>
-
-<section class="section grid g2">
-
-  <div class="card">
-    <div class="cardhead">
-      <h3>Financial statements</h3>
-      <span id="statementTag" class="pill">Not detected</span>
+    <!-- RED FLAGS CONTAINER -->
+    <div id="redFlagWrapper" class="red-flag-box" style="display:none;">
+      <div class="red-flag-title">⚠️ Detected Risk Factors &amp; Red Flags</div>
+      <ul class="red-flag-list" id="redFlagsList"></ul>
     </div>
 
-    <div id="statementChips" class="heroactions"></div>
+    <ul class="analysis-list" id="tenkResults" style="margin-top:20px;"></ul>
 
-    <div id="statementTable" class="tablewrap">
-      <div class="empty">
-        Upload a document to see extracted line items with source evidence.
-      </div>
+    <div class="flex-actions" style="margin-top:20px;">
+      <button class="btn btn-secondary" id="exportInvestorJson" type="button">Export Investor Audit (JSON)</button>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="cardhead">
-      <h3>Risk analysis</h3>
-      <span id="riskTag" class="pill">Awaiting data</span>
-    </div>
-
-    <div id="riskContent">
-      <div class="empty">
-        Risk conclusions appear only after values are extracted and checked.
-      </div>
-    </div>
-  </div>
-
-</section>
-
-<section class="section grid g2">
-
-  <div class="card">
-    <div class="cardhead">
-      <h3>Investor rationale</h3>
-      <span class="tag">Evidence-led</span>
-    </div>
-
-    <div id="rationale">
-      <div class="empty">No conclusion yet.</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="cardhead">
-      <h3>Data quality & audit trail</h3>
-      <span class="tag">No invented figures</span>
-    </div>
-
-    <div id="quality">
-      <div class="empty">No audit trail yet.</div>
-    </div>
-  </div>
-
-</section>
-
-<section class="section card">
-  <div class="cardhead">
-    <h3>Professional report export</h3>
-    <span class="muted small">
-      Uses the currently loaded analysis
-    </span>
-  </div>
-
-  <div class="heroactions">
-    <button class="btn" id="pdfBtn" disabled>Export PDF</button>
-    <button class="btn" id="htmlBtn" disabled>Export HTML</button>
-    <button class="btn" id="csvBtn" disabled>Export CSV</button>
-    <button class="btn" id="printBtn" disabled>Print report</button>
   </div>
 </section>
 
-<div class="footer">
-  FORGE is an analytical aid, not personalized investment advice.
-  Extracted values are labelled as verified, calculated, missing,
-  or requiring manual verification. Image-only documents are not
-  treated as verified financial data.
-</div>
+<!-- TAB 3: FORECAST SIMULATOR -->
+<section id="forecast" class="feature-panel">
+  <h2>FORECAST SIMULATOR</h2>
+  <p class="subtitle">Dynamic multi-period cash projection engine driven by imported document metrics.</p>
 
-</main>
-</div>
-</div>
+  <div id="simLockedNotice" class="card" style="text-align:center; padding:30px;">
+    🔒 <strong>Simulator Locked:</strong> Scan and import a statement in Tab 1 or Tab 2 to unlock projections.
+  </div>
 
-<script>
-"use strict";
+  <div id="simContent" style="display:none;">
+    <div class="grid-3" style="margin-bottom:20px;">
+      <div>
+        <label class="field-label" for="simCash">Opening Cash Balance ($)</label>
+        <input type="number" id="simCash" value="0" min="0" step="0.01" class="full-width" />
+      </div>
+      <div>
+        <label class="field-label" for="simRev">Base Period Revenue ($)</label>
+        <input type="number" id="simRev" value="0" min="0" step="0.01" class="full-width" />
+      </div>
+      <div>
+        <label class="field-label" for="simBurn">Base Period Operating Expenses ($)</label>
+        <input type="number" id="simBurn" value="0" min="0" step="0.01" class="full-width" />
+      </div>
+    </div>
 
-const $ = id => document.getElementById(id);
+    <div class="grid-2" style="margin-bottom:20px;">
+      <div>
+        <label class="field-label" for="simWindow">Projection Horizon</label>
+        <select id="simWindow" class="full-width">
+          <option value="monthly">12 Months Projections</option>
+          <option value="weekly">4 Weeks Projections</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label" for="simGrowth">Revenue Compound Growth Rate (%)</label>
+        <input type="number" id="simGrowth" value="0" min="-100" max="1000" step="0.1" class="full-width" />
+      </div>
+    </div>
 
-const state = {
-  user: "",
-  file: null,
-  raw: "",
-  metrics: {},
-  risks: [],
-  quality: {},
-  ready: false
-};
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between;">
+        <span class="field-label">Operating Scale Multiplier</span>
+        <strong id="sliderVal" style="color:#fff;">100%</strong>
+      </div>
+      <input type="range" id="scaleSlider" min="50" max="200" value="100" step="5" />
+    </div>
 
-const synonyms = {
-  revenue: [
-    "revenue",
-    "net sales",
-    "total revenues",
-    "total revenue",
-    "sales"
-  ],
+    <div id="simOutput" class="analysis-output" style="display:block;">
+      <div class="output-header">Simulation Calculations</div>
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="lbl">Net Cash Yield</div>
+          <div class="val" id="netVal">$0.00</div>
+        </div>
+        <div class="metric-card">
+          <div class="lbl">Operating Margin</div>
+          <div class="val" id="marginVal">0.0%</div>
+        </div>
+        <div class="metric-card">
+          <div class="lbl">Ending Cash</div>
+          <div class="val" id="endingCashVal">$0.00</div>
+        </div>
+        <div class="metric-card">
+          <div class="lbl">Estimated Runway</div>
+          <div class="val" id="runwayVal">--</div>
+        </div>
+      </div>
 
-  netIncome: [
-    "net income",
-    "net earnings",
-    "profit for the year",
-    "net profit",
-    "net income attributable"
-  ],
+      <ul class="analysis-list" style="margin-top:20px;">
+        <li><span class="lbl">Total Projected Revenue</span><span class="val" id="projectedRevVal">$0.00</span></li>
+        <li><span class="lbl">Total Projected Expenses</span><span class="val" id="projectedBurnVal">$0.00</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
 
-  cash: [
-    "cash and cash equivalents",
-    "cash & cash equivalents",
-    "cash and equivalents"
-  ],
+  </main>
 
-  assets: [
-    "total assets"
-  ],
+  <!-- FOOTER WITH MANDATORY DISCLAIMER -->
 
-  liabilities: [
-    "total liabilities"
-  ],
+  <footer>
+    <div>FORGE FINANCIAL ENGINE &copy; 2026 | BUILT BY YUKTI AND SAHITHYA</div>
+    <div class="disclaimer">
+      <strong>DISCLAIMER &amp; NOTICE:</strong> FORGE was constructed exclusively as an academic project by Yukti and Sahithya. The automated extractions, financial calculations, and investor screening outputs provided by this software are for illustrative and testing purposes only and DO NOT constitute professional financial, investment, accounting, or legal advice.
+    </div>
+  </footer>
 
-  equity: [
-    "total shareholders' equity",
-    "total stockholders' equity",
-    "total equity",
-    "shareholders' equity",
-    "stockholders' equity"
-  ],
+  <!-- CORE LOGIC & PARSING SUITE -->
 
-  cfo: [
-    "net cash provided by operating activities",
-    "cash generated by operating activities",
-    "cash provided by operating activities",
-    "operating cash flow"
-  ],
+  <script>
+    "use strict";
 
-  capex: [
-    "capital expenditures",
-    "capital expenditure",
-    "payments for acquisition of property",
-    "purchases of property",
-    "purchases of property, plant and equipment"
-  ],
+    const STORAGE_KEY = "forge_active_user";
 
-  debt: [
-    "total debt",
-    "long-term debt",
-    "short-term debt",
-    "borrowings",
-    "total borrowings"
-  ]
-};
+    // Global Extracted State
+    let parsedExtractedRev = 0;
+    let parsedExtractedBurn = 0;
+    let parsedCashBalance = 0;
+    let parsedExtractedDebt = 0;
+    let parsedDocumentType = "";
+    let parsedStatementReady = false;
 
-function esc(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
-}
+    const $ = (id) => document.getElementById(id);
 
-function fmt(value) {
-  if (value === null || value === undefined || !Number.isFinite(value)) {
-    return "—";
-  }
+    const money = (val) => "$" + Number(val || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  return new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 2
-  }).format(value);
-}
+    /* =====================================================
+       1. ROBOTIC PRELOADER & USER GATEWAY LOGIC
+       ===================================================== */
+    window.addEventListener("DOMContentLoaded", () => {
+      runRoboticBootSequence(() => {
+        checkUserSession();
+      });
+      bindEvents();
+    });
 
-function num(value) {
-  if (value === null || value === undefined) {
-    return null;
-  }
+    function runRoboticBootSequence(onComplete) {
+      const logsContainer = $("terminalLogs");
+      const progressBar = $("loaderBar");
+      const overlay = $("loaderOverlay");
 
-  let text = String(value).trim();
+      const logs = [
+        "Initializing neural parsing matrices...",
+        "Loading PDF, XLSX, CSV, and DOC parser modules...",
+        "Setting up quantitative screening rules...",
+        "System check complete. Credits: Built by Yukti and Sahithya.",
+        "Launching FORGE Terminal..."
+      ];
 
-  if (!text || /^[-—–]$/.test(text)) {
-    return null;
-  }
+      let step = 0;
+      const interval = setInterval(() => {
+        step++;
+        const pct = Math.min((step / logs.length) * 100, 100);
+        progressBar.style.width = pct + "%";
 
-  const negative = /^\(.*\)$/.test(text);
+        if (step <= logs.length) {
+          const div = document.createElement("div");
+          div.className = "line";
+          div.textContent = logs[step - 1];
+          logsContainer.appendChild(div);
+        }
 
-  text = text
-    .replace(/[(),$€£₹\s]/g, "")
-    .replace(/[%*†‡a-zA-Z]/g, "");
-
-  const number = Number(text);
-
-  if (!Number.isFinite(number)) {
-    return null;
-  }
-
-  return negative ? -number : number;
-}
-
-function normalize(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[’']/g, "'")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function isLikelyNumberToken(token) {
-  const cleaned = String(token || "")
-    .replace(/[,$₹€£()]/g, "")
-    .trim();
-
-  if (!cleaned) {
-    return false;
-  }
-
-  if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}$/.test(cleaned)) {
-    return false;
-  }
-
-  if (/^\d{4}$/.test(cleaned) && Number(cleaned) >= 1900) {
-    return false;
-  }
-
-  return /^-?\d+(?:\.\d+)?$/.test(cleaned);
-}
-
-function findMetric(text, keys) {
-  const lines = text
-    .split(/\n+/)
-    .map(line => line.trim())
-    .filter(Boolean);
-
-  const candidates = [];
-
-  for (let index = 0; index < lines.length; index++) {
-    const current = normalize(lines[index]);
-
-    if (!keys.some(key => current.includes(key))) {
-      continue;
+        if (step >= logs.length) {
+          clearInterval(interval);
+          setTimeout(() => {
+            overlay.style.opacity = "0";
+            overlay.style.visibility = "hidden";
+            if (onComplete) onComplete();
+          }, 400);
+        }
+      }, 300);
     }
 
-    const nearby = lines
-      .slice(index, Math.min(index + 2, lines.length))
-      .join(" ");
+    function checkUserSession() {
+      const savedUser = localStorage.getItem(STORAGE_KEY);
+      if (savedUser && savedUser.trim() !== "") {
+        grantAccess(savedUser);
+      } else {
+        $("loginModal").style.display = "flex";
+      }
+    }
 
-    const tokens = nearby.match(
-      /\(?[$₹€£]?\s*-?\d[\d,]*(?:\.\d+)?\)?/g
-    ) || [];
+    function grantAccess(name) {
+      localStorage.setItem(STORAGE_KEY, name);
+      $("loginModal").style.display = "none";
+      $("userBadgeName").textContent = name.toUpperCase();
+      $("userBadgeDisplay").style.display = "flex";
+    }
 
-    const values = tokens
-      .filter(isLikelyNumberToken)
-      .map(num)
-      .filter(value => value !== null);
+    function bindEvents() {
+      $("modalLoginBtn").addEventListener("click", () => {
+        const name = $("modalUserName").value.trim();
+        if (!name) {
+          $("modalErr").textContent = "Please enter a valid name to proceed.";
+          $("modalErr").style.display = "block";
+          return;
+        }
+        grantAccess(name);
+      });
 
-    if (values.length > 0) {
-      candidates.push({
-        value: values[0],
-        evidence: nearby,
-        confidence: "review"
+      $("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      });
+
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach((t) => t.classList.remove("active"));
+          document.querySelectorAll(".feature-panel").forEach((p) => p.classList.remove("active"));
+          btn.classList.add("active");
+          $(btn.dataset.tab).classList.add("active");
+        });
+      });
+
+      $("analyzeStatementBtn").addEventListener("click", analyzeStatement);
+      $("analyzeInvestorBtn").addEventListener("click", analyzeInvestorFiling);
+      $("syncBtn").addEventListener("click", syncToSimulator);
+
+      ["simCash", "simRev", "simBurn", "simGrowth", "scaleSlider", "simWindow"].forEach((id) => {
+        $(id).addEventListener("input", runSimulation);
+      });
+
+      $("exportStmtCsv").addEventListener("click", exportStmtAsCSV);
+      $("exportInvestorJson").addEventListener("click", exportInvestorAuditJSON);
+    }
+
+    /* =====================================================
+       2. UNIVERSAL FILE READ ENGINE (PDF, XLSX, CSV, DOC, DOCX, TXT)
+       ===================================================== */
+    async function readUniversalFile(file) {
+      if (!file) throw new Error("No file selected.");
+      const name = file.name.toLowerCase();
+
+      // PDF PARSER
+      if (name.endsWith(".pdf") || file.type === "application/pdf") {
+        if (!window.pdfjsLib) throw new Error("PDF parsing engine unavailable.");
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+        let text = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map((it) => it.str).join(" ") + "\n";
+        }
+        return text;
+      }
+
+      // EXCEL & CSV PARSER
+      if (name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".csv")) {
+        if (!window.XLSX) throw new Error("Excel/CSV parser module unavailable.");
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        let text = "";
+        workbook.SheetNames.forEach((sheetName) => {
+          const sheet = workbook.Sheets[sheetName];
+          text += XLSX.utils.sheet_to_txt(sheet) + "\n";
+        });
+        return text;
+      }
+
+      // DOCX PARSER
+      if (name.endsWith(".docx")) {
+        if (!window.mammoth) throw new Error("Docx parser module unavailable.");
+        const buffer = await file.arrayBuffer();
+        const res = await mammoth.extractRawText({ arrayBuffer: buffer });
+        return res.value;
+      }
+
+      // FALLBACK PLAIN TEXT / DOC / TXT
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => reject(new Error("Error reading file text content."));
+        reader.readAsText(file);
       });
     }
-  }
 
-  if (candidates.length === 1) {
-    return {
-      ...candidates[0],
-      confidence: "verified"
-    };
-  }
-
-  if (candidates.length > 1) {
-    const uniqueValues = [
-      ...new Set(candidates.map(candidate => candidate.value))
-    ];
-
-    if (uniqueValues.length === 1) {
-      return {
-        ...candidates[0],
-        confidence: "verified"
-      };
-    }
-
-    return {
-      value: null,
-      evidence: "Multiple possible rows found; manual verification required.",
-      confidence: "ambiguous"
-    };
-  }
-
-  return null;
-}
-
-function detectStatements(text) {
-  const normalized = normalize(text);
-  const statements = [];
-
-  if (
-    normalized.includes("statements of operations") ||
-    normalized.includes("income statement") ||
-    normalized.includes("statement of income") ||
-    normalized.includes("statement of earnings") ||
-    normalized.includes("profit and loss")
-  ) {
-    statements.push("Income statement");
-  }
-
-  if (
-    normalized.includes("balance sheets") ||
-    normalized.includes("balance sheet") ||
-    normalized.includes("statement of financial position")
-  ) {
-    statements.push("Balance sheet");
-  }
-
-  if (
-    normalized.includes("cash flows") ||
-    normalized.includes("cash flow statement") ||
-    normalized.includes("statement of cash flows")
-  ) {
-    statements.push("Cash flow statement");
-  }
-
-  if (
-    normalized.includes("changes in shareholders") ||
-    normalized.includes("changes in total equity") ||
-    normalized.includes("statement of equity") ||
-    normalized.includes("changes in stockholders")
-  ) {
-    statements.push("Changes in equity");
-  }
-
-  return [...new Set(statements)];
-}
-
-function detectFiscalLabel(text) {
-  const patterns = [
-    /fiscal year ended\s+([A-Za-z]+\s+\d{1,2},\s+\d{4})/i,
-    /year ended\s+([A-Za-z]+\s+\d{1,2},\s+\d{4})/i,
-    /as of\s+([A-Za-z]+\s+\d{1,2},\s+\d{4})/i,
-    /fiscal year ended\s+(\d{4})/i,
-    /year ended\s+(\d{4})/i,
-    /as of\s+(\d{4})/i
-  ];
-
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-
-    if (match) {
-      return match[1];
-    }
-  }
-
-  return "Not identified";
-}
-
-async function extractPDF(file) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
-  const pdf = await pdfjsLib
-    .getDocument({
-      data: await file.arrayBuffer()
-    })
-    .promise;
-
-  const pages = [];
-
-  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-    const page = await pdf.getPage(pageNumber);
-    const content = await page.getTextContent();
-
-    const items = content.items.map(item => ({
-      text: item.str,
-      x: item.transform[4],
-      y: item.transform[5]
-    }));
-
-    const rows = [];
-
-    for (const item of items) {
-      let row = rows.find(existing =>
-        Math.abs(existing.y - item.y) < 3
-      );
-
-      if (!row) {
-        row = {
-          y: item.y,
-          items: []
-        };
-
-        rows.push(row);
-      }
-
-      row.items.push(item);
-    }
-
-    rows.sort((a, b) => b.y - a.y);
-
-    const pageText = rows
-      .map(row =>
-        row.items
-          .sort((a, b) => a.x - b.x)
-          .map(item => item.text)
-          .join(" ")
-      )
-      .join("\n");
-
-    pages.push(`PAGE ${pageNumber}\n${pageText}`);
-  }
-
-  return pages.join("\n");
-}
-
-async function extractFile(file) {
-  const extension = file.name.toLowerCase().split(".").pop();
-
-  if (extension === "pdf") {
-    return extractPDF(file);
-  }
-
-  if (["xlsx", "xls", "csv"].includes(extension)) {
-    const workbook = XLSX.read(
-      await file.arrayBuffer(),
-      {
-        type: "array",
-        cellDates: true
-      }
-    );
-
-    const output = [];
-
-    workbook.SheetNames.forEach(sheetName => {
-      output.push(`SHEET ${sheetName}`);
-
-      output.push(
-        XLSX.utils.sheet_to_csv(
-          workbook.Sheets[sheetName],
-          {
-            FS: " | "
+    /* =====================================================
+       3. METRIC EXTRACTION ENGINE
+       ===================================================== */
+    function extractMetric(text, keywords) {
+      const lines = text.split(/\r?\n/);
+      for (const line of lines) {
+        const lower = line.toLowerCase();
+        for (const kw of keywords) {
+          if (lower.includes(kw)) {
+            // Match numbers with optional currency formatting or parenthetical negative values
+            const matches = line.match(/\(?\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)\)?/g);
+            if (matches) {
+              const lastMatch = matches[matches.length - 1];
+              const isNegative = lastMatch.includes("(") && lastMatch.includes(")");
+              const rawNum = lastMatch.replace(/[\$\,\(\)]/g, "");
+              const val = parseFloat(rawNum);
+              if (!isNaN(val)) return isNegative ? -val : val;
+            }
           }
-        )
-      );
-    });
-
-    return output.join("\n");
-  }
-
-  if (extension === "docx") {
-    const result = await mammoth.extractRawText({
-      arrayBuffer: await file.arrayBuffer()
-    });
-
-    return result.value;
-  }
-
-  return file.text();
-}
-
-function analyse(text) {
-  const metrics = {};
-
-  for (const [key, keys] of Object.entries(synonyms)) {
-    const result = findMetric(text, keys);
-
-    metrics[key] = result ? result.value : null;
-    metrics[key + "Evidence"] = result
-      ? result.evidence
-      : "Not found";
-
-    metrics[key + "Confidence"] = result
-      ? result.confidence
-      : "missing";
-  }
-
-  const statements = detectStatements(text);
-  const risks = [];
-
-  if (
-    metrics.netIncome !== null &&
-    metrics.netIncome < 0
-  ) {
-    risks.push({
-      type: "bad",
-      title: "Negative net income",
-      body:
-        "Reported earnings are negative. An investor should investigate the cause, persistence, and funding requirement."
-    });
-  }
-
-  if (
-    metrics.cfo !== null &&
-    metrics.cfo < 0
-  ) {
-    risks.push({
-      type: "bad",
-      title: "Negative operating cash flow",
-      body:
-        "Core operations consumed cash in the extracted period. This weakens cash conversion until explained."
-    });
-  }
-
-  if (
-    metrics.assets !== null &&
-    metrics.liabilities !== null &&
-    metrics.equity !== null
-  ) {
-    const difference =
-      metrics.assets -
-      (metrics.liabilities + metrics.equity);
-
-    const tolerance =
-      Math.max(1, Math.abs(metrics.assets) * 0.02);
-
-    if (Math.abs(difference) > tolerance) {
-      risks.push({
-        type: "bad",
-        title: "Balance-sheet reconciliation issue",
-        body:
-          "Assets do not approximately equal liabilities plus equity using the extracted values. Review units, columns, and table alignment."
-      });
-    }
-  }
-
-  if (
-    metrics.debt !== null &&
-    metrics.equity !== null &&
-    metrics.equity !== 0
-  ) {
-    const debtEquity =
-      Math.abs(metrics.debt / metrics.equity);
-
-    if (debtEquity > 2) {
-      risks.push({
-        type: "warn",
-        title: "Elevated debt-to-equity",
-        body:
-          "Debt exceeds two times extracted equity. Capital structure, maturity profile, and interest coverage require review."
-      });
-    }
-  }
-
-  if (
-    metrics.cash !== null &&
-    metrics.liabilities !== null &&
-    metrics.liabilities !== 0
-  ) {
-    const cashLiabilityRatio =
-      metrics.cash / Math.abs(metrics.liabilities);
-
-    if (cashLiabilityRatio < 0.2) {
-      risks.push({
-        type: "warn",
-        title: "Limited cash relative to liabilities",
-        body:
-          "Cash is below 20% of extracted liabilities. Liquidity should be assessed alongside undrawn facilities and operating cash flow."
-      });
-    }
-  }
-
-  if (statements.length < 4) {
-    risks.push({
-      type: "warn",
-      title: "Incomplete statement coverage",
-      body:
-        "One or more of the four core statements were not confidently detected. The conclusion is limited and should not be treated as complete."
-    });
-  }
-
-  const coreFields = [
-    "revenue",
-    "netIncome",
-    "cash",
-    "assets",
-    "liabilities",
-    "equity",
-    "cfo",
-    "debt"
-  ];
-
-  const found = coreFields.filter(
-    key =>
-      metrics[key] !== null &&
-      metrics[key + "Confidence"] === "verified"
-  ).length;
-
-  const quality = {
-    found,
-    total: coreFields.length,
-    score: Math.round((found / coreFields.length) * 100),
-    fiscalLabel: detectFiscalLabel(text),
-    statements
-  };
-
-  return {
-    metrics,
-    risks,
-    quality
-  };
-}
-
-function render(analysis) {
-  state.metrics = analysis.metrics;
-  state.risks = analysis.risks;
-  state.quality = analysis.quality;
-
-  const metrics = analysis.metrics;
-
-  const metricMap = [
-    ["mRevenue", "revenue", "mRevenueSub"],
-    ["mIncome", "netIncome", "mIncomeSub"],
-    ["mCash", "cash", "mCashSub"],
-    ["mEquity", "equity", "mEquitySub"]
-  ];
-
-  metricMap.forEach(([valueId, key, subId]) => {
-    $(valueId).textContent = fmt(metrics[key]);
-
-    $(subId).textContent =
-      metrics[key] === null
-        ? "Not verified"
-        : metrics[key + "Confidence"] === "verified"
-          ? "Verified source row"
-          : "Manual review required";
-  });
-
-  $("statementTag").textContent =
-    analysis.quality.statements.length + " detected";
-
-  $("statementChips").innerHTML =
-    analysis.quality.statements
-      .map(statement =>
-        `<span class="tag">${esc(statement)}</span>`
-      )
-      .join("") ||
-    '<span class="tag">None confidently detected</span>';
-
-  const names = {
-    revenue: "Revenue",
-    netIncome: "Net income",
-    cash: "Cash & equivalents",
-    assets: "Total assets",
-    liabilities: "Total liabilities",
-    equity: "Total equity",
-    cfo: "Operating cash flow",
-    capex: "Capital expenditures",
-    debt: "Debt"
-  };
-
-  const tableRows = [];
-
-  Object.keys(names).forEach(key => {
-    if (metrics[key] !== null) {
-      tableRows.push(`
-        <tr>
-          <td>${esc(names[key])}</td>
-          <td>${fmt(metrics[key])}</td>
-          <td>${esc(metrics[key + "Confidence"])}</td>
-          <td>${esc(metrics[key + "Evidence"])}</td>
-        </tr>
-      `);
-    }
-  });
-
-  $("statementTable").innerHTML =
-    tableRows.length > 0
-      ? `
-        <table>
-          <thead>
-            <tr>
-              <th>Line item</th>
-              <th>Value</th>
-              <th>Status</th>
-              <th>Source evidence</th>
-            </tr>
-          </thead>
-          <tbody>${tableRows.join("")}</tbody>
-        </table>
-      `
-      : `
-        <div class="empty">
-          No reliable numeric line items were extracted.
-        </div>
-      `;
-
-  const ratios = [];
-
-  if (
-    metrics.debt !== null &&
-    metrics.equity !== null &&
-    metrics.equity !== 0
-  ) {
-    ratios.push([
-      "Debt / equity",
-      metrics.debt / metrics.equity
-    ]);
-  }
-
-  if (
-    metrics.cfo !== null &&
-    metrics.netIncome !== null &&
-    metrics.netIncome !== 0
-  ) {
-    ratios.push([
-      "CFO / net income",
-      metrics.cfo / metrics.netIncome
-    ]);
-  }
-
-  if (
-    metrics.cash !== null &&
-    metrics.liabilities !== null &&
-    metrics.liabilities !== 0
-  ) {
-    ratios.push([
-      "Cash / liabilities",
-      metrics.cash / Math.abs(metrics.liabilities)
-    ]);
-  }
-
-  if (
-    metrics.cfo !== null &&
-    metrics.capex !== null
-  ) {
-    ratios.push([
-      "Free cash flow",
-      metrics.cfo - Math.abs(metrics.capex)
-    ]);
-  }
-
-  const riskHtml = analysis.risks
-    .map(risk => `
-      <div class="risk ${risk.type}">
-        <b>${esc(risk.title)}</b>
-        <div class="small" style="margin-top:5px">
-          ${esc(risk.body)}
-        </div>
-      </div>
-    `)
-    .join("");
-
-  $("riskContent").innerHTML = `
-    <div class="notice">
-      <b>Data quality:</b>
-      ${analysis.quality.score}% of core fields found.
-      <br>
-      <b>Fiscal reporting label:</b>
-      ${esc(analysis.quality.fiscalLabel)}
-    </div>
-
-    ${ratios
-      .map(ratio => `
-        <div class="statusrow">
-          <span>${esc(ratio[0])}</span>
-          <b>${fmt(ratio[1])}</b>
-        </div>
-      `)
-      .join("")}
-
-    ${
-      riskHtml ||
-      `
-        <div class="risk good">
-          <b>No triggered rule-based warning</b>
-          <div class="small">
-            This does not prove an investment is safe.
-            Missing data, valuation, industry risk and management quality
-            still require review.
-          </div>
-        </div>
-      `
-    }
-  `;
-
-  $("riskTag").textContent =
-    analysis.risks.length > 0
-      ? "Review required"
-      : "No rule triggered";
-
-  $("rationale").innerHTML = `
-    <div class="notice">
-      <b>Why consider:</b><br>
-      ${
-        metrics.netIncome !== null &&
-        metrics.netIncome > 0
-          ? "Positive extracted net income supports further review."
-          : "No verified positive net income was identified."
+        }
       }
-      <br>
-      ${
-        metrics.cfo !== null &&
-        metrics.cfo > 0
-          ? "Positive operating cash flow supports operating cash generation."
-          : "Operating cash flow was not verified as positive."
+      return 0;
+    }
+
+    /* =====================================================
+       4. TAB 1: STATEMENT ANALYSIS LOGIC
+       ===================================================== */
+    async function analyzeStatement() {
+      $("stmtError").style.display = "none";
+      $("stmtWarn").style.display = "none";
+      $("stmtOutput").style.display = "none";
+
+      const file = $("stmtFile").files[0];
+      if (!file) {
+        $("stmtError").textContent = "Please select a valid document to parse.";
+        $("stmtError").style.display = "block";
+        return;
       }
-    </div>
 
-    <div class="notice">
-      <b>Why caution:</b><br>
-      ${
-        analysis.risks.length > 0
-          ? "The report contains " +
-            analysis.risks.length +
-            " evidence-linked issue(s) or data limitations that need investigation."
-          : "No rule-based issue was triggered, but this is not a valuation or suitability conclusion."
+      $("stmtSpinner").style.display = "block";
+
+      try {
+        const text = await readUniversalFile(file);
+        $("stmtSpinner").style.display = "none";
+
+        if (!text || text.trim().length === 0) {
+          $("stmtWarn").textContent = "WARNING: Unreadable document format or empty file. Please check file formatting or input numbers manually.";
+          $("stmtWarn").style.display = "block";
+          return;
+        }
+
+        const rev = extractMetric(text, ["revenue", "total revenue", "sales", "gross sales"]);
+        const burn = extractMetric(text, ["operating expenses", "total expenses", "cost of goods", "cogs", "expenses"]);
+        const cash = extractMetric(text, ["cash", "cash and cash equivalents", "ending cash"]);
+
+        if (rev === 0 && burn === 0 && cash === 0) {
+          $("stmtWarn").textContent = "WARNING: File scanned successfully, but no explicit financial line items were recognized. Double-check your file content or input data directly into the simulator.";
+          $("stmtWarn").style.display = "block";
+        }
+
+        parsedExtractedRev = rev;
+        parsedExtractedBurn = burn;
+        parsedCashBalance = cash;
+        parsedStatementReady = true;
+
+        const results = $("stmtResults");
+        results.innerHTML = `
+          <li><span class="lbl">Extracted Revenue</span><span class="val">${money(rev)}</span></li>
+          <li><span class="lbl">Extracted Operating Expenses</span><span class="val">${money(burn)}</span></li>
+          <li><span class="lbl">Calculated Net Operating Income</span><span class="val">${money(rev - burn)}</span></li>
+          <li><span class="lbl">Extracted Cash Balance</span><span class="val">${money(cash)}</span></li>
+        `;
+
+        $("stmtOutput").style.display = "block";
+        unlockSimulator();
+      } catch (err) {
+        $("stmtSpinner").style.display = "none";
+        $("stmtError").textContent = err.message || "An error occurred while parsing the statement.";
+        $("stmtError").style.display = "block";
       }
-    </div>
-
-    <div class="notice">
-      <b>Decision conditions:</b><br>
-      Confirm the source columns, units, fiscal reporting date,
-      full four-statement coverage, valuation, debt maturities,
-      accounting policies and management disclosures before making
-      an investment decision.
-    </div>
-  `;
-
-  $("quality").innerHTML = `
-    <div class="statusrow">
-      <span>Core fields verified</span>
-      <b>${analysis.quality.found}/${analysis.quality.total}</b>
-    </div>
-
-    <div class="statusrow">
-      <span>Detected statements</span>
-      <b>${analysis.quality.statements.length}/4</b>
-    </div>
-
-    <div class="statusrow">
-      <span>Fiscal reporting label</span>
-      <b>${esc(analysis.quality.fiscalLabel)}</b>
-    </div>
-
-    <div class="notice" style="margin-top:12px">
-      Values are not silently filled.
-      “Not verified” means the parser could not confidently locate
-      a source value.
-      <br><br>
-      “Fiscal reporting label” means the fiscal year ended date,
-      reporting year, or balance-sheet date associated with the figures.
-      It is not a generic calendar label.
-    </div>
-  `;
-
-  state.ready = true;
-
-  ["pdfBtn", "htmlBtn", "csvBtn", "printBtn"].forEach(id => {
-    $(id).disabled = false;
-  });
-}
-
-function setSteps(done) {
-  const labels = [
-    "Extracting document structure",
-    "Identifying financial statements",
-    "Parsing values and fiscal dates",
-    "Checking reconciliations",
-    "Generating evidence-based analysis"
-  ];
-
-  $("steps").innerHTML = labels
-    .map((label, index) => `
-      <div class="statusrow">
-        <span>${label}</span>
-        <span class="${index < done ? "good" : "muted"}">
-          ${index < done ? "Completed" : "Pending"}
-        </span>
-      </div>
-    `)
-    .join("");
-
-  $("bar").style.width =
-    (done / labels.length * 100) + "%";
-
-  $("scanState").textContent =
-    done === 5 ? "Analysis complete" : "Processing";
-}
-
-async function load(file) {
-  if (!state.user) {
-    return;
-  }
-
-  state.file = file;
-  state.ready = false;
-
-  $("fileInfo").textContent =
-    file.name +
-    " · " +
-    (file.size / 1024 / 1024).toFixed(2) +
-    " MB";
-
-  setSteps(0);
-
-  try {
-    setSteps(1);
-
-    const text = await extractFile(file);
-
-    state.raw = text;
-
-    setSteps(2);
-
-    const analysis = analyse(text);
-
-    setSteps(3);
-
-    render(analysis);
-
-    setSteps(5);
-  } catch (error) {
-    console.error(error);
-
-    $("fileInfo").textContent =
-      "Could not read this file. It may be scanned/image-only or malformed.";
-
-    $("scanState").textContent = "Manual review";
-    setSteps(0);
-  }
-}
-
-function downloadFile(filename, type, content) {
-  const blob = new Blob([content], {
-    type
-  });
-
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-  }, 1000);
-}
-
-function reportHTML() {
-  return `
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>FORGE Investor Report</title>
-<style>
-body {
-  font-family: Arial, sans-serif;
-  padding: 35px;
-  color: #17232b;
-}
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-td, th {
-  border: 1px solid #ccd5da;
-  padding: 8px;
-  text-align: left;
-  vertical-align: top;
-}
-h1 {
-  color: #142d3b;
-}
-.notice {
-  padding: 12px;
-  border: 1px solid #ccd5da;
-  margin: 8px 0;
-}
-</style>
-</head>
-<body>
-
-<h1>FORGE Investor Report</h1>
-
-<p>
-Prepared for ${esc(state.user)}
-<br>
-Generated: ${new Date().toLocaleString()}
-</p>
-
-<h2>Data quality</h2>
-
-<p>
-${state.quality.score}% of core fields verified.
-<br>
-Fiscal reporting label:
-${esc(state.quality.fiscalLabel)}
-</p>
-
-<h2>Extracted values</h2>
-
-${$("statementTable").innerHTML}
-
-<h2>Risk analysis</h2>
-
-${$("riskContent").innerHTML}
-
-<h2>Investor rationale</h2>
-
-${$("rationale").innerHTML}
-
-<p>
-This is an analytical aid only. Verify source documents,
-units, reporting dates, accounting policies and valuation independently.
-</p>
-
-</body>
-</html>
-`;
-}
-
-$("enterBtn").onclick = () => {
-  const name = $("nameInput").value.trim();
-
-  if (!name) {
-    $("loginError").classList.remove("hidden");
-    return;
-  }
-
-  state.user = name;
-
-  $("welcome").textContent = "Welcome, " + name;
-
-  $("login").classList.add("hidden");
-  $("app").classList.remove("hidden");
-};
-
-$("nameInput").addEventListener("keydown", event => {
-  if (event.key === "Enter") {
-    $("enterBtn").click();
-  }
-});
-
-$("lockBtn").onclick = () => {
-  state.user = "";
-  state.ready = false;
-
-  $("app").classList.add("hidden");
-  $("login").classList.remove("hidden");
-
-  $("nameInput").value = "";
-  $("loginError").classList.add("hidden");
-};
-
-$("chooseBtn").onclick = () => {
-  if (!state.user) return;
-  $("fileInput").click();
-};
-
-$("heroUpload").onclick = () => {
-  if (!state.user) return;
-  $("fileInput").click();
-};
-
-$("fileInput").onchange = event => {
-  if (!state.user) return;
-
-  const file = event.target.files[0];
-
-  if (file) {
-    load(file);
-  }
-};
-
-$("drop").ondragover = event => {
-  event.preventDefault();
-
-  if (!state.user) return;
-
-  $("drop").style.borderColor = "var(--green)";
-};
-
-$("drop").ondragleave = () => {
-  $("drop").style.borderColor = "";
-};
-
-$("drop").ondrop = event => {
-  event.preventDefault();
-
-  if (!state.user) return;
-
-  $("drop").style.borderColor = "";
-
-  const file = event.dataTransfer.files[0];
-
-  if (file) {
-    load(file);
-  }
-};
-
-$("sampleBtn").onclick = () => {
-  if (!state.user) return;
-
-  const text = `
-CONSOLIDATED STATEMENTS OF OPERATIONS
-Fiscal year ended September 27, 2025
-Total net sales 383285
-Net income 96995
-
-CONSOLIDATED BALANCE SHEETS
-As of September 27, 2025
-Total assets 364980
-Total liabilities 233690
-Total shareholders' equity 131290
-Cash and cash equivalents 61349
-
-CONSOLIDATED STATEMENTS OF CASH FLOWS
-Fiscal year ended September 27, 2025
-Net cash provided by operating activities 110543
-Capital expenditures 12056
-
-STATEMENTS OF CHANGES IN TOTAL EQUITY
-Fiscal year ended September 27, 2025
-Total equity 131290
-`;
-
-  const analysis = analyse(text);
-
-  state.file = {
-    name: "Illustrative sample workspace"
-  };
-
-  state.raw = text;
-
-  $("fileInfo").textContent =
-    "Illustrative sample workspace · clearly labelled";
-
-  setSteps(3);
-  render(analysis);
-  setSteps(5);
-};
-
-$("pdfBtn").onclick = () => {
-  if (!state.ready) return;
-
-  const {
-    jsPDF
-  } = window.jspdf;
-
-  const doc = new jsPDF();
-
-  doc.setFontSize(18);
-  doc.text("FORGE Investor Report", 14, 18);
-
-  doc.setFontSize(10);
-  doc.text(
-    "Prepared for " +
-    state.user +
-    " · " +
-    new Date().toLocaleString(),
-    14,
-    26
-  );
-
-  doc.text(
-    "Data quality: " +
-    state.quality.score +
-    "% · Fiscal reporting label: " +
-    state.quality.fiscalLabel,
-    14,
-    34
-  );
-
-  const rows = Object.entries(state.metrics)
-    .filter(([key, value]) =>
-      !key.endsWith("Evidence") &&
-      !key.endsWith("Confidence") &&
-      value !== null
-    )
-    .map(([key, value]) => [
-      key,
-      fmt(value),
-      state.metrics[key + "Confidence"]
-    ]);
-
-  doc.autoTable({
-    startY: 42,
-    head: [["Line item", "Value", "Status"]],
-    body: rows
-  });
-
-  let y = doc.lastAutoTable.finalY + 12;
-
-  doc.text("Risk analysis", 14, y);
-
-  doc.autoTable({
-    startY: y + 5,
-    head: [["Finding", "Explanation"]],
-    body: state.risks.map(risk => [
-      risk.title,
-      risk.body
-    ])
-  });
-
-  doc.save("FORGE-investor-report.pdf");
-};
-
-$("htmlBtn").onclick = () => {
-  if (!state.ready) return;
-
-  downloadFile(
-    "FORGE-investor-report.html",
-    "text/html",
-    reportHTML()
-  );
-};
-
-$("csvBtn").onclick = () => {
-  if (!state.ready) return;
-
-  let csv = "Line item,Value,Status,Evidence\n";
-
-  Object.keys(state.metrics)
-    .filter(key =>
-      !key.endsWith("Evidence") &&
-      !key.endsWith("Confidence") &&
-      state.metrics[key] !== null
-    )
-    .forEach(key => {
-      csv +=
-        `"${key}",` +
-        `"${state.metrics[key]}",` +
-        `"${state.metrics[key + "Confidence"]}",` +
-        `"${String(state.metrics[key + "Evidence"]).replace(/"/g, '""')}"\n`;
-    });
-
-  downloadFile(
-    "FORGE-extracted-data.csv",
-    "text/csv",
-    csv
-  );
-};
-
-$("printBtn").onclick = () => {
-  if (!state.ready) return;
-
-  const printWindow = window.open("", "_blank");
-
-  if (!printWindow) {
-    alert("Please allow pop-ups to print the report.");
-    return;
-  }
-
-  printWindow.document.write(reportHTML());
-  printWindow.document.close();
-  printWindow.focus();
-  printWindow.print();
-};
-
-document.querySelectorAll(".nav").forEach(button => {
-  button.onclick = () => {
-    if (!state.user) return;
-
-    document
-      .querySelectorAll(".nav")
-      .forEach(item => item.classList.remove("active"));
-
-    button.classList.add("active");
-  };
-});
-</script>
+    }
+
+    /* =====================================================
+       5. TAB 2: INVESTOR SCREENING & RED FLAGS ENGINE
+       ===================================================== */
+    async function analyzeInvestorFiling() {
+      $("tenkError").style.display = "none";
+      $("tenkWarn").style.display = "none";
+      $("tenkOutput").style.display = "none";
+
+      const file = $("tenkFile").files[0];
+      if (!file) {
+        $("tenkError").textContent = "Please select a 10-K or corporate filing report.";
+        $("tenkError").style.display = "block";
+        return;
+      }
+
+      $("tenkSpinner").style.display = "block";
+
+      try {
+        const text = await readUniversalFile(file);
+        $("tenkSpinner").style.display = "none";
+
+        if (!text || text.trim().length === 0) {
+          $("tenkWarn").textContent = "WARNING: File contains unreadable text or image-only scans. Manual verification recommended.";
+          $("tenkWarn").style.display = "block";
+          return;
+        }
+
+        const rev = extractMetric(text, ["revenue", "total revenue", "sales"]);
+        const burn = extractMetric(text, ["operating expenses", "total expenses", "cogs"]);
+        const cash = extractMetric(text, ["cash", "cash and cash equivalents"]);
+        const debt = extractMetric(text, ["total debt", "long-term debt", "liabilities"]);
+
+        parsedExtractedRev = rev;
+        parsedExtractedBurn = burn;
+        parsedCashBalance = cash;
+        parsedExtractedDebt = debt;
+        parsedStatementReady = true;
+
+        const netIncome = rev - burn;
+        const opMargin = rev > 0 ? (netIncome / rev) * 100 : -100;
+        const monthlyBurn = burn > rev ? (burn - rev) / 12 : 0;
+        const runwayMonths = monthlyBurn > 0 ? cash / monthlyBurn : 999;
+
+        // ACCURATE RED FLAGS DETECTION ENGINE
+        const redFlags = [];
+
+        if (opMargin < 0) {
+          redFlags.push(`Unprofitable Operations: Operating margin is negative (${opMargin.toFixed(1)}%). Expenses exceed revenue.`);
+        }
+        if (runwayMonths < 6 && monthlyBurn > 0) {
+          redFlags.push(`Severe Cash Runway Risk: Remaining liquidity provides under ${runwayMonths.toFixed(1)} months of operation before cash depletion.`);
+        }
+        if (debt > cash * 2 && debt > 0) {
+          redFlags.push(`Excessive Leverage: Total liabilities/debt (${money(debt)}) exceed liquid cash (${money(cash)}) by more than 2x.`);
+        }
+        if (rev === 0) {
+          redFlags.push("Zero Recorded Revenue: Company reports no top-line revenue generation in the evaluated period.");
+        }
+
+        // VERDICT & HEALTH SCORE LOGIC
+        let verdict = "INVESTMENT SUITABLE";
+        let risk = "LOW RISK";
+        let score = 90;
+
+        if (redFlags.length >= 3 || runwayMonths < 3) {
+          verdict = "DO NOT INVEST";
+          risk = "HIGH / CRITICAL RISK";
+          score = 25;
+        } else if (redFlags.length >= 1) {
+          verdict = "HIGH CAUTION / HOLD";
+          risk = "MODERATE RISK";
+          score = 55;
+        }
+
+        $("verdictVal").textContent = verdict;
+        $("healthVal").textContent = score + "/100";
+        $("flagVal").textContent = risk;
+
+        // Render Red Flags
+        const flagWrapper = $("redFlagWrapper");
+        const flagList = $("redFlagsList");
+        flagList.innerHTML = "";
+
+        if (redFlags.length > 0) {
+          redFlags.forEach((flag) => {
+            const li = document.createElement("li");
+            li.textContent = flag;
+            flagList.appendChild(li);
+          });
+          flagWrapper.style.display = "block";
+        } else {
+          flagWrapper.style.display = "none";
+        }
+
+        const results = $("tenkResults");
+        results.innerHTML = `
+          <li><span class="lbl">Evaluated Revenue</span><span class="val">${money(rev)}</span></li>
+          <li><span class="lbl">Evaluated Operating Expenses</span><span class="val">${money(burn)}</span></li>
+          <li><span class="lbl">Operating Profit Margin</span><span class="val">${opMargin.toFixed(2)}%</span></li>
+          <li><span class="lbl">Liquid Cash Balance</span><span class="val">${money(cash)}</span></li>
+          <li><span class="lbl">Total Reported Liabilities / Debt</span><span class="val">${money(debt)}</span></li>
+        `;
+
+        $("tenkOutput").style.display = "block";
+        unlockSimulator();
+      } catch (err) {
+        $("tenkSpinner").style.display = "none";
+        $("tenkError").textContent = err.message || "An error occurred during investor screening.";
+        $("tenkError").style.display = "block";
+      }
+    }
+
+    /* =====================================================
+       6. TAB 3: FORECAST SIMULATOR LOGIC
+       ===================================================== */
+    function unlockSimulator() {
+      $("simLockedNotice").style.display = "none";
+      $("simContent").style.display = "block";
+      syncToSimulator();
+    }
+
+    function syncToSimulator() {
+      if (!parsedStatementReady) return;
+      $("simCash").value = parsedCashBalance;
+      $("simRev").value = parsedExtractedRev;
+      $("simBurn").value = parsedExtractedBurn;
+      runSimulation();
+    }
+
+    function runSimulation() {
+      const cash = parseFloat($("simCash").value) || 0;
+      const baseRev = parseFloat($("simRev").value) || 0;
+      const baseBurn = parseFloat($("simBurn").value) || 0;
+      const growthRate = (parseFloat($("simGrowth").value) || 0) / 100;
+      const scale = (parseFloat($("scaleSlider").value) || 100) / 100;
+      const windowMode = $("simWindow").value;
+
+      $("sliderVal").textContent = `${$("scaleSlider").value}%`;
+
+      const periods = windowMode === "weekly" ? 4 : 12;
+      let totalRev = 0;
+      let totalBurn = 0;
+      let currentRev = baseRev * scale;
+      const currentBurn = baseBurn * scale;
+
+      for (let i = 0; i < periods; i++) {
+        totalRev += currentRev;
+        totalBurn += currentBurn;
+        currentRev *= (1 + growthRate);
+      }
+
+      const netYield = totalRev - totalBurn;
+      const endingCash = cash + netYield;
+      const margin = totalRev > 0 ? (netYield / totalRev) * 100 : 0;
+
+      const periodNetBurn = currentBurn - currentRev;
+      let runwayText = "SUSTAINABLE";
+      if (periodNetBurn > 0) {
+        const runway = cash / periodNetBurn;
+        runwayText = `${runway.toFixed(1)} ${windowMode === "weekly" ? "Weeks" : "Months"}`;
+      }
+
+      $("netVal").textContent = money(netYield);
+      $("marginVal").textContent = `${margin.toFixed(1)}%`;
+      $("endingCashVal").textContent = money(endingCash);
+      $("runwayVal").textContent = runwayText;
+      $("projectedRevVal").textContent = money(totalRev);
+      $("projectedBurnVal").textContent = money(totalBurn);
+    }
+
+    /* =====================================================
+       7. EXPORT CAPABILITIES
+       ===================================================== */
+    function exportStmtAsCSV() {
+      const csvData = `Metric,Value\nRevenue,${parsedExtractedRev}\nOperating Expenses,${parsedExtractedBurn}\nCash Balance,${parsedCashBalance}\nCalculated Net Income,${parsedExtractedRev - parsedExtractedBurn}\n`;
+      const blob = new Blob([csvData], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "FORGE_Statement_Extraction.csv";
+      a.click();
+    }
+
+    function exportInvestorAuditJSON() {
+      const auditData = {
+        auditor: "FORGE Financial Engine (Yukti & Sahithya)",
+        timestamp: new Date().toISOString(),
+        user: localStorage.getItem(STORAGE_KEY),
+        extractedMetrics: {
+          revenue: parsedExtractedRev,
+          operatingExpenses: parsedExtractedBurn,
+          cashBalance: parsedCashBalance,
+          totalDebt: parsedExtractedDebt
+        },
+        evaluation: {
+          verdict: $("verdictVal").textContent,
+          healthScore: $("healthVal").textContent,
+          riskRating: $("flagVal").textContent
+        }
+      };
+      const blob = new Blob([JSON.stringify(auditData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "FORGE_Investor_Audit.json";
+      a.click();
+    }
+  </script>
 
 </body>
 </html>
