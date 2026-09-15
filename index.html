@@ -1,891 +1,274 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta
-    name="description"
-    content="FORGE — browser-based financial document analysis and investment decision support."
-  />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="FORGE — browser-based financial document analysis and investment decision support.">
   <title>FORGE | Financial Clarity Engine</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.3/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root {
-      --black: #080808;
-      --black-2: #0d0d0d;
-      --panel: #111111;
-      --panel-2: #171717;
-      --panel-3: #1d1d1d;
-      --border: #2c2c2c;
-      --border-light: #414141;
-      --text: #f3f3f3;
-      --muted: #969696;
-      --soft: #c8c8c8;
-      --positive: #a6d8b0;
-      --negative: #e4a4a4;
-      --warning: #ded0a0;
-      --accent: #d9d9d9;
-      --radius: 16px;
-      --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+      --black:#080808;
+      --black-2:#0d0d0d;
+      --panel:#111;
+      --panel-2:#171717;
+      --border:#2c2c2c;
+      --border-light:#414141;
+      --text:#f3f3f3;
+      --muted:#969696;
+      --soft:#c8c8c8;
+      --positive:#a6d8b0;
+      --negative:#e4a4a4;
+      --warning:#ded0a0;
+      --shadow:0 18px 60px rgba(0,0,0,.35);
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
       background:
-        radial-gradient(circle at 10% 0%, rgba(255,255,255,.055), transparent 28%),
-        radial-gradient(circle at 100% 100%, rgba(255,255,255,.035), transparent 30%),
+        radial-gradient(circle at 10% 0%,rgba(255,255,255,.055),transparent 28%),
+        radial-gradient(circle at 100% 100%,rgba(255,255,255,.035),transparent 30%),
         var(--black);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    button,
-    input,
-    select,
-    textarea {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: .45;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .screen {
-      min-height: 100vh;
-    }
-
-    .center-screen {
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    }
-
-    .entry-card,
-    .loading-card {
-      width: min(560px, 100%);
-      padding: 42px;
-      background: linear-gradient(145deg, rgba(28,28,28,.96), rgba(11,11,11,.98));
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      text-align: center;
-    }
-
-    .brand-mark {
-      width: 64px;
-      height: 64px;
-      display: grid;
-      place-items: center;
-      margin: 0 auto 22px;
-      border: 1px solid #555;
-      border-radius: 18px;
-      color: #fff;
-      font-weight: 900;
-      font-size: 25px;
-      letter-spacing: -2px;
-      background: linear-gradient(135deg, #292929, #080808);
-    }
-
-    .eyebrow {
-      color: var(--muted);
-      font-size: 11px;
-      letter-spacing: .22em;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    h1,
-    h2,
-    h3,
-    p {
-      margin-top: 0;
-    }
-
-    h1 {
-      margin-bottom: 12px;
-      font-size: clamp(34px, 6vw, 56px);
-      letter-spacing: -.065em;
-      line-height: 1;
-    }
-
-    h2 {
-      margin-bottom: 8px;
-      font-size: 24px;
-      letter-spacing: -.04em;
-    }
-
-    h3 {
-      margin-bottom: 8px;
-      font-size: 15px;
-      letter-spacing: -.02em;
-    }
-
-    .subtitle {
-      color: var(--soft);
-      line-height: 1.7;
-      font-size: 14px;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
-
-    .entry-form {
-      margin-top: 28px;
-      text-align: left;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--soft);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      border: 1px solid var(--border-light);
-      border-radius: 10px;
-      background: #0b0b0b;
-      color: var(--text);
-      padding: 13px 14px;
-      outline: none;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      border-color: #a6a6a6;
-      box-shadow: 0 0 0 3px rgba(255,255,255,.06);
-    }
-
-    .primary-button,
-    .secondary-button,
-    .danger-button {
-      border: 1px solid var(--border-light);
-      border-radius: 10px;
-      padding: 12px 17px;
-      font-weight: 800;
-      transition: .2s ease;
-    }
-
-    .primary-button {
-      background: #ededed;
-      color: #080808;
-      border-color: #ededed;
-    }
-
-    .secondary-button {
-      background: #171717;
-      color: var(--text);
-    }
-
-    .danger-button {
-      background: #241515;
-      color: #f0b2b2;
-      border-color: #553333;
-    }
-
-    .primary-button:hover,
-    .secondary-button:hover,
-    .danger-button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.12);
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .button-row > * {
-      flex: 1 1 160px;
-    }
-
-    .loading-card {
-      padding: 48px 30px;
-    }
-
-    .loader-ring {
-      width: 52px;
-      height: 52px;
-      margin: 24px auto;
-      border: 2px solid #333;
-      border-top-color: #eee;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    .loading-line {
-      height: 3px;
-      width: 100%;
-      overflow: hidden;
-      border-radius: 100px;
-      background: #282828;
-    }
-
-    .loading-line span {
-      display: block;
-      width: 45%;
-      height: 100%;
-      background: #eee;
-      animation: loading 1.8s ease-in-out infinite;
-    }
-
-    @keyframes loading {
-      0% { transform: translateX(-110%); }
-      100% { transform: translateX(230%); }
-    }
-
-    .app-shell {
-      width: min(1500px, 100%);
-      margin: 0 auto;
-      padding: 22px;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      padding: 10px 0 28px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .brand-lockup {
-      display: flex;
-      align-items: center;
-      gap: 13px;
-    }
-
-    .mini-mark {
-      width: 40px;
-      height: 40px;
-      display: grid;
-      place-items: center;
-      border: 1px solid var(--border-light);
-      border-radius: 11px;
-      background: #151515;
-      font-weight: 900;
-      letter-spacing: -1px;
-    }
-
-    .brand-name {
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: -.04em;
-    }
-
-    .brand-caption {
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 3px;
-    }
-
-    .user-chip {
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      padding: 8px 12px;
-      color: var(--soft);
-      font-size: 12px;
-      white-space: nowrap;
-    }
-
-    .hero {
-      padding: 34px 0 24px;
-      display: flex;
-      justify-content: space-between;
-      gap: 30px;
-      align-items: end;
-    }
-
-    .hero h1 {
-      font-size: clamp(32px, 5vw, 64px);
-      margin-bottom: 15px;
-    }
-
-    .hero p {
-      max-width: 690px;
-      margin-bottom: 0;
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 14px;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 9px;
-      flex-wrap: wrap;
-    }
-
-    .workspace-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.55fr) minmax(300px, .8fr);
-      gap: 18px;
-      align-items: start;
-    }
-
-    .panel {
-      min-width: 0;
-      background: linear-gradient(145deg, rgba(24,24,24,.97), rgba(13,13,13,.98));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 8px 35px rgba(0,0,0,.14);
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      padding: 19px 21px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .panel-header h2 {
-      margin: 0;
-      font-size: 16px;
-      letter-spacing: -.03em;
-    }
-
-    .panel-body {
-      padding: 21px;
-    }
-
-    .upload-zone {
-      position: relative;
-      border: 1px dashed #555;
-      border-radius: 13px;
-      padding: 36px 22px;
-      text-align: center;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.025), transparent),
-        #0c0c0c;
-      transition: .2s ease;
-    }
-
-    .upload-zone.dragging,
-    .upload-zone:hover {
-      border-color: #aaa;
-      background: #151515;
-    }
-
-    .upload-icon {
-      width: 48px;
-      height: 48px;
-      display: grid;
-      place-items: center;
-      margin: 0 auto 15px;
-      border: 1px solid #444;
-      border-radius: 13px;
-      font-size: 22px;
-    }
-
-    .upload-zone h3 {
-      margin-bottom: 8px;
-      font-size: 17px;
-    }
-
-    .upload-zone p {
-      max-width: 540px;
-      margin: 0 auto 17px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.7;
-    }
-
-    .file-input {
-      display: none;
-    }
-
-    .file-list {
-      display: grid;
-      gap: 8px;
-      margin-top: 15px;
-    }
-
-    .file-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 11px 13px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #101010;
-    }
-
-    .file-item-main {
-      min-width: 0;
-    }
-
-    .file-name {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .file-meta {
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 3px;
-    }
-
-    .remove-file {
-      flex: 0 0 auto;
-      width: 28px;
-      height: 28px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #171717;
-      color: #aaa;
-    }
-
-    .progress-wrap {
-      margin-top: 17px;
-    }
-
-    .progress-label {
-      display: flex;
-      justify-content: space-between;
-      color: var(--muted);
-      font-size: 11px;
-      margin-bottom: 7px;
-    }
-
-    .progress-track {
-      height: 5px;
-      overflow: hidden;
-      border-radius: 100px;
-      background: #292929;
-    }
-
-    .progress-value {
-      height: 100%;
-      width: 0%;
-      background: #ddd;
-      transition: width .25s ease;
-    }
-
-    .status-message {
-      margin-top: 13px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.6;
-    }
-
-    .side-stack {
-      display: grid;
-      gap: 18px;
-    }
-
-    .info-list {
-      display: grid;
-      gap: 12px;
-    }
-
-    .info-row {
-      display: flex;
-      align-items: start;
-      gap: 10px;
-    }
-
-    .info-number {
-      width: 25px;
-      height: 25px;
-      display: grid;
-      place-items: center;
-      flex: 0 0 auto;
-      border: 1px solid var(--border-light);
-      border-radius: 8px;
-      color: var(--soft);
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    .info-row strong {
-      display: block;
-      font-size: 12px;
-      margin-bottom: 4px;
-    }
-
-    .info-row span {
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.5;
-    }
-
-    .notice {
-      border: 1px solid #464646;
-      border-radius: 11px;
-      padding: 13px;
-      background: #151515;
-      color: var(--soft);
-      font-size: 11px;
-      line-height: 1.7;
-    }
-
-    .dashboard {
-      margin-top: 20px;
-      display: grid;
-      gap: 18px;
-    }
-
-    .section-heading {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 15px;
-      margin-bottom: 12px;
-    }
-
-    .section-heading h2 {
-      margin-bottom: 0;
-      font-size: 20px;
-    }
-
-    .section-heading span {
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .metric-card {
-      min-width: 0;
-      padding: 17px;
-      border: 1px solid var(--border);
-      border-radius: 13px;
-      background: linear-gradient(145deg, #191919, #101010);
-    }
-
-    .metric-label {
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.4;
-      margin-bottom: 10px;
-    }
-
-    .metric-value {
-      overflow-wrap: anywhere;
-      font-size: clamp(20px, 3vw, 29px);
-      font-weight: 800;
-      letter-spacing: -.05em;
-    }
-
-    .metric-foot {
-      color: var(--muted);
-      font-size: 10px;
-      margin-top: 8px;
-    }
-
-    .metric-card.positive .metric-value {
-      color: var(--positive);
-    }
-
-    .metric-card.negative .metric-value {
-      color: var(--negative);
-    }
-
-    .metric-card.warning .metric-value {
-      color: var(--warning);
-    }
-
-    .analysis-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 18px;
-    }
-
-    .signal-list,
-    .action-list,
-    .reason-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .signal,
-    .action,
-    .reason {
-      display: flex;
-      align-items: start;
-      gap: 11px;
-      padding: 13px;
-      border: 1px solid var(--border);
-      border-radius: 11px;
-      background: #101010;
-    }
-
-    .signal-dot {
-      width: 9px;
-      height: 9px;
-      margin-top: 5px;
-      flex: 0 0 auto;
-      border-radius: 50%;
-      background: #999;
-    }
-
-    .signal-dot.positive {
-      background: var(--positive);
-    }
-
-    .signal-dot.negative {
-      background: var(--negative);
-    }
-
-    .signal-dot.warning {
-      background: var(--warning);
-    }
-
-    .signal strong,
-    .action strong,
-    .reason strong {
-      display: block;
-      font-size: 12px;
-      margin-bottom: 4px;
-    }
-
-    .signal p,
-    .action p,
-    .reason p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.6;
-    }
-
-    .investment-banner {
-      border: 1px solid var(--border-light);
-      border-radius: 14px;
-      padding: 23px;
-      background:
-        radial-gradient(circle at 100% 0%, rgba(255,255,255,.08), transparent 35%),
-        #141414;
-    }
-
-    .investment-label {
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .15em;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-
-    .investment-verdict {
-      font-size: clamp(26px, 4vw, 42px);
-      font-weight: 900;
-      letter-spacing: -.06em;
-      margin-bottom: 12px;
-    }
-
-    .investment-verdict.consider {
-      color: var(--positive);
-    }
-
-    .investment-verdict.caution {
-      color: var(--warning);
-    }
-
-    .investment-verdict.avoid {
-      color: var(--negative);
-    }
-
-    .investment-explanation {
-      max-width: 850px;
-      color: var(--soft);
-      font-size: 13px;
-      line-height: 1.8;
-      margin-bottom: 0;
-    }
-
-    .confidence-bar {
-      margin-top: 18px;
-      max-width: 460px;
-    }
-
-    .confidence-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 7px;
-    }
-
-    .confidence-track {
-      height: 5px;
-      background: #2d2d2d;
-      border-radius: 100px;
-      overflow: hidden;
-    }
-
-    .confidence-fill {
-      width: 0%;
-      height: 100%;
-      background: #d8d8d8;
-      transition: width .4s ease;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      border-radius: 11px;
-    }
-
-    table {
-      width: 100%;
-      min-width: 650px;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    th,
-    td {
-      padding: 13px 15px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-
-    th {
-      color: var(--muted);
-      background: #151515;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-
-    td {
-      color: var(--soft);
-    }
-
-    tr:last-child td {
-      border-bottom: 0;
-    }
-
-    .empty-state {
-      padding: 35px 20px;
-      text-align: center;
-      color: var(--muted);
-      border: 1px dashed var(--border);
-      border-radius: 12px;
-      font-size: 12px;
-      line-height: 1.7;
-    }
-
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      gap: 15px;
-      flex-wrap: wrap;
-      padding: 28px 0 10px;
-      color: #666;
-      font-size: 10px;
-      line-height: 1.6;
-    }
-
-    .toast {
-      position: fixed;
-      right: 22px;
-      bottom: 22px;
-      max-width: min(390px, calc(100vw - 44px));
-      padding: 14px 16px;
-      background: #eeeeee;
-      color: #080808;
-      border-radius: 10px;
-      box-shadow: var(--shadow);
-      font-size: 12px;
-      font-weight: 700;
-      z-index: 50;
-    }
-
-    @media (max-width: 1050px) {
-      .workspace-grid,
-      .analysis-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .metric-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 620px) {
-      .app-shell {
-        padding: 15px;
-      }
-
-      .entry-card,
-      .loading-card {
-        padding: 30px 22px;
-      }
-
-      .topbar,
-      .hero {
-        align-items: start;
-        flex-direction: column;
-      }
-
-      .hero {
-        padding-top: 28px;
-      }
-
-      .metric-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 9px;
-      }
-
-      .metric-card {
-        padding: 13px;
-      }
-
-      .metric-value {
-        font-size: 22px;
-      }
+      color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+
+    button,input{font:inherit}
+    button{cursor:pointer}
+    button:disabled{cursor:not-allowed;opacity:.45}
+    .hidden{display:none!important}
+    .screen{min-height:100vh}
+    .center-screen{display:grid;place-items:center;padding:24px}
+
+    .entry-card,.loading-card{
+      width:min(560px,100%);
+      padding:42px;
+      background:linear-gradient(145deg,rgba(28,28,28,.96),rgba(11,11,11,.98));
+      border:1px solid var(--border);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      text-align:center;
+    }
+
+    .brand-mark{
+      width:64px;height:64px;
+      display:grid;place-items:center;
+      margin:0 auto 22px;
+      border:1px solid #555;
+      border-radius:18px;
+      font-size:25px;
+      font-weight:900;
+      letter-spacing:-2px;
+      background:linear-gradient(135deg,#292929,#080808);
+    }
+
+    .eyebrow{
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      font-weight:700;
+    }
+
+    h1,h2,h3,p{margin-top:0}
+    h1{font-size:clamp(34px,6vw,56px);letter-spacing:-.065em;line-height:1;margin-bottom:12px}
+    h2{font-size:24px;letter-spacing:-.04em;margin-bottom:8px}
+    h3{font-size:15px;margin-bottom:8px}
+    .subtitle{color:var(--soft);line-height:1.7;font-size:14px}
+    .muted{color:var(--muted)}
+
+    label{
+      display:block;
+      margin-bottom:8px;
+      color:var(--soft);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    input{
+      width:100%;
+      padding:13px 14px;
+      border:1px solid var(--border-light);
+      border-radius:10px;
+      background:#0b0b0b;
+      color:var(--text);
+      outline:none;
+    }
+
+    input:focus{border-color:#aaa;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+
+    .primary-button,.secondary-button,.danger-button{
+      border:1px solid var(--border-light);
+      border-radius:10px;
+      padding:12px 17px;
+      font-weight:800;
+      transition:.2s;
+    }
+
+    .primary-button{background:#ededed;color:#080808;border-color:#ededed}
+    .secondary-button{background:#171717;color:var(--text)}
+    .danger-button{background:#241515;color:#f0b2b2;border-color:#553333}
+    .primary-button:hover,.secondary-button:hover,.danger-button:hover{transform:translateY(-1px);filter:brightness(1.12)}
+    .button-row{display:flex;gap:10px;flex-wrap:wrap}
+    .button-row>*{flex:1 1 160px}
+
+    .loader-ring{
+      width:52px;height:52px;
+      margin:24px auto;
+      border:2px solid #333;
+      border-top-color:#eee;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .loading-line{
+      height:3px;
+      width:100%;
+      overflow:hidden;
+      border-radius:100px;
+      background:#282828;
+    }
 
-      .panel-header,
-      .panel-body {
-        padding: 16px;
-      }
+    .loading-line span{
+      display:block;
+      width:45%;
+      height:100%;
+      background:#eee;
+      animation:loading 1.8s ease-in-out infinite;
+    }
+
+    @keyframes loading{
+      0%{transform:translateX(-110%)}
+      100%{transform:translateX(230%)}
+    }
+
+    .app-shell{width:min(1500px,100%);margin:auto;padding:22px}
+    .topbar,.hero,.panel-header,.section-heading{display:flex;justify-content:space-between;gap:18px}
+    .topbar{align-items:center;padding:10px 0 28px;border-bottom:1px solid var(--border)}
+    .brand-lockup{display:flex;align-items:center;gap:13px}
+    .mini-mark{
+      width:40px;height:40px;display:grid;place-items:center;
+      border:1px solid var(--border-light);
+      border-radius:11px;background:#151515;font-weight:900;
+    }
+    .brand-name{font-size:18px;font-weight:900}
+    .brand-caption{font-size:11px;color:var(--muted);margin-top:3px}
+    .user-chip{border:1px solid var(--border);border-radius:100px;padding:8px 12px;font-size:12px;color:var(--soft)}
+    .hero{align-items:end;padding:34px 0 24px}
+    .hero h1{font-size:clamp(32px,5vw,64px);margin-bottom:15px}
+    .hero p{max-width:690px;color:var(--muted);line-height:1.7;font-size:14px;margin-bottom:0}
+    .hero-actions{display:flex;gap:9px;flex-wrap:wrap}
+
+    .workspace-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,.8fr);gap:18px;align-items:start}
+    .panel{
+      min-width:0;
+      background:linear-gradient(145deg,rgba(24,24,24,.97),rgba(13,13,13,.98));
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:0 8px 35px rgba(0,0,0,.14);
+    }
+    .panel-header{align-items:center;padding:19px 21px;border-bottom:1px solid var(--border)}
+    .panel-header h2{font-size:16px;margin:0}
+    .panel-body{padding:21px}
+    .upload-zone{
+      border:1px dashed #555;
+      border-radius:13px;
+      padding:36px 22px;
+      text-align:center;
+      background:#0c0c0c;
+      transition:.2s;
+    }
+    .upload-zone.dragging,.upload-zone:hover{border-color:#aaa;background:#151515}
+    .upload-icon{
+      width:48px;height:48px;display:grid;place-items:center;
+      margin:0 auto 15px;border:1px solid #444;border-radius:13px;font-size:22px;
+    }
+    .upload-zone p{max-width:540px;margin:0 auto 17px;color:var(--muted);font-size:12px;line-height:1.7}
+    .file-input{display:none}
+    .file-list{display:grid;gap:8px;margin-top:15px}
+    .file-item{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:11px 13px;border:1px solid var(--border);border-radius:10px;background:#101010;
+    }
+    .file-item-main{min-width:0}
+    .file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700}
+    .file-meta{color:var(--muted);font-size:11px;margin-top:3px}
+    .remove-file{width:28px;height:28px;border:1px solid var(--border);border-radius:8px;background:#171717;color:#aaa}
+    .progress-wrap{margin-top:17px}
+    .progress-label{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-bottom:7px}
+    .progress-track,.confidence-track{height:5px;background:#292929;border-radius:100px;overflow:hidden}
+    .progress-value,.confidence-fill{height:100%;width:0;background:#ddd;transition:width .3s}
+    .status-message{margin-top:13px;color:var(--muted);font-size:12px;line-height:1.6}
+    .side-stack{display:grid;gap:18px}
+    .info-list{display:grid;gap:12px}
+    .info-row{display:flex;align-items:start;gap:10px}
+    .info-number{width:25px;height:25px;display:grid;place-items:center;flex:0 0 auto;border:1px solid var(--border-light);border-radius:8px;font-size:11px;font-weight:900}
+    .info-row strong{display:block;font-size:12px;margin-bottom:4px}
+    .info-row span{color:var(--muted);font-size:11px;line-height:1.5}
+    .notice{border:1px solid #464646;border-radius:11px;padding:13px;background:#151515;color:var(--soft);font-size:11px;line-height:1.7}
+
+    .dashboard{margin-top:20px;display:grid;gap:18px}
+    .section-heading{align-items:end;margin-bottom:12px}
+    .section-heading h2{font-size:20px;margin:0}
+    .section-heading span{color:var(--muted);font-size:11px}
+    .metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .metric-card{padding:17px;border:1px solid var(--border);border-radius:13px;background:linear-gradient(145deg,#191919,#101010)}
+    .metric-label{color:var(--muted);font-size:11px;margin-bottom:10px}
+    .metric-value{overflow-wrap:anywhere;font-size:clamp(20px,3vw,29px);font-weight:800;letter-spacing:-.05em}
+    .metric-foot{color:var(--muted);font-size:10px;margin-top:8px}
+    .metric-card.positive .metric-value{color:var(--positive)}
+    .metric-card.negative .metric-value{color:var(--negative)}
+    .analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .signal-list,.reason-list,.action-list{display:grid;gap:10px}
+    .signal,.reason,.action{display:flex;align-items:start;gap:11px;padding:13px;border:1px solid var(--border);border-radius:11px;background:#101010}
+    .signal-dot{width:9px;height:9px;margin-top:5px;flex:0 0 auto;border-radius:50%;background:#999}
+    .signal-dot.positive{background:var(--positive)}
+    .signal-dot.negative{background:var(--negative)}
+    .signal-dot.warning{background:var(--warning)}
+    .signal strong,.reason strong,.action strong{display:block;font-size:12px;margin-bottom:4px}
+    .signal p,.reason p,.action p{margin:0;color:var(--muted);font-size:11px;line-height:1.6}
+    .investment-banner{border:1px solid var(--border-light);border-radius:14px;padding:23px;background:#141414}
+    .investment-label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.15em;font-weight:800;margin-bottom:10px}
+    .investment-verdict{font-size:clamp(26px,4vw,42px);font-weight:900;letter-spacing:-.06em;margin-bottom:12px}
+    .investment-verdict.consider{color:var(--positive)}
+    .investment-verdict.caution{color:var(--warning)}
+    .investment-verdict.avoid{color:var(--negative)}
+    .investment-explanation{color:var(--soft);font-size:13px;line-height:1.8;margin:0}
+    .confidence-bar{margin-top:18px;max-width:460px}
+    .confidence-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:7px}
+    .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:11px}
+    table{width:100%;min-width:700px;border-collapse:collapse;font-size:12px}
+    th,td{padding:13px 15px;text-align:left;border-bottom:1px solid var(--border)}
+    th{color:var(--muted);background:#151515;font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+    td{color:var(--soft)}
+    tr:last-child td{border-bottom:0}
+    .empty-state{padding:35px 20px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:12px;font-size:12px;line-height:1.7}
+    .footer{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:28px 0 10px;color:#666;font-size:10px}
+    .toast{position:fixed;right:22px;bottom:22px;max-width:calc(100vw - 44px);padding:14px 16px;background:#eee;color:#080808;border-radius:10px;box-shadow:var(--shadow);font-size:12px;font-weight:700;z-index:50}
+
+    @media(max-width:1050px){
+      .workspace-grid,.analysis-grid{grid-template-columns:1fr}
+      .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
+    @media(max-width:620px){
+      .app-shell{padding:15px}
+      .entry-card,.loading-card{padding:30px 22px}
+      .topbar,.hero{align-items:start;flex-direction:column}
+      .metric-grid{gap:9px}
+      .metric-card{padding:13px}
+      .metric-value{font-size:22px}
+      .panel-header,.panel-body{padding:16px}
     }
   </style>
 </head>
@@ -896,32 +279,16 @@
       <div class="brand-mark">F</div>
       <div class="eyebrow">Financial Clarity Engine</div>
       <h1>FORGE</h1>
-      <p class="subtitle">
-        Understand the numbers. Identify the risks. Make a more informed investment decision.
-      </p>
+      <p class="subtitle">Understand the numbers. Identify the risks. Make a more informed investment decision.</p>
 
-      <form id="entryForm" class="entry-form">
+      <form id="entryForm">
         <label for="userName">Enter your name to continue</label>
-        <input
-          id="userName"
-          name="userName"
-          type="text"
-          maxlength="80"
-          autocomplete="name"
-          placeholder="Your name"
-          required
-        />
-
+        <input id="userName" maxlength="80" autocomplete="name" placeholder="Your name" required>
         <div style="height:14px"></div>
-
-        <button class="primary-button" type="submit" style="width:100%">
-          Enter FORGE →
-        </button>
+        <button class="primary-button" style="width:100%">Enter FORGE →</button>
       </form>
 
-      <p class="muted" style="font-size:11px;margin:22px 0 0">
-        Your files are processed locally in your browser.
-      </p>
+      <p class="muted" style="font-size:11px;margin:22px 0 0">Your files are processed locally in your browser.</p>
     </div>
   </section>
 
@@ -930,14 +297,10 @@
       <div class="brand-mark">F</div>
       <div class="eyebrow">Preparing your workspace</div>
       <h2>FORGE is loading</h2>
-      <p class="subtitle">
-        Built by Sahithya &amp; Yukti
-      </p>
+      <p class="subtitle">Built by Sahithya &amp; Yukti</p>
       <div class="loader-ring"></div>
       <div class="loading-line"><span></span></div>
-      <p id="loadingText" class="muted" style="font-size:11px;margin:17px 0 0">
-        Initialising secure browser-based analysis…
-      </p>
+      <p id="loadingText" class="muted" style="font-size:11px;margin-top:17px">Initialising secure browser-based analysis…</p>
     </div>
   </section>
 
@@ -951,31 +314,18 @@
             <div class="brand-caption">Financial Clarity Engine</div>
           </div>
         </div>
-
-        <div class="user-chip">
-          Analyst: <strong id="displayUserName">—</strong>
-        </div>
+        <div class="user-chip">Analyst: <strong id="displayUserName">—</strong></div>
       </header>
 
       <section class="hero">
         <div>
           <div class="eyebrow">Private financial workspace</div>
-          <h1>From documents<br />to decisions.</h1>
-          <p>
-            Upload financial statements, annual reports, 10-K filings, spreadsheets or
-            supported documents. FORGE extracts available financial data, calculates
-            defensible ratios, identifies risks and explains why an investment may or may
-            not deserve further consideration.
-          </p>
+          <h1>From documents<br>to decisions.</h1>
+          <p>Upload financial statements, annual reports, spreadsheets or supported documents. FORGE extracts available financial data, calculates ratios, identifies risks and explains the investment signals.</p>
         </div>
-
         <div class="hero-actions">
-          <button id="exportButton" class="secondary-button" type="button">
-            Export report
-          </button>
-          <button id="resetButton" class="danger-button" type="button">
-            Clear workspace
-          </button>
+          <button id="exportButton" class="secondary-button">Export report</button>
+          <button id="resetButton" class="danger-button">Clear workspace</button>
         </div>
       </section>
 
@@ -985,1694 +335,810 @@
             <h2>Document analysis</h2>
             <span class="eyebrow">One upload area</span>
           </div>
-
           <div class="panel-body">
             <div id="uploadZone" class="upload-zone">
               <div class="upload-icon">↑</div>
               <h3>Drop your financial documents here</h3>
-              <p>
-                Upload one or multiple files. Supported formats include XLSX, XLS, CSV,
-                TXT, PDF, DOCX and common financial statement exports.
-              </p>
-
-              <button id="chooseFilesButton" class="primary-button" type="button">
-                Choose documents
-              </button>
-
-              <input
-                id="fileInput"
-                class="file-input"
-                type="file"
-                multiple
-                accept=".xlsx,.xls,.csv,.txt,.pdf,.docx,.doc,.json,.xml"
-              />
-
-              <div class="muted" style="font-size:10px;margin-top:15px">
-                Large files are processed progressively. No file is uploaded to a backend.
-              </div>
+              <p>Upload XLSX, XLS, CSV, TXT, PDF, DOCX, JSON or XML files.</p>
+              <button id="chooseFilesButton" class="primary-button" type="button">Choose documents</button>
+              <input id="fileInput" class="file-input" type="file" multiple accept=".xlsx,.xls,.csv,.txt,.pdf,.docx,.doc,.json,.xml">
+              <div class="muted" style="font-size:10px;margin-top:15px">No file is uploaded to a backend.</div>
             </div>
 
             <div id="fileList" class="file-list"></div>
 
             <div class="button-row" style="margin-top:15px">
-              <button id="analyseButton" class="primary-button" type="button" disabled>
-                Analyse documents
-              </button>
-              <button id="sampleButton" class="secondary-button" type="button">
-                Load neutral sample
-              </button>
+              <button id="analyseButton" class="primary-button" disabled>Analyse documents</button>
+              <button id="sampleButton" class="secondary-button">Load neutral sample</button>
             </div>
 
             <div id="progressWrap" class="progress-wrap hidden">
-              <div class="progress-label">
-                <span id="progressText">Processing…</span>
-                <span id="progressPercent">0%</span>
-              </div>
-              <div class="progress-track">
-                <div id="progressValue" class="progress-value"></div>
-              </div>
+              <div class="progress-label"><span id="progressText">Processing…</span><span id="progressPercent">0%</span></div>
+              <div class="progress-track"><div id="progressValue" class="progress-value"></div></div>
             </div>
 
-            <div id="statusMessage" class="status-message">
-              No documents loaded. Upload a file to begin.
-            </div>
+            <div id="statusMessage" class="status-message">No documents loaded. Upload a file to begin.</div>
           </div>
         </div>
 
         <aside class="side-stack">
           <div class="panel">
-            <div class="panel-header">
-              <h2>How FORGE works</h2>
-            </div>
+            <div class="panel-header"><h2>How FORGE works</h2></div>
             <div class="panel-body">
               <div class="info-list">
-                <div class="info-row">
-                  <div class="info-number">01</div>
-                  <div>
-                    <strong>Extract</strong>
-                    <span>Reads available tables, text and financial labels from your files.</span>
-                  </div>
-                </div>
-
-                <div class="info-row">
-                  <div class="info-number">02</div>
-                  <div>
-                    <strong>Validate</strong>
-                    <span>Uses only values that can be identified. Missing values remain unknown.</span>
-                  </div>
-                </div>
-
-                <div class="info-row">
-                  <div class="info-number">03</div>
-                  <div>
-                    <strong>Calculate</strong>
-                    <span>Computes ratios only when the required numerator and denominator exist.</span>
-                  </div>
-                </div>
-
-                <div class="info-row">
-                  <div class="info-number">04</div>
-                  <div>
-                    <strong>Explain</strong>
-                    <span>Separates positive signals, negative signals, risks and missing information.</span>
-                  </div>
-                </div>
+                <div class="info-row"><div class="info-number">01</div><div><strong>Extract</strong><span>Reads tables, text and financial labels.</span></div></div>
+                <div class="info-row"><div class="info-number">02</div><div><strong>Validate</strong><span>Uses only identifiable values.</span></div></div>
+                <div class="info-row"><div class="info-number">03</div><div><strong>Calculate</strong><span>Computes ratios only when inputs exist.</span></div></div>
+                <div class="info-row"><div class="info-number">04</div><div><strong>Explain</strong><span>Separates positive signals, risks and missing data.</span></div></div>
               </div>
             </div>
           </div>
-
-          <div class="notice">
-            <strong>Important:</strong> FORGE is decision-support software, not a guarantee of
-            investment performance. Scanned or unreadable documents may require manual review.
-            The system will not invent missing financial data.
-          </div>
+          <div class="notice"><strong>Important:</strong> FORGE is decision-support software, not a guarantee of investment performance. Scanned or unreadable documents may require manual review.</div>
         </aside>
       </section>
 
       <section id="dashboard" class="dashboard hidden">
-        <div class="section-heading">
-          <h2>Financial overview</h2>
-          <span id="analysisDate">—</span>
-        </div>
-
+        <div class="section-heading"><h2>Financial overview</h2><span id="analysisDate">—</span></div>
         <div id="metricGrid" class="metric-grid"></div>
 
         <div class="investment-banner">
           <div class="investment-label">Investment assessment</div>
           <div id="investmentVerdict" class="investment-verdict">Insufficient evidence</div>
-          <p id="investmentExplanation" class="investment-explanation">
-            Upload a financial document to generate an assessment.
-          </p>
-
+          <p id="investmentExplanation" class="investment-explanation">Upload a financial document to generate an assessment.</p>
           <div class="confidence-bar">
-            <div class="confidence-label">
-              <span>Analysis confidence</span>
-              <span id="confidenceText">0%</span>
-            </div>
-            <div class="confidence-track">
-              <div id="confidenceFill" class="confidence-fill"></div>
-            </div>
+            <div class="confidence-label"><span>Analysis confidence</span><span id="confidenceText">0%</span></div>
+            <div class="confidence-track"><div id="confidenceFill" class="confidence-fill"></div></div>
           </div>
         </div>
 
         <div class="analysis-grid">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Reasons to consider investing</h2>
-            </div>
-            <div id="positiveReasons" class="panel-body">
-              <div class="empty-state">No positive signals identified yet.</div>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Reasons for caution</h2>
-            </div>
-            <div id="negativeReasons" class="panel-body">
-              <div class="empty-state">No caution signals identified yet.</div>
-            </div>
-          </div>
+          <div class="panel"><div class="panel-header"><h2>Reasons to consider investing</h2></div><div id="positiveReasons" class="panel-body"></div></div>
+          <div class="panel"><div class="panel-header"><h2>Reasons for caution</h2></div><div id="negativeReasons" class="panel-body"></div></div>
         </div>
 
         <div class="analysis-grid">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Risk signals</h2>
-            </div>
-            <div id="riskSignals" class="panel-body">
-              <div class="empty-state">No risk signals identified yet.</div>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Recommended next steps</h2>
-            </div>
-            <div id="actionPlan" class="panel-body">
-              <div class="empty-state">No actions identified yet.</div>
-            </div>
-          </div>
+          <div class="panel"><div class="panel-header"><h2>Risk signals</h2></div><div id="riskSignals" class="panel-body"></div></div>
+          <div class="panel"><div class="panel-header"><h2>Recommended next steps</h2></div><div id="actionPlan" class="panel-body"></div></div>
         </div>
 
         <div class="panel">
-          <div class="panel-header">
-            <h2>Extracted financial values</h2>
-            <span id="rowCount" class="muted">0 values</span>
-          </div>
-          <div class="panel-body">
-            <div id="financialTable" class="table-wrap">
-              <div class="empty-state">No financial values available.</div>
-            </div>
-          </div>
+          <div class="panel-header"><h2>Extracted financial values</h2><span id="rowCount" class="muted">0 values</span></div>
+          <div class="panel-body"><div id="financialTable" class="table-wrap"></div></div>
         </div>
 
         <div class="panel">
-          <div class="panel-header">
-            <h2>Missing information</h2>
-          </div>
-          <div id="missingInformation" class="panel-body">
-            <div class="empty-state">No missing information recorded.</div>
-          </div>
+          <div class="panel-header"><h2>Missing information</h2></div>
+          <div id="missingInformation" class="panel-body"></div>
         </div>
       </section>
 
-      <footer class="footer">
-        <span>FORGE — browser-based financial analysis</span>
-        <span>Built by Sahithya &amp; Yukti</span>
-      </footer>
+      <footer class="footer"><span>FORGE — browser-based financial analysis</span><span>Built by Sahithya &amp; Yukti</span></footer>
     </div>
   </main>
 
-  <div id="toast" class="toast hidden" role="status"></div>
+  <div id="toast" class="toast hidden"></div>
 
   <script type="module">
+    const $ = id => document.getElementById(id);
+
     const state = {
-      userName: "",
-      files: [],
-      rows: [],
-      metrics: {},
-      missing: [],
-      risks: [],
-      positives: [],
-      negatives: [],
-      actions: [],
-      verdict: "Insufficient evidence",
-      explanation: "",
-      confidence: 0,
-      sourceCount: 0,
-      analysed: false
+      userName:"",
+      files:[],
+      rows:[],
+      metrics:{},
+      missing:[],
+      risks:[],
+      positives:[],
+      negatives:[],
+      actions:[],
+      verdict:"Insufficient evidence",
+      explanation:"",
+      confidence:0,
+      analysed:false
     };
 
-    const $ = (id) => document.getElementById(id);
-
-    const entryScreen = $("entryScreen");
-    const loadingScreen = $("loadingScreen");
-    const appScreen = $("appScreen");
-    const entryForm = $("entryForm");
-    const userNameInput = $("userName");
-    const displayUserName = $("displayUserName");
-    const fileInput = $("fileInput");
-    const uploadZone = $("uploadZone");
-    const fileList = $("fileList");
-    const analyseButton = $("analyseButton");
-    const sampleButton = $("sampleButton");
-    const statusMessage = $("statusMessage");
-    const dashboard = $("dashboard");
-    const progressWrap = $("progressWrap");
-    const progressValue = $("progressValue");
-    const progressText = $("progressText");
-    const progressPercent = $("progressPercent");
-    const toast = $("toast");
-
     let pdfLibrary = null;
+    let pdfPromise = null;
 
-    async function loadPdfLibrary() {
-      if (pdfLibrary) return pdfLibrary;
+    const sourceKeys = [
+      "revenue","cogs","grossProfit","operatingExpenses","operatingProfit",
+      "netIncome","interestExpense","tax","cash","currentAssets",
+      "currentLiabilities","inventory","receivables","totalAssets",
+      "totalDebt","equity","operatingCashFlow","capex","depreciation","dividends"
+    ];
 
-      try {
-        pdfLibrary = await import(
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs"
-        );
-
-        pdfLibrary.GlobalWorkerOptions.workerSrc =
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
-
-        return pdfLibrary;
-      } catch {
-        return null;
-      }
+    function clean(value){
+      return String(value ?? "").replace(/\s+/g," ").trim();
     }
 
-    entryForm.addEventListener("submit", (event) => {
+    function normalise(value){
+      return clean(value).toLowerCase()
+        .replace(/&/g," and ")
+        .replace(/[’']/g,"")
+        .replace(/[^a-z0-9₹$€£%().,\-+ ]/g," ")
+        .replace(/\s+/g," ").trim();
+    }
+
+    function escapeHTML(value){
+      return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function extension(name){
+      const i = String(name).lastIndexOf(".");
+      return i >= 0 ? String(name).slice(i).toLowerCase() : "";
+    }
+
+    function bytes(value){
+      if(!value) return "sample data";
+      const units=["B","KB","MB","GB"];
+      const i=Math.min(Math.floor(Math.log(value)/Math.log(1024)),3);
+      return `${(value/Math.pow(1024,i)).toFixed(i?1:0)} ${units[i]}`;
+    }
+
+    function status(message){$("statusMessage").textContent=message}
+
+    function toast(message){
+      $("toast").textContent=message;
+      $("toast").classList.remove("hidden");
+      clearTimeout(toast.timer);
+      toast.timer=setTimeout(()=>$("toast").classList.add("hidden"),3500);
+    }
+
+    $("entryForm").addEventListener("submit",event=>{
       event.preventDefault();
+      const name=$("userName").value.trim();
+      if(!name)return;
+      state.userName=name;
+      $("displayUserName").textContent=name;
+      $("entryScreen").classList.add("hidden");
+      $("loadingScreen").classList.remove("hidden");
 
-      const name = userNameInput.value.trim();
-
-      if (!name) {
-        userNameInput.focus();
-        return;
-      }
-
-      state.userName = name;
-      displayUserName.textContent = name;
-
-      entryScreen.classList.add("hidden");
-      loadingScreen.classList.remove("hidden");
-
-      const messages = [
+      const messages=[
         "Initialising browser-based analysis…",
         "Preparing document extraction…",
         "Checking local processing libraries…",
         "Preparing your private workspace…"
       ];
 
-      let index = 0;
-      $("loadingText").textContent = messages[index];
-
-      const interval = setInterval(() => {
-        index += 1;
-
-        if (index >= messages.length) {
-          clearInterval(interval);
-          loadingScreen.classList.add("hidden");
-          appScreen.classList.remove("hidden");
-          return;
-        }
-
-        $("loadingText").textContent = messages[index];
-      }, 450);
+      let i=0;
+      $("loadingText").textContent=messages[0];
+      const timer=setInterval(()=>{
+        i++;
+        if(i>=messages.length){
+          clearInterval(timer);
+          $("loadingScreen").classList.add("hidden");
+          $("appScreen").classList.remove("hidden");
+        }else $("loadingText").textContent=messages[i];
+      },450);
     });
 
-    $("chooseFilesButton").addEventListener("click", () => fileInput.click());
+    $("chooseFilesButton").addEventListener("click",()=>$("fileInput").click());
 
-    fileInput.addEventListener("change", () => {
-      addFiles([...fileInput.files]);
-      fileInput.value = "";
+    $("fileInput").addEventListener("change",()=>{
+      addFiles([...$("fileInput").files]);
+      $("fileInput").value="";
     });
 
-    ["dragenter", "dragover"].forEach((eventName) => {
-      uploadZone.addEventListener(eventName, (event) => {
-        event.preventDefault();
-        uploadZone.classList.add("dragging");
-      });
-    });
+    ["dragenter","dragover"].forEach(type=>$("uploadZone").addEventListener(type,event=>{
+      event.preventDefault();
+      $("uploadZone").classList.add("dragging");
+    }));
 
-    ["dragleave", "drop"].forEach((eventName) => {
-      uploadZone.addEventListener(eventName, (event) => {
-        event.preventDefault();
-        uploadZone.classList.remove("dragging");
-      });
-    });
+    ["dragleave","drop"].forEach(type=>$("uploadZone").addEventListener(type,event=>{
+      event.preventDefault();
+      $("uploadZone").classList.remove("dragging");
+    }));
 
-    uploadZone.addEventListener("drop", (event) => {
-      addFiles([...event.dataTransfer.files]);
-    });
+    $("uploadZone").addEventListener("drop",event=>addFiles([...event.dataTransfer.files]));
+    $("analyseButton").addEventListener("click",analyse);
+    $("sampleButton").addEventListener("click",sample);
+    $("resetButton").addEventListener("click",reset);
+    $("exportButton").addEventListener("click",exportReport);
 
-    analyseButton.addEventListener("click", analyseDocuments);
-    sampleButton.addEventListener("click", loadSample);
-    $("resetButton").addEventListener("click", resetWorkspace);
-    $("exportButton").addEventListener("click", exportReport);
+    function addFiles(files){
+      const allowed=[".xlsx",".xls",".csv",".txt",".pdf",".docx",".doc",".json",".xml"];
+      let rejected=0;
 
-    function addFiles(files) {
-      const allowed = [
-        ".xlsx",
-        ".xls",
-        ".csv",
-        ".txt",
-        ".pdf",
-        ".docx",
-        ".doc",
-        ".json",
-        ".xml"
-      ];
-
-      const accepted = files.filter((file) => {
-        const extension = getExtension(file.name);
-        return allowed.includes(extension);
-      });
-
-      const rejected = files.length - accepted.length;
-
-      for (const file of accepted) {
-        const exists = state.files.some(
-          (existing) =>
-            existing.name === file.name &&
-            existing.size === file.size &&
-            existing.lastModified === file.lastModified
-        );
-
-        if (!exists) {
+      files.forEach(file=>{
+        if(!allowed.includes(extension(file.name))){rejected++;return}
+        if(!state.files.some(old=>old.name===file.name&&old.size===file.size)){
           state.files.push(file);
         }
-      }
+      });
 
-      if (rejected > 0) {
-        showToast(`${rejected} unsupported file(s) were skipped.`);
-      }
-
-      renderFileList();
-      analyseButton.disabled = state.files.length === 0;
-      setStatus(
-        state.files.length
-          ? `${state.files.length} document(s) ready for analysis.`
-          : "No supported documents loaded."
-      );
+      if(rejected)toast(`${rejected} unsupported file(s) skipped.`);
+      renderFiles();
+      $("analyseButton").disabled=!state.files.length;
+      status(state.files.length?`${state.files.length} document(s) ready for analysis.`:"No supported documents loaded.");
     }
 
-    function renderFileList() {
-      if (!state.files.length) {
-        fileList.innerHTML = "";
+    function renderFiles(){
+      $("fileList").innerHTML=state.files.map((file,i)=>`
+        <div class="file-item">
+          <div class="file-item-main">
+            <div class="file-name">${escapeHTML(file.name)}</div>
+            <div class="file-meta">${bytes(file.size)} · ${extension(file.name).replace(".","").toUpperCase()}</div>
+          </div>
+          <button class="remove-file" data-index="${i}" type="button">×</button>
+        </div>
+      `).join("");
+
+      document.querySelectorAll(".remove-file").forEach(button=>{
+        button.addEventListener("click",()=>{
+          state.files.splice(Number(button.dataset.index),1);
+          renderFiles();
+          $("analyseButton").disabled=!state.files.length;
+        });
+      });
+    }
+
+    function progress(percent,message){
+      $("progressValue").style.width=`${percent}%`;
+      $("progressPercent").textContent=`${percent}%`;
+      $("progressText").textContent=message;
+    }
+
+    async function loadPDF(){
+      if(pdfLibrary)return pdfLibrary;
+      if(pdfPromise)return pdfPromise;
+
+      pdfPromise=import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs")
+        .then(pdf=>{
+          pdf.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+          pdfLibrary=pdf;
+          return pdf;
+        })
+        .catch(()=>null);
+
+      return pdfPromise;
+    }
+
+    async function parseFile(file){
+      const ext=extension(file.name);
+
+      if(ext===".xlsx"||ext===".xls")return parseSpreadsheet(file);
+      if(ext===".csv")return parseCSV(file);
+      if(ext===".pdf")return parsePDF(file);
+      if(ext===".docx")return parseDOCX(file);
+      return parseText(await file.text(),file.name);
+    }
+
+    async function parseSpreadsheet(file){
+      const workbook=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true,raw:false});
+      const output=[];
+
+      workbook.SheetNames.forEach(sheetName=>{
+        const rows=XLSX.utils.sheet_to_json(workbook.Sheets[sheetName],{header:1,raw:false,defval:""});
+        rows.forEach((row,index)=>{
+          const cells=row.map(clean).filter(Boolean);
+          if(cells.length){
+            const text=cells.join(" | ");
+            output.push({label:text,value:text,source:`${file.name} · ${sheetName}`,location:`row ${index+1}`});
+          }
+        });
+      });
+
+      return output;
+    }
+
+    async function parseCSV(file){
+      const rows=parseCSVText(await file.text());
+      return rows.map((row,index)=>{
+        const text=row.map(clean).filter(Boolean).join(" | ");
+        return text?{label:text,value:text,source:file.name,location:`row ${index+1}`}:null;
+      }).filter(Boolean);
+    }
+
+    async function parseText(text,name){
+      return text.split(/\r?\n/)
+        .map((line,index)=>clean(line)?{label:clean(line),value:clean(line),source:name,location:`line ${index+1}`}:null)
+        .filter(Boolean);
+    }
+
+    async function parsePDF(file){
+      const pdf=await loadPDF();
+      if(!pdf)throw new Error("PDF parser unavailable");
+
+      const document=await pdf.getDocument({data:await file.arrayBuffer()}).promise;
+      const output=[];
+
+      for(let pageNo=1;pageNo<=document.numPages;pageNo++){
+        const page=await document.getPage(pageNo);
+        const content=await page.getTextContent();
+        const text=content.items.map(item=>item.str||"").join(" ").replace(/\s+/g," ").trim();
+
+        if(text)output.push({label:text,value:text,source:file.name,location:`page ${pageNo}`});
+        progress(Math.min(80,20+Math.round(pageNo/document.numPages*50)),`Reading PDF page ${pageNo} of ${document.numPages}…`);
+      }
+
+      if(!output.length)throw new Error("No selectable text found in PDF");
+      return output;
+    }
+
+    async function parseDOCX(file){
+      if(!window.mammoth)throw new Error("DOCX parser unavailable");
+      const result=await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});
+      return parseText(result.value||"",file.name);
+    }
+
+    async function analyse(){
+      if(!state.files.length)return;
+
+      $("analyseButton").disabled=true;
+      $("sampleButton").disabled=true;
+      $("progressWrap").classList.remove("hidden");
+      $("dashboard").classList.add("hidden");
+
+      state.rows=[];
+      state.metrics={};
+      state.missing=[];
+      state.risks=[];
+      state.positives=[];
+      state.negatives=[];
+      state.actions=[];
+      state.analysed=false;
+
+      const warnings=[];
+
+      for(let i=0;i<state.files.length;i++){
+        const file=state.files[i];
+        progress(Math.round(i/state.files.length*75),`Reading ${file.name}…`);
+
+        try{
+          state.rows.push(...await parseFile(file));
+        }catch(error){
+          warnings.push(`${file.name}: ${error.message}`);
+        }
+      }
+
+      if(!state.rows.length){
+        status("No readable financial content was found.");
+        toast("No readable documents found.");
+        $("analyseButton").disabled=false;
+        $("sampleButton").disabled=false;
         return;
       }
 
-      fileList.innerHTML = state.files
-        .map(
-          (file, index) => `
-            <div class="file-item">
-              <div class="file-item-main">
-                <div class="file-name">${escapeHTML(file.name)}</div>
-                <div class="file-meta">${formatBytes(file.size)} · ${getExtension(file.name).toUpperCase().replace(".", "")}</div>
-              </div>
-              <button class="remove-file" type="button" data-index="${index}" aria-label="Remove file">×</button>
-            </div>
-          `
-        )
-        .join("");
+      progress(82,"Normalising financial labels…");
+      state.rows=state.rows.map(row=>({
+        label:clean(row.label),
+        value:clean(row.value),
+        source:row.source||"Unknown source",
+        location:row.location||"Unknown location"
+      })).filter(row=>row.label||row.value);
 
-      fileList.querySelectorAll(".remove-file").forEach((button) => {
-        button.addEventListener("click", () => {
-          state.files.splice(Number(button.dataset.index), 1);
-          renderFileList();
-          analyseButton.disabled = state.files.length === 0;
-          setStatus(
-            state.files.length
-              ? `${state.files.length} document(s) ready for analysis.`
-              : "No documents loaded."
-          );
-        });
-      });
+      progress(88,"Calculating financial metrics…");
+      state.metrics=calculateMetrics(state.rows);
+
+      progress(94,"Evaluating investment signals…");
+      evaluate();
+
+      progress(100,"Analysis complete.");
+      render();
+      state.analysed=true;
+
+      status(warnings.length
+        ? `Analysis completed with ${warnings.length} skipped file(s). ${state.rows.length} readable values processed.`
+        : `Analysis completed using ${state.rows.length} extracted rows from ${state.files.length} document(s).`);
+
+      toast("Analysis completed.");
+      $("analyseButton").disabled=false;
+      $("sampleButton").disabled=false;
     }
 
-    async function analyseDocuments() {
-      if (!state.files.length) return;
+    const definitions={
+      revenue:["total operating revenue","operating revenue","total revenue","net sales","total sales","revenue","sales","turnover"],
+      cogs:["cost of goods sold","cost of sales","cost of revenue","direct costs","cogs"],
+      grossProfit:["gross profit"],
+      operatingExpenses:["selling general and administrative expenses","operating expenses","operating costs","administrative expenses","selling expenses","sg&a","sga"],
+      operatingProfit:["operating profit","operating income","profit from operations","ebit"],
+      netIncome:["profit attributable","profit after tax","profit for the year","net income","net profit"],
+      interestExpense:["interest expense","finance costs","finance cost","interest paid"],
+      tax:["income tax","tax expense","taxation"],
+      cash:["cash and cash equivalents","cash equivalents","cash balance","cash at bank","cash"],
+      currentAssets:["total current assets","current assets"],
+      currentLiabilities:["total current liabilities","current liabilities"],
+      inventory:["inventories","inventory","stock"],
+      receivables:["trade receivables","accounts receivable","receivables","debtors"],
+      totalAssets:["total assets"],
+      totalDebt:["total borrowings","total debt","borrowings","debt"],
+      equity:["shareholders equity","total equity","owners equity","net worth","equity"],
+      operatingCashFlow:["cash flow from operating activities","net cash from operating activities","operating cash flow"],
+      capex:["capital expenditures","capital expenditure","purchase of property plant and equipment","purchase of ppe","additions to property plant equipment"],
+      depreciation:["depreciation expense","depreciation"],
+      dividends:["dividends paid","dividend"]
+    };
 
-      analyseButton.disabled = true;
-      sampleButton.disabled = true;
-      progressWrap.classList.remove("hidden");
-      dashboard.classList.add("hidden");
+    function calculateMetrics(rows){
+      const metrics={};
 
-      state.rows = [];
-      state.metrics = {};
-      state.missing = [];
-      state.risks = [];
-      state.positives = [];
-      state.negatives = [];
-      state.actions = [];
-      state.analysed = false;
-
-      try {
-        for (let index = 0; index < state.files.length; index += 1) {
-          const file = state.files[index];
-
-          updateProgress(
-            Math.round((index / state.files.length) * 75),
-            `Reading ${file.name}…`
-          );
-
-          const extracted = await parseFile(file);
-          state.rows.push(...extracted);
-        }
-
-        updateProgress(82, "Normalising financial labels…");
-        state.rows = normaliseRows(state.rows);
-
-        updateProgress(88, "Calculating financial metrics…");
-        state.metrics = calculateMetrics(state.rows);
-
-        updateProgress(94, "Evaluating investment signals…");
-        evaluateInvestment();
-
-        updateProgress(100, "Analysis complete.");
-        renderDashboard();
-
-        state.analysed = true;
-        setStatus(
-          `Analysis completed using ${state.rows.length} extracted financial values from ${state.files.length} document(s).`
-        );
-        showToast("Analysis completed.");
-      } catch (error) {
-        console.error(error);
-        setStatus(
-          "The document could not be fully analysed. Try an exported text, CSV, XLSX or searchable PDF version."
-        );
-        showToast("Analysis failed for one or more documents.");
-      } finally {
-        analyseButton.disabled = state.files.length === 0;
-        sampleButton.disabled = false;
-      }
-    }
-
-    async function parseFile(file) {
-      const extension = getExtension(file.name);
-
-      if (extension === ".xlsx" || extension === ".xls") {
-        return parseSpreadsheet(file);
-      }
-
-      if (extension === ".csv") {
-        return parseCsv(file);
-      }
-
-      if (extension === ".txt" || extension === ".json" || extension === ".xml") {
-        return parseText(await file.text(), file.name);
-      }
-
-      if (extension === ".pdf") {
-        return parsePdf(file);
-      }
-
-      if (extension === ".docx") {
-        return parseDocx(file);
-      }
-
-      if (extension === ".doc") {
-        return parseText(await file.text(), file.name);
-      }
-
-      return [];
-    }
-
-    async function parseSpreadsheet(file) {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, {
-        type: "array",
-        cellDates: true,
-        cellNF: true,
-        cellText: true
+      Object.entries(definitions).forEach(([key,labels])=>{
+        const match=findMetric(rows,labels);
+        if(match)metrics[key]=match;
       });
 
-      const output = [];
-
-      for (const sheetName of workbook.SheetNames) {
-        const sheet = workbook.Sheets[sheetName];
-
-        const rows = XLSX.utils.sheet_to_json(sheet, {
-          header: 1,
-          raw: false,
-          defval: ""
-        });
-
-        for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
-          const row = rows[rowIndex];
-
-          if (!Array.isArray(row)) continue;
-
-          for (let columnIndex = 0; columnIndex < row.length; columnIndex += 1) {
-            const value = String(row[columnIndex] ?? "").trim();
-
-            if (!value) continue;
-
-            const context = row
-              .slice(Math.max(0, columnIndex - 2), columnIndex + 3)
-              .filter(Boolean)
-              .join(" ");
-
-            output.push({
-              label: context,
-              value,
-              source: `${file.name} · ${sheetName}`,
-              location: `row ${rowIndex + 1}, column ${columnIndex + 1}`
-            });
-          }
-        }
+      if(!metrics.grossProfit&&metrics.revenue&&metrics.cogs){
+        metrics.grossProfit={value:metrics.revenue.value-metrics.cogs.value,derived:true,label:"Revenue minus cost of sales"};
       }
 
-      return output;
-    }
-
-    async function parseCsv(file) {
-      const text = await file.text();
-      const rows = parseCsvText(text);
-      const output = [];
-
-      rows.forEach((row, rowIndex) => {
-        row.forEach((value, columnIndex) => {
-          if (!String(value).trim()) return;
-
-          output.push({
-            label: row.join(" "),
-            value: String(value),
-            source: file.name,
-            location: `row ${rowIndex + 1}, column ${columnIndex + 1}`
-          });
-        });
-      });
-
-      return output;
-    }
-
-    async function parseText(text, fileName) {
-      const output = [];
-      const lines = text.split(/\r?\n/);
-
-      for (let index = 0; index < lines.length; index += 1) {
-        const line = lines[index].trim();
-
-        if (!line) continue;
-
-        output.push({
-          label: line,
-          value: line,
-          source: fileName,
-          location: `line ${index + 1}`
-        });
+      if(!metrics.operatingProfit&&metrics.grossProfit&&metrics.operatingExpenses){
+        metrics.operatingProfit={value:metrics.grossProfit.value-metrics.operatingExpenses.value,derived:true,label:"Gross profit minus operating expenses"};
       }
 
-      return output;
-    }
-
-    async function parsePdf(file) {
-      const pdf = await loadPdfLibrary();
-
-      if (!pdf) {
-        return [
-          {
-            label: "PDF extraction unavailable",
-            value: "PDF.js could not be loaded",
-            source: file.name,
-            location: "document"
-          }
-        ];
+      if(!metrics.operatingCashFlow&&metrics.netIncome&&metrics.depreciation){
+        metrics.operatingCashFlow={value:metrics.netIncome.value+metrics.depreciation.value,derived:true,label:"Net income plus depreciation"};
       }
 
-      const buffer = await file.arrayBuffer();
-      const document = await pdf.getDocument({ data: buffer }).promise;
-      const output = [];
+      const r=(a,b,label)=>Number.isFinite(a)&&Number.isFinite(b)&&b!==0
+        ?{value:a/b,derived:true,label}:undefined;
 
-      for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
-        const page = await document.getPage(pageNumber);
-        const content = await page.getTextContent();
+      metrics.grossMargin=r(metrics.grossProfit?.value,metrics.revenue?.value,"Gross profit divided by revenue");
+      metrics.operatingMargin=r(metrics.operatingProfit?.value,metrics.revenue?.value,"Operating profit divided by revenue");
+      metrics.netMargin=r(metrics.netIncome?.value,metrics.revenue?.value,"Net income divided by revenue");
+      metrics.currentRatio=r(metrics.currentAssets?.value,metrics.currentLiabilities?.value,"Current assets divided by current liabilities");
+      metrics.quickRatio=r(metrics.currentAssets&&metrics.inventory?metrics.currentAssets.value-metrics.inventory.value:undefined,metrics.currentLiabilities?.value,"Quick assets divided by current liabilities");
+      metrics.debtToEquity=r(metrics.totalDebt?.value,metrics.equity?.value,"Total debt divided by equity");
+      metrics.interestCoverage=r(metrics.operatingProfit?.value,metrics.interestExpense?.value,"Operating profit divided by interest expense");
+      metrics.roa=r(metrics.netIncome?.value,metrics.totalAssets?.value,"Net income divided by total assets");
+      metrics.roe=r(metrics.netIncome?.value,metrics.equity?.value,"Net income divided by equity");
 
-        const text = content.items
-          .map((item) => item.str || "")
-          .join(" ")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        if (text) {
-          output.push({
-            label: text,
-            value: text,
-            source: file.name,
-            location: `page ${pageNumber}`
-          });
-        }
-
-        updateProgress(
-          Math.min(80, 20 + Math.round((pageNumber / document.numPages) * 50)),
-          `Reading PDF page ${pageNumber} of ${document.numPages}…`
-        );
+      if(metrics.operatingCashFlow&&metrics.capex){
+        metrics.freeCashFlow={value:metrics.operatingCashFlow.value-Math.abs(metrics.capex.value),derived:true,label:"Operating cash flow minus capital expenditure"};
       }
 
-      if (!output.length) {
-        output.push({
-          label: "Unreadable or scanned PDF",
-          value: "No selectable text was found",
-          source: file.name,
-          location: "document"
-        });
+      if(metrics.currentAssets&&metrics.currentLiabilities){
+        metrics.workingCapital={value:metrics.currentAssets.value-metrics.currentLiabilities.value,derived:true,label:"Current assets minus current liabilities"};
       }
-
-      return output;
-    }
-
-    async function parseDocx(file) {
-      if (!window.mammoth) {
-        return [
-          {
-            label: "DOCX extraction unavailable",
-            value: "Document parser could not be loaded",
-            source: file.name,
-            location: "document"
-          }
-        ];
-      }
-
-      const buffer = await file.arrayBuffer();
-      const result = await window.mammoth.extractRawText({ arrayBuffer: buffer });
-
-      return parseText(result.value || "", file.name);
-    }
-
-    function normaliseRows(rows) {
-      return rows
-        .map((row) => ({
-          label: cleanText(row.label),
-          value: cleanText(row.value),
-          source: row.source || "Unknown source",
-          location: row.location || "Unknown location"
-        }))
-        .filter((row) => row.label || row.value);
-    }
-
-    function calculateMetrics(rows) {
-      const metrics = {};
-      const definitions = {
-        revenue: [
-          "revenue",
-          "total revenue",
-          "sales",
-          "net sales",
-          "turnover",
-          "total sales",
-          "operating revenue"
-        ],
-        cogs: [
-          "cost of goods sold",
-          "cost of sales",
-          "cogs",
-          "cost of revenue",
-          "direct costs"
-        ],
-        grossProfit: ["gross profit"],
-        operatingProfit: [
-          "operating profit",
-          "operating income",
-          "ebit",
-          "profit from operations"
-        ],
-        netIncome: [
-          "net income",
-          "net profit",
-          "profit after tax",
-          "profit for the year",
-          "profit attributable"
-        ],
-        interestExpense: [
-          "interest expense",
-          "finance costs",
-          "finance cost",
-          "interest paid"
-        ],
-        tax: ["income tax", "tax expense", "taxation"],
-        cash: [
-          "cash and cash equivalents",
-          "cash equivalents",
-          "cash balance",
-          "cash at bank",
-          "cash"
-        ],
-        currentAssets: ["current assets", "total current assets"],
-        currentLiabilities: [
-          "current liabilities",
-          "total current liabilities"
-        ],
-        inventory: ["inventory", "inventories", "stock"],
-        receivables: [
-          "accounts receivable",
-          "trade receivables",
-          "receivables",
-          "debtors"
-        ],
-        totalAssets: ["total assets"],
-        totalDebt: [
-          "total debt",
-          "borrowings",
-          "total borrowings",
-          "debt"
-        ],
-        equity: [
-          "total equity",
-          "shareholders equity",
-          "shareholders' equity",
-          "owners equity",
-          "net worth"
-        ],
-        operatingCashFlow: [
-          "cash flow from operating activities",
-          "net cash from operating activities",
-          "operating cash flow"
-        ],
-        capex: [
-          "capital expenditure",
-          "capital expenditures",
-          "purchase of property plant and equipment",
-          "purchase of ppe",
-          "additions to property plant equipment"
-        ],
-        depreciation: ["depreciation", "depreciation expense"],
-        dividends: ["dividends paid", "dividend"]
-      };
-
-      for (const [key, labels] of Object.entries(definitions)) {
-        const match = findBestMetric(rows, labels);
-
-        if (match) {
-          metrics[key] = {
-            value: match.number,
-            raw: match.raw,
-            label: match.label,
-            source: match.source,
-            location: match.location
-          };
-        }
-      }
-
-      if (!metrics.grossProfit && metrics.revenue && metrics.cogs) {
-        metrics.grossProfit = {
-          value: metrics.revenue.value - metrics.cogs.value,
-          derived: true,
-          label: "Revenue minus cost of sales"
-        };
-      }
-
-      if (
-        !metrics.operatingProfit &&
-        metrics.grossProfit &&
-        metrics.operatingExpenses
-      ) {
-        metrics.operatingProfit = {
-          value:
-            metrics.grossProfit.value - metrics.operatingExpenses.value,
-          derived: true,
-          label: "Gross profit minus operating expenses"
-        };
-      }
-
-      if (
-        !metrics.operatingCashFlow &&
-        metrics.netIncome &&
-        metrics.depreciation
-      ) {
-        metrics.operatingCashFlow = {
-          value: metrics.netIncome.value + metrics.depreciation.value,
-          derived: true,
-          label: "Net income plus depreciation"
-        };
-      }
-
-      metrics.grossMargin = ratio(
-        metrics.grossProfit?.value,
-        metrics.revenue?.value
-      );
-
-      metrics.operatingMargin = ratio(
-        metrics.operatingProfit?.value,
-        metrics.revenue?.value
-      );
-
-      metrics.netMargin = ratio(
-        metrics.netIncome?.value,
-        metrics.revenue?.value
-      );
-
-      metrics.currentRatio = ratio(
-        metrics.currentAssets?.value,
-        metrics.currentLiabilities?.value
-      );
-
-      metrics.quickRatio = ratio(
-        metrics.currentAssets && metrics.inventory
-          ? metrics.currentAssets.value - metrics.inventory.value
-          : undefined,
-        metrics.currentLiabilities?.value
-      );
-
-      metrics.debtToEquity = ratio(
-        metrics.totalDebt?.value,
-        metrics.equity?.value
-      );
-
-      metrics.interestCoverage = ratio(
-        metrics.operatingProfit?.value,
-        metrics.interestExpense?.value
-      );
-
-      metrics.operatingCashFlowRatio = ratio(
-        metrics.operatingCashFlow?.value,
-        metrics.currentLiabilities?.value
-      );
-
-      if (metrics.operatingCashFlow && metrics.capex) {
-        metrics.freeCashFlow = {
-          value:
-            metrics.operatingCashFlow.value - Math.abs(metrics.capex.value),
-          derived: true,
-          label: "Operating cash flow minus capital expenditure"
-        };
-      }
-
-      metrics.workingCapital =
-        metrics.currentAssets && metrics.currentLiabilities
-          ? {
-              value:
-                metrics.currentAssets.value -
-                metrics.currentLiabilities.value,
-              derived: true,
-              label: "Current assets minus current liabilities"
-            }
-          : undefined;
-
-      metrics.roa = ratio(
-        metrics.netIncome?.value,
-        metrics.totalAssets?.value
-      );
-
-      metrics.roe = ratio(
-        metrics.netIncome?.value,
-        metrics.equity?.value
-      );
 
       return metrics;
     }
 
-    function evaluateInvestment() {
-      const m = state.metrics;
-      const positives = [];
-      const negatives = [];
-      const risks = [];
-      const actions = [];
-      const missing = [];
+    function findMetric(rows,labels){
+      const ordered=[...labels].sort((a,b)=>normalise(b).length-normalise(a).length);
+      let best=null;
 
-      if (m.revenue && m.revenue.value > 0) {
-        positives.push({
-          title: "Revenue base identified",
-          text: `Reported revenue of ${formatCurrency(m.revenue.value)} provides a starting point for evaluating business scale.`
-        });
-      } else {
-        missing.push("Revenue or sales");
-      }
+      rows.forEach(row=>{
+        const text=normalise(`${row.label} ${row.value}`);
+        if(text.includes("pdf extraction unavailable")||text.includes("unreadable or scanned"))return;
 
-      if (m.grossMargin?.value !== undefined) {
-        if (m.grossMargin.value >= .4) {
-          positives.push({
-            title: "Healthy gross margin",
-            text: `Gross margin is approximately ${formatPercent(m.grossMargin.value)}, indicating meaningful value retained after direct costs.`
-          });
-        } else if (m.grossMargin.value < .2) {
-          negatives.push({
-            title: "Low gross margin",
-            text: `Gross margin is approximately ${formatPercent(m.grossMargin.value)}, leaving limited room for operating expenses and shocks.`
-          });
-          risks.push({
-            title: "Margin pressure",
-            text: "The company may be vulnerable to input-cost increases or pricing pressure."
-          });
-        }
-      } else {
-        missing.push("Gross profit or cost of sales");
-      }
+        ordered.forEach(label=>{
+          const wanted=normalise(label);
+          const pattern=new RegExp(`(^|[^a-z])${wanted.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}([^a-z]|$)`);
 
-      if (m.operatingMargin?.value !== undefined) {
-        if (m.operatingMargin.value > .1) {
-          positives.push({
-            title: "Positive operating profitability",
-            text: `Operating margin is approximately ${formatPercent(m.operatingMargin.value)}.`
-          });
-        } else if (m.operatingMargin.value < 0) {
-          negatives.push({
-            title: "Operating loss",
-            text: "The business is not generating positive operating profit from the available figures."
-          });
-          risks.push({
-            title: "Core operations are loss-making",
-            text: "A turnaround plan or additional funding may be required."
-          });
-        }
-      } else {
-        missing.push("Operating profit or EBIT");
-      }
+          if(!pattern.test(text))return;
 
-      if (m.netMargin?.value !== undefined) {
-        if (m.netMargin.value > 0) {
-          positives.push({
-            title: "Positive net income",
-            text: `Net margin is approximately ${formatPercent(m.netMargin.value)}.`
-          });
-        } else {
-          negatives.push({
-            title: "Negative net income",
-            text: "The company reports a net loss based on the extracted values."
-          });
-        }
-      } else {
-        missing.push("Net income or profit after tax");
-      }
+          const index=text.indexOf(wanted);
+          const after=text.slice(index+wanted.length);
+          const candidates=after.match(/(?:₹|\$|€|£|rs\.?|inr|usd)?\s*\(?-?\d[\d,]*(?:\.\d+)?\)?\s*(?:billion|million|bn|mn|crore|cr|lakhs?|lakh|%)?/gi)||[];
+          const number=candidates.map(parseFinancialNumber).find(Number.isFinite);
 
-      if (m.currentRatio?.value !== undefined) {
-        if (m.currentRatio.value >= 1.5) {
-          positives.push({
-            title: "Strong short-term liquidity",
-            text: `Current ratio is ${m.currentRatio.value.toFixed(2)}, suggesting current assets cover current liabilities with a buffer.`
-          });
-        } else if (m.currentRatio.value < 1) {
-          negatives.push({
-            title: "Current liabilities exceed current assets",
-            text: `Current ratio is ${m.currentRatio.value.toFixed(2)}.`
-          });
-          risks.push({
-            title: "Liquidity risk",
-            text: "The company may need refinancing, faster collections or additional working capital."
-          });
-        }
-      } else {
-        missing.push("Current assets and current liabilities");
-      }
+          if(!Number.isFinite(number))return;
 
-      if (m.quickRatio?.value !== undefined && m.quickRatio.value < 1) {
-        risks.push({
-          title: "Reliance on inventory or future collections",
-          text: `Quick ratio is ${m.quickRatio.value.toFixed(2)}, below 1.00.`
-        });
-      }
-
-      if (m.debtToEquity?.value !== undefined) {
-        if (m.debtToEquity.value > 2) {
-          negatives.push({
-            title: "High leverage",
-            text: `Debt-to-equity is ${m.debtToEquity.value.toFixed(2)}.`
-          });
-          risks.push({
-            title: "Debt burden",
-            text: "High leverage can amplify losses and refinancing risk."
-          });
-        } else if (m.debtToEquity.value < 1) {
-          positives.push({
-            title: "Moderate leverage",
-            text: `Debt-to-equity is ${m.debtToEquity.value.toFixed(2)}.`
-          });
-        }
-      } else {
-        missing.push("Total debt and equity");
-      }
-
-      if (m.interestCoverage?.value !== undefined) {
-        if (m.interestCoverage.value < 1.5) {
-          negatives.push({
-            title: "Weak interest coverage",
-            text: `Interest coverage is ${m.interestCoverage.value.toFixed(2)} times.`
-          });
-          risks.push({
-            title: "Debt servicing pressure",
-            text: "Operating profit may not provide a comfortable buffer against interest obligations."
-          });
-        } else if (m.interestCoverage.value >= 3) {
-          positives.push({
-            title: "Comfortable interest coverage",
-            text: `Operating profit covers interest expense approximately ${m.interestCoverage.value.toFixed(2)} times.`
-          });
-        }
-      } else {
-        missing.push("Interest expense and operating profit");
-      }
-
-      if (m.freeCashFlow?.value !== undefined) {
-        if (m.freeCashFlow.value > 0) {
-          positives.push({
-            title: "Positive free cash flow",
-            text: `Estimated free cash flow is ${formatCurrency(m.freeCashFlow.value)}.`
-          });
-        } else {
-          negatives.push({
-            title: "Negative free cash flow",
-            text: `Estimated free cash flow is ${formatCurrency(m.freeCashFlow.value)}.`
-          });
-          risks.push({
-            title: "Cash generation concern",
-            text: "The company may require external capital to fund operations or investment."
-          });
-        }
-      } else {
-        missing.push("Operating cash flow and capital expenditure");
-      }
-
-      if (m.roa?.value !== undefined && m.roa.value > .05) {
-        positives.push({
-          title: "Positive return on assets",
-          text: `Return on assets is approximately ${formatPercent(m.roa.value)}.`
-        });
-      }
-
-      if (m.roe?.value !== undefined && m.roe.value > .1) {
-        positives.push({
-          title: "Positive return on equity",
-          text: `Return on equity is approximately ${formatPercent(m.roe.value)}.`
-        });
-      }
-
-      if (!positives.length) {
-        positives.push({
-          title: "No verified positive signal yet",
-          text: "The available documents do not contain enough validated data to establish a positive investment case."
-        });
-      }
-
-      if (!negatives.length) {
-        negatives.push({
-          title: "No major negative signal detected",
-          text: "This does not mean the company is safe; several important figures may still be missing."
-        });
-      }
-
-      if (!actions.length) {
-        actions.push({
-          title: "Review the source statements",
-          text: "Confirm that extracted values belong to the same reporting period and currency."
-        });
-
-        actions.push({
-          title: "Compare multiple periods",
-          text: "Upload prior-year statements to evaluate revenue, margins, debt and cash-flow trends."
-        });
-
-        actions.push({
-          title: "Inspect notes and commitments",
-          text: "Review debt maturities, contingent liabilities, related-party transactions and accounting policies."
-        });
-      }
-
-      state.positives = positives;
-      state.negatives = negatives;
-      state.risks = risks;
-      state.actions = actions;
-      state.missing = [...new Set(missing)];
-
-      const positiveScore = positives.length;
-      const negativeScore = negatives.length + risks.length;
-      const dataPoints = Object.values(m).filter(
-        (value) =>
-          value &&
-          typeof value === "object" &&
-          Number.isFinite(value.value)
-      ).length;
-
-      state.confidence = Math.min(
-        100,
-        Math.round((dataPoints / 18) * 100)
-      );
-
-      if (dataPoints < 3) {
-        state.verdict = "Insufficient evidence";
-        state.explanation =
-          "The documents do not contain enough validated financial information to support an investment conclusion. Upload clearer statements or additional periods.";
-      } else if (negativeScore >= positiveScore + 3) {
-        state.verdict = "High caution";
-        state.explanation =
-          "The available financial signals contain more material weaknesses than positive indicators. Further investment should be avoided until liquidity, leverage, profitability and cash generation concerns are resolved.";
-      } else if (positiveScore > negativeScore && state.confidence >= 45) {
-        state.verdict = "Worth further consideration";
-        state.explanation =
-          "The available figures show several constructive signals. This is not a buy recommendation: the company should still be assessed against valuation, industry conditions, governance, competitive position and multi-year performance.";
-      } else {
-        state.verdict = "Proceed with caution";
-        state.explanation =
-          "The extracted figures are mixed or incomplete. The company may merit further diligence, but the current evidence is not strong enough for a confident investment decision.";
-      }
-    }
-
-    function renderDashboard() {
-      dashboard.classList.remove("hidden");
-      $("analysisDate").textContent = new Date().toLocaleString();
-
-      renderMetrics();
-      renderInvestment();
-      renderReasons();
-      renderRisks();
-      renderActions();
-      renderTable();
-      renderMissing();
-    }
-
-    function renderMetrics() {
-      const m = state.metrics;
-
-      const cards = [
-        ["Revenue", m.revenue?.value, "Reported sales or turnover", "currency"],
-        ["Gross margin", m.grossMargin?.value, "Gross profit ÷ revenue", "percent"],
-        ["Operating margin", m.operatingMargin?.value, "Operating profit ÷ revenue", "percent"],
-        ["Net margin", m.netMargin?.value, "Net income ÷ revenue", "percent"],
-        ["Current ratio", m.currentRatio?.value, "Current assets ÷ current liabilities", "ratio"],
-        ["Quick ratio", m.quickRatio?.value, "Liquid current assets ÷ current liabilities", "ratio"],
-        ["Debt / equity", m.debtToEquity?.value, "Total debt ÷ equity", "ratio"],
-        ["Free cash flow", m.freeCashFlow?.value, "Operating cash flow − capex", "currency"]
-      ];
-
-      $("metricGrid").innerHTML = cards
-        .map(([label, value, foot, type]) => {
-          const valid = Number.isFinite(value);
-          const formatted = valid
-            ? type === "currency"
-              ? formatCurrency(value)
-              : type === "percent"
-                ? formatPercent(value)
-                : value.toFixed(2)
-            : "N/A";
-
-          const className =
-            !valid
-              ? ""
-              : value < 0
-                ? "negative"
-                : type === "percent" && value > .1
-                  ? "positive"
-                  : "";
-
-          return `
-            <div class="metric-card ${className}">
-              <div class="metric-label">${escapeHTML(label)}</div>
-              <div class="metric-value">${escapeHTML(formatted)}</div>
-              <div class="metric-foot">${escapeHTML(foot)}</div>
-            </div>
-          `;
-        })
-        .join("");
-    }
-
-    function renderInvestment() {
-      const verdict = $("investmentVerdict");
-      verdict.textContent = state.verdict;
-      verdict.className = "investment-verdict";
-
-      if (state.verdict === "Worth further consideration") {
-        verdict.classList.add("consider");
-      } else if (state.verdict === "High caution") {
-        verdict.classList.add("avoid");
-      } else {
-        verdict.classList.add("caution");
-      }
-
-      $("investmentExplanation").textContent = state.explanation;
-      $("confidenceText").textContent = `${state.confidence}%`;
-      $("confidenceFill").style.width = `${state.confidence}%`;
-    }
-
-    function renderReasons() {
-      $("positiveReasons").innerHTML = renderReasonList(state.positives, "positive");
-      $("negativeReasons").innerHTML = renderReasonList(state.negatives, "negative");
-    }
-
-    function renderRisks() {
-      $("riskSignals").innerHTML = state.risks.length
-        ? `<div class="signal-list">${state.risks
-            .map(
-              (item) => `
-                <div class="signal">
-                  <div class="signal-dot negative"></div>
-                  <div>
-                    <strong>${escapeHTML(item.title)}</strong>
-                    <p>${escapeHTML(item.text)}</p>
-                  </div>
-                </div>
-              `
-            )
-            .join("")}</div>`
-        : `<div class="empty-state">No material risk signals identified from the available values.</div>`;
-    }
-
-    function renderActions() {
-      $("actionPlan").innerHTML = state.actions.length
-        ? `<div class="action-list">${state.actions
-            .map(
-              (item) => `
-                <div class="action">
-                  <div class="signal-dot warning"></div>
-                  <div>
-                    <strong>${escapeHTML(item.title)}</strong>
-                    <p>${escapeHTML(item.text)}</p>
-                  </div>
-                </div>
-              `
-            )
-            .join("")}</div>`
-        : `<div class="empty-state">No next steps available.</div>`;
-    }
-
-    function renderReasonList(items, type) {
-      return `<div class="reason-list">${items
-        .map(
-          (item) => `
-            <div class="reason">
-              <div class="signal-dot ${type}"></div>
-              <div>
-                <strong>${escapeHTML(item.title)}</strong>
-                <p>${escapeHTML(item.text)}</p>
-              </div>
-            </div>
-          `
-        )
-        .join("")}</div>`;
-    }
-
-    function renderTable() {
-      const entries = Object.entries(state.metrics).filter(
-        ([, item]) =>
-          item &&
-          typeof item === "object" &&
-          Number.isFinite(item.value)
-      );
-
-      $("rowCount").textContent = `${entries.length} calculated values`;
-
-      if (!entries.length) {
-        $("financialTable").innerHTML =
-          `<div class="empty-state">No validated financial values were found.</div>`;
-        return;
-      }
-
-      $("financialTable").innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>Metric</th>
-              <th>Value</th>
-              <th>Basis</th>
-              <th>Source</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${entries
-              .map(([key, item]) => {
-                const value =
-                  key.includes("Margin") ||
-                  ["grossMargin", "operatingMargin", "netMargin", "roa", "roe"].includes(key)
-                    ? formatPercent(item.value)
-                    : key === "revenue" ||
-                        key === "freeCashFlow" ||
-                        key === "workingCapital"
-                      ? formatCurrency(item.value)
-                      : Number(item.value).toFixed(2);
-
-                return `
-                  <tr>
-                    <td>${escapeHTML(humanize(key))}</td>
-                    <td>${escapeHTML(value)}</td>
-                    <td>${escapeHTML(item.label || "Calculated")}</td>
-                    <td>${escapeHTML(item.source || "Derived")}</td>
-                  </tr>
-                `;
-              })
-              .join("")}
-          </tbody>
-        </table>
-      `;
-    }
-
-    function renderMissing() {
-      $("missingInformation").innerHTML = state.missing.length
-        ? `<div class="signal-list">${state.missing
-            .map(
-              (item) => `
-                <div class="signal">
-                  <div class="signal-dot warning"></div>
-                  <div>
-                    <strong>${escapeHTML(item)}</strong>
-                    <p>This value was not reliably identified, so related calculations were not fabricated.</p>
-                  </div>
-                </div>
-              `
-            )
-            .join("")}</div>`
-        : `<div class="empty-state">No major required values were marked as missing.</div>`;
-    }
-
-    function loadSample() {
-      state.files = [];
-      state.rows = [
-        { label: "Revenue 1250000", value: "1250000", source: "Neutral sample", location: "sample" },
-        { label: "Cost of goods sold 700000", value: "700000", source: "Neutral sample", location: "sample" },
-        { label: "Operating profit 180000", value: "180000", source: "Neutral sample", location: "sample" },
-        { label: "Net income 120000", value: "120000", source: "Neutral sample", location: "sample" },
-        { label: "Current assets 600000", value: "600000", source: "Neutral sample", location: "sample" },
-        { label: "Current liabilities 350000", value: "350000", source: "Neutral sample", location: "sample" },
-        { label: "Inventory 180000", value: "180000", source: "Neutral sample", location: "sample" },
-        { label: "Total debt 400000", value: "400000", source: "Neutral sample", location: "sample" },
-        { label: "Equity 500000", value: "500000", source: "Neutral sample", location: "sample" },
-        { label: "Interest expense 45000", value: "45000", source: "Neutral sample", location: "sample" },
-        { label: "Operating cash flow 220000", value: "220000", source: "Neutral sample", location: "sample" },
-        { label: "Capital expenditure 80000", value: "80000", source: "Neutral sample", location: "sample" },
-        { label: "Total assets 1500000", value: "1500000", source: "Neutral sample", location: "sample" }
-      ];
-
-      state.files = [
-        {
-          name: "Neutral sample workspace",
-          size: 0,
-          lastModified: 0
-        }
-      ];
-
-      renderFileList();
-      analyseButton.disabled = false;
-      state.metrics = calculateMetrics(state.rows);
-      evaluateInvestment();
-      renderDashboard();
-      state.analysed = true;
-      setStatus("Neutral sample loaded. Replace it with your own documents for real analysis.");
-    }
-
-    function resetWorkspace() {
-      state.files = [];
-      state.rows = [];
-      state.metrics = {};
-      state.missing = [];
-      state.risks = [];
-      state.positives = [];
-      state.negatives = [];
-      state.actions = [];
-      state.analysed = false;
-
-      renderFileList();
-      analyseButton.disabled = true;
-      dashboard.classList.add("hidden");
-      progressWrap.classList.add("hidden");
-      progressValue.style.width = "0%";
-      setStatus("Workspace cleared. Upload documents to begin.");
-    }
-
-    function exportReport() {
-      if (!state.analysed) {
-        showToast("Analyse a document before exporting.");
-        return;
-      }
-
-      const jsPDF = window.jspdf?.jsPDF;
-
-      if (!jsPDF) {
-        showToast("PDF export library is unavailable.");
-        return;
-      }
-
-      const doc = new jsPDF();
-      const metrics = Object.entries(state.metrics).filter(
-        ([, item]) => item && Number.isFinite(item.value)
-      );
-
-      doc.setFontSize(20);
-      doc.text("FORGE — Financial Analysis Report", 14, 18);
-
-      doc.setFontSize(10);
-      doc.text(`Analyst: ${state.userName}`, 14, 27);
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 33);
-
-      doc.setFontSize(14);
-      doc.text(`Assessment: ${state.verdict}`, 14, 45);
-
-      doc.setFontSize(10);
-      const explanationLines = doc.splitTextToSize(
-        state.explanation,
-        180
-      );
-      doc.text(explanationLines, 14, 53);
-
-      const tableRows = metrics.map(([key, item]) => [
-        humanize(key),
-        formatReportValue(key, item.value),
-        item.label || "Calculated",
-        item.source || "Derived"
-      ]);
-
-      if (typeof doc.autoTable === "function") {
-        doc.autoTable({
-          startY: 70,
-          head: [["Metric", "Value", "Basis", "Source"]],
-          body: tableRows,
-          theme: "grid",
-          styles: { fontSize: 8 }
-        });
-      } else {
-        let y = 70;
-
-        for (const row of tableRows) {
-          doc.text(`${row[0]}: ${row[1]}`, 14, y);
-          y += 7;
-
-          if (y > 275) {
-            doc.addPage();
-            y = 20;
+          const score=wanted.length*10+(index<80?20:0)+(row.value===row.label?5:0);
+          if(!best||score>best.score){
+            best={value:number,raw:row.value,label:row.label,source:row.source,location:row.location,score};
           }
-        }
-      }
+        });
+      });
 
-      doc.save("forge-financial-analysis.pdf");
+      return best;
     }
 
-    function findBestMetric(rows, labels) {
-      const matches = [];
+    function parseFinancialNumber(value){
+      let text=clean(value).toLowerCase().replace(/\u00a0/g," ");
+      if(!text)return NaN;
 
-      for (const row of rows) {
-        const combined = `${row.label} ${row.value}`.toLowerCase();
+      const negative=text.includes("(")&&text.includes(")")||text.includes("-");
+      const percent=text.includes("%");
 
-        for (const label of labels) {
-          const index = combined.indexOf(label);
+      let multiplier=1;
+      if(/billion|bn/.test(text))multiplier=1e9;
+      else if(/million|mn/.test(text))multiplier=1e6;
+      else if(/crore|(^| )cr( |$)/.test(text))multiplier=1e7;
+      else if(/lakh|lakhs|lac|lacs/.test(text))multiplier=1e5;
 
-          if (index === -1) continue;
+      const match=text.match(/-?\d[\d,]*(?:\.\d+)?/);
+      if(!match)return NaN;
 
-          const number = extractNumberNearText(combined, label);
+      let number=Number(match[0].replace(/,/g,""));
+      if(!Number.isFinite(number))return NaN;
 
-          if (Number.isFinite(number)) {
-            matches.push({
-              ...row,
-              number,
-              score: label.length * 2 + (index < 100 ? 10 : 0),
-              raw: row.value
-            });
-          }
-        }
-      }
-
-      matches.sort((a, b) => b.score - a.score);
-      return matches[0] || null;
-    }
-
-    function extractNumberNearText(text, label) {
-      const index = text.indexOf(label);
-      const before = text.slice(Math.max(0, index - 100), index);
-      const after = text.slice(index, index + 180);
-
-      const candidates = `${after} ${before}`.match(
-        /(?:₹|\$|€|£|rs\.?|inr|usd)?\s*\(?-?\d[\d,]*(?:\.\d+)?\)?\s*(?:million|billion|mn|bn|cr|crore|lakhs?|lakh|%)?/gi
-      );
-
-      if (!candidates?.length) return NaN;
-
-      for (const candidate of candidates) {
-        const parsed = parseFinancialNumber(candidate);
-
-        if (Number.isFinite(parsed)) return parsed;
-      }
-
-      return NaN;
-    }
-
-    function parseFinancialNumber(value) {
-      let text = String(value || "")
-        .toLowerCase()
-        .replace(/\u00a0/g, " ")
-        .trim();
-
-      if (!text) return NaN;
-
-      const negative =
-        text.includes("(") &&
-        text.includes(")") ||
-        text.includes("-");
-
-      const percent = text.includes("%");
-      const multiplier =
-        text.includes("billion") || text.includes("bn")
-          ? 1_000_000_000
-          : text.includes("million") || text.includes("mn")
-            ? 1_000_000
-            : text.includes("crore") || text.includes(" cr")
-              ? 10_000_000
-              : text.includes("lakh") || text.includes(" lakhs")
-                ? 100_000
-                : 1;
-
-      const match = text.match(/-?\d[\d,]*(?:\.\d+)?/);
-
-      if (!match) return NaN;
-
-      let number = Number(match[0].replace(/,/g, ""));
-
-      if (!Number.isFinite(number)) return NaN;
-
-      number *= multiplier;
-
-      if (negative && number > 0) number *= -1;
-
-      if (percent) number /= 100;
-
+      number*=multiplier;
+      if(negative&&number>0)number*=-1;
+      if(percent)number/=100;
       return number;
     }
 
-    function ratio(numerator, denominator) {
-      if (!Number.isFinite(numerator)) return undefined;
-      if (!Number.isFinite(denominator) || denominator === 0) return undefined;
+    function evaluate(){
+      const m=state.metrics;
+      const positives=[],negatives=[],risks=[],missing=[];
 
-      return {
-        value: numerator / denominator,
-        derived: true,
-        label: "Calculated ratio"
-      };
+      if(m.revenue?.value>0)positives.push({title:"Revenue base identified",text:`Reported revenue is ${currency(m.revenue.value)}.`});
+      else missing.push("Revenue or sales");
+
+      if(m.grossMargin){
+        if(m.grossMargin.value>=.4)positives.push({title:"Healthy gross margin",text:`Gross margin is ${percent(m.grossMargin.value)}.`});
+        else if(m.grossMargin.value<.2){
+          negatives.push({title:"Low gross margin",text:`Gross margin is ${percent(m.grossMargin.value)}.`});
+          risks.push({title:"Margin pressure",text:"Input-cost or pricing pressure may affect profitability."});
+        }
+      }else missing.push("Gross profit or cost of sales");
+
+      if(m.operatingMargin){
+        if(m.operatingMargin.value>0)positives.push({title:"Operating profitability",text:`Operating margin is ${percent(m.operatingMargin.value)}.`});
+        else{
+          negatives.push({title:"Operating loss",text:"Operating profit is negative."});
+          risks.push({title:"Loss-making operations",text:"A turnaround or additional funding may be required."});
+        }
+      }else missing.push("Operating profit or EBIT");
+
+      if(m.netMargin){
+        if(m.netMargin.value>0)positives.push({title:"Positive net income",text:`Net margin is ${percent(m.netMargin.value)}.`});
+        else negatives.push({title:"Net loss",text:"The available figures show a negative net margin."});
+      }else missing.push("Net income or profit after tax");
+
+      if(m.currentRatio){
+        if(m.currentRatio.value>=1.5)positives.push({title:"Strong short-term liquidity",text:`Current ratio is ${m.currentRatio.value.toFixed(2)}.`});
+        else if(m.currentRatio.value<1){
+          negatives.push({title:"Weak current ratio",text:`Current ratio is ${m.currentRatio.value.toFixed(2)}.`});
+          risks.push({title:"Liquidity risk",text:"Current liabilities exceed current assets."});
+        }
+      }else missing.push("Current assets and current liabilities");
+
+      if(m.debtToEquity){
+        if(m.debtToEquity.value>2){
+          negatives.push({title:"High leverage",text:`Debt-to-equity is ${m.debtToEquity.value.toFixed(2)}.`});
+          risks.push({title:"Debt burden",text:"High leverage increases refinancing and loss risk."});
+        }else if(m.debtToEquity.value<1)positives.push({title:"Moderate leverage",text:`Debt-to-equity is ${m.debtToEquity.value.toFixed(2)}.`});
+      }else missing.push("Total debt and equity");
+
+      if(m.interestCoverage&&m.interestCoverage.value<1.5){
+        negatives.push({title:"Weak interest coverage",text:`Interest coverage is ${m.interestCoverage.value.toFixed(2)} times.`});
+        risks.push({title:"Debt servicing pressure",text:"Operating profit may not comfortably cover interest obligations."});
+      }else if(!m.interestCoverage)missing.push("Interest expense and operating profit");
+
+      if(m.freeCashFlow){
+        if(m.freeCashFlow.value>0)positives.push({title:"Positive free cash flow",text:`Free cash flow is ${currency(m.freeCashFlow.value)}.`});
+        else{
+          negatives.push({title:"Negative free cash flow",text:`Free cash flow is ${currency(m.freeCashFlow.value)}.`});
+          risks.push({title:"Cash generation concern",text:"External capital may be required."});
+        }
+      }else missing.push("Operating cash flow and capital expenditure");
+
+      const dataPoints=sourceKeys.filter(key=>m[key]&&!m[key].derived&&Number.isFinite(m[key].value)).length;
+      state.confidence=Math.min(100,Math.round(dataPoints/sourceKeys.length*100));
+
+      state.positives=positives.length?positives:[{title:"No verified positive signal yet",text:"The available documents do not establish a positive investment case."}];
+      state.negatives=negatives.length?negatives:[{title:"No major negative signal detected",text:"Important figures may still be missing."}];
+      state.risks=risks;
+      state.missing=[...new Set(missing)];
+      state.actions=[
+        {title:"Review source statements",text:"Confirm reporting period, currency and extracted values."},
+        {title:"Compare multiple periods",text:"Upload prior-year statements to assess financial trends."},
+        {title:"Inspect notes and commitments",text:"Review debt maturities, contingencies and related-party transactions."}
+      ];
+
+      const positiveScore=positives.length;
+      const negativeScore=negatives.length+risks.length;
+
+      if(dataPoints<3){
+        state.verdict="Insufficient evidence";
+        state.explanation="The documents do not contain enough validated financial information to support an investment conclusion.";
+      }else if(negativeScore>=positiveScore+3){
+        state.verdict="High caution";
+        state.explanation="The available financial signals contain more material weaknesses than positive indicators. Further diligence is required before considering investment.";
+      }else if(positiveScore>negativeScore&&state.confidence>=45){
+        state.verdict="Worth further consideration";
+        state.explanation="The available figures show constructive signals. This is not a buy recommendation; valuation, governance, industry conditions and multi-year performance still require review.";
+      }else{
+        state.verdict="Proceed with caution";
+        state.explanation="The extracted figures are mixed or incomplete. Further diligence is required before making an investment decision.";
+      }
     }
 
-    function parseCsvText(text) {
-      const rows = [];
-      let row = [];
-      let cell = "";
-      let quoted = false;
+    function render(){
+      $("dashboard").classList.remove("hidden");
+      $("analysisDate").textContent=new Date().toLocaleString();
+      renderMetrics();
+      renderAssessment();
+      renderList("positiveReasons",state.positives,"positive");
+      renderList("negativeReasons",state.negatives,"negative");
+      renderList("riskSignals",state.risks,"negative");
+      renderList("actionPlan",state.actions,"warning");
+      renderTable();
+      $("missingInformation").innerHTML=state.missing.length
+        ? `<div class="signal-list">${state.missing.map(item=>`<div class="signal"><div class="signal-dot warning"></div><div><strong>${escapeHTML(item)}</strong><p>This value was not reliably identified.</p></div></div>`).join("")}</div>`
+        : `<div class="empty-state">No major required values were marked as missing.</div>`;
+    }
 
-      for (let index = 0; index < text.length; index += 1) {
-        const character = text[index];
-        const next = text[index + 1];
+    function renderMetrics(){
+      const m=state.metrics;
+      const cards=[
+        ["Revenue",m.revenue?.value,"Reported sales","currency"],
+        ["Gross margin",m.grossMargin?.value,"Gross profit ÷ revenue","percent"],
+        ["Operating margin",m.operatingMargin?.value,"Operating profit ÷ revenue","percent"],
+        ["Net margin",m.netMargin?.value,"Net income ÷ revenue","percent"],
+        ["Current ratio",m.currentRatio?.value,"Current assets ÷ current liabilities","ratio"],
+        ["Quick ratio",m.quickRatio?.value,"Liquid assets ÷ current liabilities","ratio"],
+        ["Debt / equity",m.debtToEquity?.value,"Total debt ÷ equity","ratio"],
+        ["Free cash flow",m.freeCashFlow?.value,"Operating cash flow − capex","currency"]
+      ];
 
-        if (character === '"' && quoted && next === '"') {
-          cell += '"';
-          index += 1;
-          continue;
-        }
+      $("metricGrid").innerHTML=cards.map(([label,value,foot,type])=>{
+        const valid=Number.isFinite(value);
+        const formatted=!valid?"N/A":type==="currency"?currency(value):type==="percent"?percent(value):value.toFixed(2);
+        const cls=valid&&value<0?"negative":valid&&type==="percent"&&value>.1?"positive":"";
+        return `<div class="metric-card ${cls}"><div class="metric-label">${label}</div><div class="metric-value">${escapeHTML(formatted)}</div><div class="metric-foot">${foot}</div></div>`;
+      }).join("");
+    }
 
-        if (character === '"') {
-          quoted = !quoted;
-          continue;
-        }
+    function renderAssessment(){
+      const verdict=$("investmentVerdict");
+      verdict.textContent=state.verdict;
+      verdict.className="investment-verdict "+(state.verdict==="Worth further consideration"?"consider":state.verdict==="High caution"?"avoid":"caution");
+      $("investmentExplanation").textContent=state.explanation;
+      $("confidenceText").textContent=`${state.confidence}%`;
+      $("confidenceFill").style.width=`${state.confidence}%`;
+    }
 
-        if (character === "," && !quoted) {
-          row.push(cell);
-          cell = "";
-          continue;
-        }
+    function renderList(id,items,type){
+      $(id).innerHTML=items.length
+        ? `<div class="signal-list">${items.map(item=>`<div class="signal"><div class="signal-dot ${type}"></div><div><strong>${escapeHTML(item.title)}</strong><p>${escapeHTML(item.text)}</p></div></div>`).join("")}</div>`
+        : `<div class="empty-state">No signals identified.</div>`;
+    }
 
-        if ((character === "\n" || character === "\r") && !quoted) {
-          if (character === "\r" && next === "\n") index += 1;
+    function renderTable(){
+      const entries=Object.entries(state.metrics).filter(([,item])=>item&&Number.isFinite(item.value));
+      $("rowCount").textContent=`${entries.length} calculated values`;
 
-          row.push(cell);
-          rows.push(row);
-          row = [];
-          cell = "";
-          continue;
-        }
-
-        cell += character;
+      if(!entries.length){
+        $("financialTable").innerHTML=`<div class="empty-state">No validated financial values were found.</div>`;
+        return;
       }
 
-      if (cell.length || row.length) {
-        row.push(cell);
-        rows.push(row);
+      const currencyKeys=["revenue","cogs","grossProfit","operatingExpenses","operatingProfit","netIncome","interestExpense","tax","cash","currentAssets","currentLiabilities","inventory","receivables","totalAssets","totalDebt","equity","operatingCashFlow","capex","depreciation","dividends","freeCashFlow","workingCapital"];
+      const percentKeys=["grossMargin","operatingMargin","netMargin","roa","roe"];
+
+      $("financialTable").innerHTML=`
+        <table>
+          <thead><tr><th>Metric</th><th>Value</th><th>Basis</th><th>Source</th></tr></thead>
+          <tbody>
+            ${entries.map(([key,item])=>{
+              const value=percentKeys.includes(key)?percent(item.value):currencyKeys.includes(key)?currency(item.value):item.value.toFixed(2);
+              return `<tr><td>${escapeHTML(humanize(key))}</td><td>${escapeHTML(value)}</td><td>${escapeHTML(item.label||"Calculated")}</td><td>${escapeHTML(item.derived?"Derived":item.source||"Unknown")}</td></tr>`;
+            }).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    function sample(){
+      state.files=[{name:"Neutral sample workspace",size:0}];
+      state.rows=[
+        "Revenue 1250000","Cost of goods sold 700000","Operating expenses 370000",
+        "Operating profit 180000","Net income 120000","Current assets 600000",
+        "Current liabilities 350000","Inventory 180000","Total debt 400000",
+        "Equity 500000","Interest expense 45000","Operating cash flow 220000",
+        "Capital expenditure 80000","Total assets 1500000"
+      ].map(text=>({label:text,value:text,source:"Neutral sample",location:"sample"}));
+
+      renderFiles();
+      $("analyseButton").disabled=false;
+      state.metrics=calculateMetrics(state.rows);
+      evaluate();
+      render();
+      state.analysed=true;
+      status("Neutral sample loaded. Replace it with your own documents for real analysis.");
+    }
+
+    function reset(){
+      state.files=[];
+      state.rows=[];
+      state.metrics={};
+      state.analysed=false;
+      renderFiles();
+      $("analyseButton").disabled=true;
+      $("dashboard").classList.add("hidden");
+      $("progressWrap").classList.add("hidden");
+      $("progressValue").style.width="0%";
+      status("Workspace cleared. Upload documents to begin.");
+    }
+
+    function exportReport(){
+      if(!state.analysed){toast("Analyse a document before exporting.");return}
+
+      try{
+        const jsPDF=window.jspdf?.jsPDF;
+        if(!jsPDF)throw new Error("PDF export library unavailable");
+
+        const doc=new jsPDF();
+        doc.setFontSize(20);
+        doc.text("FORGE — Financial Analysis Report",14,18);
+        doc.setFontSize(10);
+        doc.text(`Analyst: ${state.userName}`,14,27);
+        doc.text(`Generated: ${new Date().toLocaleString()}`,14,33);
+        doc.setFontSize(14);
+        doc.text(`Assessment: ${state.verdict}`,14,45);
+        doc.setFontSize(10);
+        doc.text(doc.splitTextToSize(state.explanation,180),14,53);
+
+        const rows=Object.entries(state.metrics)
+          .filter(([,item])=>item&&Number.isFinite(item.value))
+          .map(([key,item])=>[humanize(key),reportValue(key,item.value),item.label||"Calculated",item.derived?"Derived":item.source||"Unknown"]);
+
+        if(typeof doc.autoTable==="function"){
+          doc.autoTable({
+            startY:70,
+            head:[["Metric","Value","Basis","Source"]],
+            body:rows,
+            theme:"grid",
+            styles:{fontSize:8}
+          });
+        }else{
+          let y=70;
+          rows.forEach(row=>{
+            doc.text(`${row[0]}: ${row[1]}`,14,y);
+            y+=7;
+            if(y>275){doc.addPage();y=20}
+          });
+        }
+
+        doc.save("forge-financial-analysis.pdf");
+      }catch(error){
+        console.error(error);
+        toast("Report export failed.");
       }
-
-      return rows;
     }
 
-    function updateProgress(percent, message) {
-      progressValue.style.width = `${percent}%`;
-      progressPercent.textContent = `${percent}%`;
-      progressText.textContent = message;
-    }
-
-    function setStatus(message) {
-      statusMessage.textContent = message;
-    }
-
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.remove("hidden");
-
-      clearTimeout(showToast.timeout);
-      showToast.timeout = setTimeout(() => {
-        toast.classList.add("hidden");
-      }, 3500);
-    }
-
-    function getExtension(fileName) {
-      const name = String(fileName || "").toLowerCase();
-      const index = name.lastIndexOf(".");
-      return index >= 0 ? name.slice(index) : "";
-    }
-
-    function formatBytes(bytes) {
-      if (!bytes) return "sample data";
-
-      const units = ["B", "KB", "MB", "GB"];
-      const index = Math.min(
-        Math.floor(Math.log(bytes) / Math.log(1024)),
-        units.length - 1
-      );
-
-      return `${(bytes / Math.pow(1024, index)).toFixed(index ? 1 : 0)} ${units[index]}`;
-    }
-
-    function formatCurrency(value) {
-      if (!Number.isFinite(value)) return "N/A";
-
-      const sign = value < 0 ? "-" : "";
-      const absolute = Math.abs(value);
-
-      return `${sign}${new Intl.NumberFormat("en-IN", {
-        maximumFractionDigits: 0
-      }).format(absolute)}`;
-    }
-
-    function formatPercent(value) {
-      if (!Number.isFinite(value)) return "N/A";
-      return `${(value * 100).toFixed(1)}%`;
-    }
-
-    function formatReportValue(key, value) {
-      if (
-        ["grossMargin", "operatingMargin", "netMargin", "roa", "roe"].includes(key)
-      ) {
-        return formatPercent(value);
-      }
-
-      if (["revenue", "freeCashFlow", "workingCapital"].includes(key)) {
-        return formatCurrency(value);
-      }
-
+    function reportValue(key,value){
+      if(["grossMargin","operatingMargin","netMargin","roa","roe"].includes(key))return percent(value);
+      if(["revenue","cogs","grossProfit","operatingExpenses","operatingProfit","netIncome","interestExpense","tax","cash","currentAssets","currentLiabilities","inventory","receivables","totalAssets","totalDebt","equity","operatingCashFlow","capex","depreciation","dividends","freeCashFlow","workingCapital"].includes(key))return currency(value);
       return Number(value).toFixed(2);
     }
 
-    function humanize(value) {
-      return String(value)
-        .replace(/([A-Z])/g, " $1")
-        .replace(/^./, (character) => character.toUpperCase());
+    function currency(value){
+      if(!Number.isFinite(value))return "N/A";
+      return `${value<0?"-":""}${new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Math.abs(value))}`;
     }
 
-    function cleanText(value) {
-      return String(value ?? "")
-        .replace(/\s+/g, " ")
-        .trim();
+    function percent(value){
+      return Number.isFinite(value)?`${(value*100).toFixed(1)}%`:"N/A";
     }
 
-    function escapeHTML(value) {
-      return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    function humanize(value){
+      return String(value).replace(/([A-Z])/g," $1").replace(/^./,c=>c.toUpperCase());
+    }
+
+    function parseCSVText(text){
+      const rows=[];
+      let row=[],cell="",quoted=false;
+
+      for(let i=0;i<text.length;i++){
+        const char=text[i],next=text[i+1];
+
+        if(char==='"'&&quoted&&next==='"'){cell+='"';i++;continue}
+        if(char==='"'){quoted=!quoted;continue}
+
+        if(char===","&&!quoted){row.push(cell);cell="";continue}
+
+        if((char==="\n"||char==="\r")&&!quoted){
+          if(char==="\r"&&next==="\n")i++;
+          row.push(cell);
+          rows.push(row);
+          row=[];
+          cell="";
+          continue;
+        }
+
+        cell+=char;
+      }
+
+      if(cell.length||row.length){row.push(cell);rows.push(row)}
+      return rows;
     }
   </script>
 </body>
