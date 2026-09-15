@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="FORGE — browser-based financial document analysis and investment decision support.">
+  <meta name="description" content="FORGE — browser-based financial document analysis and investment decision support. Reads balance sheets, income statements, cash flow statements and equity statements.">
   <title>FORGE | Financial Clarity Engine</title>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.3/xlsx.full.min.js"></script>
@@ -221,10 +221,10 @@
     .section-heading{align-items:end;margin-bottom:12px}
     .section-heading h2{font-size:20px;margin:0}
     .section-heading span{color:var(--muted);font-size:11px}
-    .metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
     .metric-card{padding:17px;border:1px solid var(--border);border-radius:13px;background:linear-gradient(145deg,#191919,#101010)}
     .metric-label{color:var(--muted);font-size:11px;margin-bottom:10px}
-    .metric-value{overflow-wrap:anywhere;font-size:clamp(20px,3vw,29px);font-weight:800;letter-spacing:-.05em}
+    .metric-value{overflow-wrap:anywhere;font-size:clamp(18px,2.6vw,26px);font-weight:800;letter-spacing:-.05em}
     .metric-foot{color:var(--muted);font-size:10px;margin-top:8px}
     .metric-card.positive .metric-value{color:var(--positive)}
     .metric-card.negative .metric-value{color:var(--negative)}
@@ -246,6 +246,12 @@
     .investment-explanation{color:var(--soft);font-size:13px;line-height:1.8;margin:0}
     .confidence-bar{margin-top:18px;max-width:460px}
     .confidence-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:7px}
+    .narrative-panel{border:1px solid var(--border-light);border-radius:14px;padding:20px;background:#121212;margin-top:18px}
+    .narrative-panel h3{font-size:12px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;color:var(--muted)}
+    .narrative-panel p{color:var(--soft);font-size:13px;line-height:1.8;margin:0}
+    .badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+    .badge{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:6px 11px;border-radius:100px;border:1px solid var(--border-light);color:var(--muted)}
+    .badge.detected{color:#0d0d0d;background:#dcdcdc;border-color:#dcdcdc}
     .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:11px}
     table{width:100%;min-width:700px;border-collapse:collapse;font-size:12px}
     th,td{padding:13px 15px;text-align:left;border-bottom:1px solid var(--border)}
@@ -258,7 +264,6 @@
 
     @media(max-width:1050px){
       .workspace-grid,.analysis-grid{grid-template-columns:1fr}
-      .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
 
     @media(max-width:620px){
@@ -267,7 +272,7 @@
       .topbar,.hero{align-items:start;flex-direction:column}
       .metric-grid{gap:9px}
       .metric-card{padding:13px}
-      .metric-value{font-size:22px}
+      .metric-value{font-size:20px}
       .panel-header,.panel-body{padding:16px}
     }
   </style>
@@ -279,7 +284,7 @@
       <div class="brand-mark">F</div>
       <div class="eyebrow">Financial Clarity Engine</div>
       <h1>FORGE</h1>
-      <p class="subtitle">Understand the numbers. Identify the risks. Make a more informed investment decision.</p>
+      <p class="subtitle">Understand the numbers. Identify the risks. Make a more informed investment decision. Reads balance sheets, income statements, cash flow statements and statements of shareholders' equity.</p>
 
       <form id="entryForm">
         <label for="userName">Enter your name to continue</label>
@@ -321,7 +326,7 @@
         <div>
           <div class="eyebrow">Private financial workspace</div>
           <h1>From documents<br>to decisions.</h1>
-          <p>Upload financial statements, annual reports, spreadsheets or supported documents. FORGE extracts available financial data, calculates ratios, identifies risks and explains the investment signals.</p>
+          <p>Upload balance sheets, income statements, cash flow statements, statements of shareholders' equity, or full annual reports. FORGE extracts the available financial data, detects which statement each figure came from, calculates ratios, identifies risks, and explains the investment signals in plain English.</p>
         </div>
         <div class="hero-actions">
           <button id="exportButton" class="secondary-button">Export report</button>
@@ -339,9 +344,9 @@
             <div id="uploadZone" class="upload-zone">
               <div class="upload-icon">↑</div>
               <h3>Drop your financial documents here</h3>
-              <p>Upload XLSX, XLS, CSV, TXT, PDF, DOCX, JSON or XML files.</p>
+              <p>Upload XLSX, XLS, CSV, TXT, PDF, DOCX, JSON or XML files. Balance sheets, income statements, cash flow statements and statements of shareholders' equity are all supported — including all four inside a single annual report or 10-K.</p>
               <button id="chooseFilesButton" class="primary-button" type="button">Choose documents</button>
-              <input id="fileInput" class="file-input" type="file" multiple accept=".xlsx,.xls,.csv,.txt,.pdf,.docx,.doc,.json,.xml">
+              <input id="fileInput" class="file-input" type="file" multiple accept=".xlsx,.xls,.csv,.txt,.pdf,.docx,.json,.xml">
               <div class="muted" style="font-size:10px;margin-top:15px">No file is uploaded to a backend.</div>
             </div>
 
@@ -366,10 +371,11 @@
             <div class="panel-header"><h2>How FORGE works</h2></div>
             <div class="panel-body">
               <div class="info-list">
-                <div class="info-row"><div class="info-number">01</div><div><strong>Extract</strong><span>Reads tables, text and financial labels.</span></div></div>
-                <div class="info-row"><div class="info-number">02</div><div><strong>Validate</strong><span>Uses only identifiable values.</span></div></div>
-                <div class="info-row"><div class="info-number">03</div><div><strong>Calculate</strong><span>Computes ratios only when inputs exist.</span></div></div>
-                <div class="info-row"><div class="info-number">04</div><div><strong>Explain</strong><span>Separates positive signals, risks and missing data.</span></div></div>
+                <div class="info-row"><div class="info-number">01</div><div><strong>Extract</strong><span>Reads tables, text and financial labels from every uploaded file.</span></div></div>
+                <div class="info-row"><div class="info-number">02</div><div><strong>Classify</strong><span>Detects which statement — balance sheet, income statement, cash flow statement or equity statement — each section belongs to.</span></div></div>
+                <div class="info-row"><div class="info-number">03</div><div><strong>Validate</strong><span>Uses only identifiable, numeric values, preferring the statement type that matches each metric.</span></div></div>
+                <div class="info-row"><div class="info-number">04</div><div><strong>Calculate</strong><span>Computes ratios and cross-checks (like cash reconciliation) only when the required inputs exist.</span></div></div>
+                <div class="info-row"><div class="info-number">05</div><div><strong>Explain</strong><span>Separates positive signals, risks and missing data, then summarises it in plain English.</span></div></div>
               </div>
             </div>
           </div>
@@ -388,6 +394,11 @@
           <div class="confidence-bar">
             <div class="confidence-label"><span>Analysis confidence</span><span id="confidenceText">0%</span></div>
             <div class="confidence-track"><div id="confidenceFill" class="confidence-fill"></div></div>
+          </div>
+          <div class="narrative-panel">
+            <h3>What FORGE understood</h3>
+            <p id="narrativeText">Upload documents to generate a plain-English read of the numbers.</p>
+            <div id="statementBadges" class="badge-row"></div>
           </div>
         </div>
 
@@ -434,12 +445,15 @@
       verdict:"Insufficient evidence",
       explanation:"",
       confidence:0,
-      analysed:false
+      analysed:false,
+      detectedStatements:new Set(),
+      narrative:""
     };
 
     let pdfLibrary = null;
     let pdfPromise = null;
 
+    // Core fields used only for the "how much did we actually find" confidence score.
     const sourceKeys = [
       "revenue","cogs","grossProfit","operatingExpenses","operatingProfit",
       "netIncome","interestExpense","tax","cash","currentAssets",
@@ -541,7 +555,7 @@
     $("exportButton").addEventListener("click",exportReport);
 
     function addFiles(files){
-      const allowed=[".xlsx",".xls",".csv",".txt",".pdf",".docx",".doc",".json",".xml"];
+      const allowed=[".xlsx",".xls",".csv",".txt",".pdf",".docx",".json",".xml"];
       let rejected=0;
 
       files.forEach(file=>{
@@ -551,7 +565,7 @@
         }
       });
 
-      if(rejected)toast(`${rejected} unsupported file(s) skipped.`);
+      if(rejected)toast(`${rejected} unsupported file(s) skipped. Legacy .doc files must be saved as .docx first.`);
       renderFiles();
       $("analyseButton").disabled=!state.files.length;
       status(state.files.length?`${state.files.length} document(s) ready for analysis.`:"No supported documents loaded.");
@@ -605,6 +619,9 @@
       if(ext===".csv")return parseCSV(file);
       if(ext===".pdf")return parsePDF(file);
       if(ext===".docx")return parseDOCX(file);
+      if(ext===".doc")throw new Error("Legacy .doc format isn't supported — please save as .docx and re-upload.");
+      if(ext===".json")return parseJSONFile(file);
+      if(ext===".xml")return parseXMLFile(file);
       return parseText(await file.text(),file.name);
     }
 
@@ -644,19 +661,19 @@
       const pdf=await loadPDF();
       if(!pdf)throw new Error("PDF parser unavailable");
 
-      const document=await pdf.getDocument({data:await file.arrayBuffer()}).promise;
+      const pdfDoc=await pdf.getDocument({data:await file.arrayBuffer()}).promise;
       const output=[];
 
-      for(let pageNo=1;pageNo<=document.numPages;pageNo++){
-        const page=await document.getPage(pageNo);
+      for(let pageNo=1;pageNo<=pdfDoc.numPages;pageNo++){
+        const page=await pdfDoc.getPage(pageNo);
         const content=await page.getTextContent();
         const text=content.items.map(item=>item.str||"").join(" ").replace(/\s+/g," ").trim();
 
         if(text)output.push({label:text,value:text,source:file.name,location:`page ${pageNo}`});
-        progress(Math.min(80,20+Math.round(pageNo/document.numPages*50)),`Reading PDF page ${pageNo} of ${document.numPages}…`);
+        progress(Math.min(80,20+Math.round(pageNo/pdfDoc.numPages*50)),`Reading PDF page ${pageNo} of ${pdfDoc.numPages}…`);
       }
 
-      if(!output.length)throw new Error("No selectable text found in PDF");
+      if(!output.length)throw new Error("No selectable text found in PDF (it may be a scanned image)");
       return output;
     }
 
@@ -664,6 +681,80 @@
       if(!window.mammoth)throw new Error("DOCX parser unavailable");
       const result=await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});
       return parseText(result.value||"",file.name);
+    }
+
+    async function parseJSONFile(file){
+      const text=await file.text();
+      try{
+        const data=JSON.parse(text);
+        const lines=[];
+        flattenJSON(data,"",lines);
+        return lines.map((line,index)=>({label:line,value:line,source:file.name,location:`entry ${index+1}`}));
+      }catch(error){
+        return parseText(text,file.name);
+      }
+    }
+
+    function flattenJSON(value,prefix,out){
+      if(value===null||value===undefined)return;
+      if(typeof value!=="object"){
+        out.push(prefix?`${prefix}: ${value}`:String(value));
+        return;
+      }
+      Object.entries(value).forEach(([key,child])=>{
+        const label=prefix?`${prefix} ${key}`:key;
+        if(child&&typeof child==="object")flattenJSON(child,label,out);
+        else out.push(`${label}: ${child}`);
+      });
+    }
+
+    async function parseXMLFile(file){
+      const text=await file.text();
+      try{
+        const doc=new DOMParser().parseFromString(text,"application/xml");
+        if(doc.querySelector("parsererror"))throw new Error("Invalid XML");
+        const lines=[];
+        walkXML(doc.documentElement,lines,"");
+        if(!lines.length)throw new Error("Empty XML");
+        return lines.map((line,index)=>({label:line,value:line,source:file.name,location:`node ${index+1}`}));
+      }catch(error){
+        return parseText(text,file.name);
+      }
+    }
+
+    function walkXML(node,out,path){
+      if(!node)return;
+      const label=path?`${path} ${node.nodeName}`:node.nodeName;
+      const children=[...node.children];
+      if(!children.length){
+        const text=clean(node.textContent);
+        if(text)out.push(`${label}: ${text}`);
+        return;
+      }
+      children.forEach(child=>walkXML(child,out,label));
+    }
+
+    // Header phrases used to detect which of the four statements a block of text belongs to.
+    const sectionHeaders=[
+      {type:"balanceSheet",patterns:["balance sheet","statement of financial position","statement of assets and liabilities"]},
+      {type:"incomeStatement",patterns:["income statement","statement of profit and loss","statement of operations","profit and loss account","statement of comprehensive income"]},
+      {type:"cashFlow",patterns:["cash flow statement","statement of cash flows","statement of cashflows"]},
+      {type:"equityStatement",patterns:["statement of changes in equity","statement of shareholders equity","statement of stockholders equity"]}
+    ];
+
+    function tagStatementSections(rows){
+      let current=null;
+      rows.forEach(row=>{
+        const text=normalise(`${row.label} ${row.value}`);
+        for(const section of sectionHeaders){
+          if(text.length<90&&section.patterns.some(p=>text.includes(p))){
+            current=section.type;
+            break;
+          }
+        }
+        row.statementType=current;
+      });
+      return rows;
     }
 
     async function analyse(){
@@ -682,6 +773,8 @@
       state.negatives=[];
       state.actions=[];
       state.analysed=false;
+      state.detectedStatements=new Set();
+      state.narrative="";
 
       const warnings=[];
 
@@ -690,14 +783,16 @@
         progress(Math.round(i/state.files.length*75),`Reading ${file.name}…`);
 
         try{
-          state.rows.push(...await parseFile(file));
+          const parsed=await parseFile(file);
+          tagStatementSections(parsed);
+          state.rows.push(...parsed);
         }catch(error){
           warnings.push(`${file.name}: ${error.message}`);
         }
       }
 
       if(!state.rows.length){
-        status("No readable financial content was found.");
+        status(warnings.length?`No readable financial content was found. ${warnings.join(" ")}`:"No readable financial content was found.");
         toast("No readable documents found.");
         $("analyseButton").disabled=false;
         $("sampleButton").disabled=false;
@@ -709,8 +804,11 @@
         label:clean(row.label),
         value:clean(row.value),
         source:row.source||"Unknown source",
-        location:row.location||"Unknown location"
+        location:row.location||"Unknown location",
+        statementType:row.statementType||null
       })).filter(row=>row.label||row.value);
+
+      state.detectedStatements=new Set(state.rows.map(row=>row.statementType).filter(Boolean));
 
       progress(88,"Calculating financial metrics…");
       state.metrics=calculateMetrics(state.rows);
@@ -732,33 +830,64 @@
     }
 
     const definitions={
+      // Income statement
       revenue:["total operating revenue","operating revenue","total revenue","net sales","total sales","revenue","sales","turnover"],
       cogs:["cost of goods sold","cost of sales","cost of revenue","direct costs","cogs"],
       grossProfit:["gross profit"],
       operatingExpenses:["selling general and administrative expenses","operating expenses","operating costs","administrative expenses","selling expenses","sg&a","sga"],
       operatingProfit:["operating profit","operating income","profit from operations","ebit"],
+      ebitda:["ebitda","earnings before interest tax depreciation and amortisation","earnings before interest tax depreciation and amortization"],
       netIncome:["profit attributable","profit after tax","profit for the year","net income","net profit"],
       interestExpense:["interest expense","finance costs","finance cost","interest paid"],
       tax:["income tax","tax expense","taxation"],
+
+      // Balance sheet
       cash:["cash and cash equivalents","cash equivalents","cash balance","cash at bank","cash"],
       currentAssets:["total current assets","current assets"],
+      nonCurrentAssets:["total non current assets","non current assets","fixed assets"],
       currentLiabilities:["total current liabilities","current liabilities"],
+      totalLiabilities:["total liabilities"],
       inventory:["inventories","inventory","stock"],
       receivables:["trade receivables","accounts receivable","receivables","debtors"],
       totalAssets:["total assets"],
       totalDebt:["total borrowings","total debt","borrowings","debt"],
       equity:["shareholders equity","total equity","owners equity","net worth","equity"],
-      operatingCashFlow:["cash flow from operating activities","net cash from operating activities","operating cash flow"],
+      shareCapital:["share capital","common stock","paid up capital"],
+      retainedEarnings:["retained earnings","accumulated profit","accumulated deficit","reserves and surplus"],
+
+      // Cash flow statement
+      operatingCashFlow:["cash flow from operating activities","net cash from operating activities","net cash generated from operating activities","operating cash flow"],
+      investingCashFlow:["net cash used in investing activities","net cash from investing activities","cash flow from investing activities","net cash generated from investing activities"],
+      financingCashFlow:["net cash used in financing activities","net cash from financing activities","cash flow from financing activities","net cash generated from financing activities"],
       capex:["capital expenditures","capital expenditure","purchase of property plant and equipment","purchase of ppe","additions to property plant equipment"],
-      depreciation:["depreciation expense","depreciation"],
-      dividends:["dividends paid","dividend"]
+      depreciation:["depreciation and amortisation","depreciation and amortization","depreciation expense","depreciation"],
+      netChangeInCash:["net increase in cash and cash equivalents","net decrease in cash and cash equivalents","net change in cash and cash equivalents","net increase in cash","net decrease in cash"],
+      openingCash:["cash and cash equivalents at the beginning of the period","cash and cash equivalents at beginning of year","cash at beginning of period"],
+      closingCash:["cash and cash equivalents at the end of the period","cash and cash equivalents at end of year","cash at end of period"],
+
+      // Statement of shareholders' equity
+      dividends:["dividends paid","dividend paid","dividends declared","dividend"],
+      sharesOutstanding:["weighted average shares outstanding","shares outstanding","number of shares outstanding","weighted average number of shares"]
+    };
+
+    // Which of the four statements each metric is normally found on — used to break ties when
+    // the same word (e.g. "cash") appears in more than one statement.
+    const metricCategory={
+      revenue:"incomeStatement",cogs:"incomeStatement",grossProfit:"incomeStatement",operatingExpenses:"incomeStatement",
+      operatingProfit:"incomeStatement",ebitda:"incomeStatement",netIncome:"incomeStatement",interestExpense:"incomeStatement",tax:"incomeStatement",
+      cash:"balanceSheet",currentAssets:"balanceSheet",nonCurrentAssets:"balanceSheet",currentLiabilities:"balanceSheet",totalLiabilities:"balanceSheet",
+      inventory:"balanceSheet",receivables:"balanceSheet",totalAssets:"balanceSheet",totalDebt:"balanceSheet",equity:"balanceSheet",
+      shareCapital:"balanceSheet",retainedEarnings:"balanceSheet",
+      operatingCashFlow:"cashFlow",investingCashFlow:"cashFlow",financingCashFlow:"cashFlow",capex:"cashFlow",depreciation:"cashFlow",
+      netChangeInCash:"cashFlow",openingCash:"cashFlow",closingCash:"cashFlow",
+      dividends:"equityStatement",sharesOutstanding:"equityStatement"
     };
 
     function calculateMetrics(rows){
       const metrics={};
 
       Object.entries(definitions).forEach(([key,labels])=>{
-        const match=findMetric(rows,labels);
+        const match=findMetric(rows,labels,metricCategory[key]);
         if(match)metrics[key]=match;
       });
 
@@ -786,6 +915,8 @@
       metrics.interestCoverage=r(metrics.operatingProfit?.value,metrics.interestExpense?.value,"Operating profit divided by interest expense");
       metrics.roa=r(metrics.netIncome?.value,metrics.totalAssets?.value,"Net income divided by total assets");
       metrics.roe=r(metrics.netIncome?.value,metrics.equity?.value,"Net income divided by equity");
+      metrics.assetTurnover=r(metrics.revenue?.value,metrics.totalAssets?.value,"Revenue divided by total assets");
+      metrics.equityMultiplier=r(metrics.totalAssets?.value,metrics.equity?.value,"Total assets divided by equity");
 
       if(metrics.operatingCashFlow&&metrics.capex){
         metrics.freeCashFlow={value:metrics.operatingCashFlow.value-Math.abs(metrics.capex.value),derived:true,label:"Operating cash flow minus capital expenditure"};
@@ -795,10 +926,18 @@
         metrics.workingCapital={value:metrics.currentAssets.value-metrics.currentLiabilities.value,derived:true,label:"Current assets minus current liabilities"};
       }
 
+      if(metrics.equity&&metrics.sharesOutstanding&&metrics.sharesOutstanding.value){
+        metrics.bookValuePerShare={value:metrics.equity.value/metrics.sharesOutstanding.value,derived:true,label:"Equity divided by shares outstanding"};
+      }
+
+      if(metrics.dividends&&metrics.netIncome&&metrics.netIncome.value){
+        metrics.dividendPayoutRatio={value:Math.abs(metrics.dividends.value)/metrics.netIncome.value,derived:true,label:"Dividends paid divided by net income"};
+      }
+
       return metrics;
     }
 
-    function findMetric(rows,labels){
+    function findMetric(rows,labels,category){
       const ordered=[...labels].sort((a,b)=>normalise(b).length-normalise(a).length);
       let best=null;
 
@@ -809,19 +948,23 @@
         ordered.forEach(label=>{
           const wanted=normalise(label);
           const pattern=new RegExp(`(^|[^a-z])${wanted.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}([^a-z]|$)`);
+          const match=pattern.exec(text);
+          if(!match)return;
 
-          if(!pattern.test(text))return;
-
-          const index=text.indexOf(wanted);
-          const after=text.slice(index+wanted.length);
+          // Use the actual match position (not a separate indexOf) so the boundary check
+          // and the number search always agree on where the label was found.
+          const matchIndex=match.index+(match[1]?match[1].length:0);
+          const after=text.slice(matchIndex+wanted.length);
           const candidates=after.match(/(?:₹|\$|€|£|rs\.?|inr|usd)?\s*\(?-?\d[\d,]*(?:\.\d+)?\)?\s*(?:billion|million|bn|mn|crore|cr|lakhs?|lakh|%)?/gi)||[];
           const number=candidates.map(parseFinancialNumber).find(Number.isFinite);
 
           if(!Number.isFinite(number))return;
 
-          const score=wanted.length*10+(index<80?20:0)+(row.value===row.label?5:0);
+          let score=wanted.length*10+(matchIndex<80?20:0)+(row.value===row.label?5:0);
+          if(category&&row.statementType===category)score+=25;
+
           if(!best||score>best.score){
-            best={value:number,raw:row.value,label:row.label,source:row.source,location:row.location,score};
+            best={value:number,raw:row.value,label:row.label,source:row.source,location:row.location,statementType:row.statementType,score};
           }
         });
       });
@@ -833,7 +976,7 @@
       let text=clean(value).toLowerCase().replace(/\u00a0/g," ");
       if(!text)return NaN;
 
-      const negative=text.includes("(")&&text.includes(")")||text.includes("-");
+      const negative=(text.includes("(")&&text.includes(")"))||text.includes("-");
       const percent=text.includes("%");
 
       let multiplier=1;
@@ -910,6 +1053,24 @@
         }
       }else missing.push("Operating cash flow and capital expenditure");
 
+      if(m.assetTurnover&&m.assetTurnover.value>=1){
+        positives.push({title:"Efficient asset use",text:`Asset turnover is ${m.assetTurnover.value.toFixed(2)}×, meaning revenue exceeds total assets.`});
+      }
+
+      if(m.dividendPayoutRatio&&m.dividendPayoutRatio.value>0.8){
+        risks.push({title:"High dividend payout",text:`Dividend payout ratio is ${percent(m.dividendPayoutRatio.value)}, leaving limited earnings retained for reinvestment.`});
+      }
+
+      if(m.openingCash&&m.netChangeInCash&&m.closingCash){
+        const expected=m.openingCash.value+m.netChangeInCash.value;
+        const tolerance=Math.max(Math.abs(m.closingCash.value)*0.02,1);
+        if(Math.abs(expected-m.closingCash.value)<=tolerance){
+          positives.push({title:"Cash flow statement reconciles",text:"Opening cash plus net change in cash matches the reported closing cash balance, supporting data reliability."});
+        }else{
+          risks.push({title:"Cash flow figures do not reconcile",text:"Opening cash plus net change in cash does not match the reported closing balance — double-check extraction accuracy against the source document."});
+        }
+      }
+
       const dataPoints=sourceKeys.filter(key=>m[key]&&!m[key].derived&&Number.isFinite(m[key].value)).length;
       state.confidence=Math.min(100,Math.round(dataPoints/sourceKeys.length*100));
 
@@ -939,6 +1100,45 @@
         state.verdict="Proceed with caution";
         state.explanation="The extracted figures are mixed or incomplete. Further diligence is required before making an investment decision.";
       }
+
+      state.narrative=buildNarrative();
+    }
+
+    function buildNarrative(){
+      const m=state.metrics;
+      const parts=[];
+
+      const statementNames={
+        balanceSheet:"a Balance Sheet",
+        incomeStatement:"an Income Statement",
+        cashFlow:"a Cash Flow Statement",
+        equityStatement:"a Statement of Shareholders' Equity"
+      };
+      const found=[...state.detectedStatements].map(t=>statementNames[t]).filter(Boolean);
+
+      parts.push(found.length
+        ? `FORGE identified ${found.join(", ")} within the uploaded documents.`
+        : `FORGE could not clearly identify section headers for the four statement types, so figures were matched using label text alone — results may be less precise.`);
+
+      parts.push(m.revenue
+        ? `Revenue was read as ${currency(m.revenue.value)}${m.netMargin?`, with a net margin of ${percent(m.netMargin.value)}`:""}.`
+        : "No revenue figure could be reliably extracted.");
+
+      if(m.currentRatio){
+        parts.push(`Short-term liquidity looks ${m.currentRatio.value>=1.5?"comfortable":m.currentRatio.value>=1?"adequate":"tight"}, with a current ratio of ${m.currentRatio.value.toFixed(2)}.`);
+      }
+
+      if(m.debtToEquity){
+        parts.push(`Leverage is ${m.debtToEquity.value>2?"high":m.debtToEquity.value>1?"moderate":"low"}, with debt-to-equity at ${m.debtToEquity.value.toFixed(2)}.`);
+      }
+
+      if(m.freeCashFlow){
+        parts.push(`Free cash flow is ${m.freeCashFlow.value>=0?"positive":"negative"} at ${currency(m.freeCashFlow.value)}.`);
+      }
+
+      parts.push(`Overall confidence in this analysis is ${state.confidence}%, based on how many core figures were matched directly rather than derived or estimated.`);
+
+      return parts.join(" ");
     }
 
     function render(){
@@ -963,10 +1163,18 @@
         ["Gross margin",m.grossMargin?.value,"Gross profit ÷ revenue","percent"],
         ["Operating margin",m.operatingMargin?.value,"Operating profit ÷ revenue","percent"],
         ["Net margin",m.netMargin?.value,"Net income ÷ revenue","percent"],
+        ["Return on assets",m.roa?.value,"Net income ÷ total assets","percent"],
+        ["Return on equity",m.roe?.value,"Net income ÷ equity","percent"],
         ["Current ratio",m.currentRatio?.value,"Current assets ÷ current liabilities","ratio"],
         ["Quick ratio",m.quickRatio?.value,"Liquid assets ÷ current liabilities","ratio"],
         ["Debt / equity",m.debtToEquity?.value,"Total debt ÷ equity","ratio"],
-        ["Free cash flow",m.freeCashFlow?.value,"Operating cash flow − capex","currency"]
+        ["Interest coverage",m.interestCoverage?.value,"Operating profit ÷ interest expense","ratio"],
+        ["Free cash flow",m.freeCashFlow?.value,"Operating cash flow − capex","currency"],
+        ["Working capital",m.workingCapital?.value,"Current assets − current liabilities","currency"],
+        ["Asset turnover",m.assetTurnover?.value,"Revenue ÷ total assets","ratio"],
+        ["Equity multiplier",m.equityMultiplier?.value,"Total assets ÷ equity","ratio"],
+        ["Book value / share",m.bookValuePerShare?.value,"Equity ÷ shares outstanding","currency"],
+        ["Dividend payout",m.dividendPayoutRatio?.value,"Dividends ÷ net income","percent"]
       ];
 
       $("metricGrid").innerHTML=cards.map(([label,value,foot,type])=>{
@@ -984,6 +1192,18 @@
       $("investmentExplanation").textContent=state.explanation;
       $("confidenceText").textContent=`${state.confidence}%`;
       $("confidenceFill").style.width=`${state.confidence}%`;
+      $("narrativeText").textContent=state.narrative||"Upload documents to generate a plain-English read of the numbers.";
+
+      const allTypes=[
+        ["balanceSheet","Balance Sheet"],
+        ["incomeStatement","Income Statement"],
+        ["cashFlow","Cash Flow Statement"],
+        ["equityStatement","Statement of Equity"]
+      ];
+      $("statementBadges").innerHTML=allTypes.map(([key,label])=>{
+        const detected=state.detectedStatements.has(key);
+        return `<span class="badge ${detected?"detected":""}">${label}${detected?" ✓":""}</span>`;
+      }).join("");
     }
 
     function renderList(id,items,type){
@@ -1001,16 +1221,17 @@
         return;
       }
 
-      const currencyKeys=["revenue","cogs","grossProfit","operatingExpenses","operatingProfit","netIncome","interestExpense","tax","cash","currentAssets","currentLiabilities","inventory","receivables","totalAssets","totalDebt","equity","operatingCashFlow","capex","depreciation","dividends","freeCashFlow","workingCapital"];
-      const percentKeys=["grossMargin","operatingMargin","netMargin","roa","roe"];
+      const currencyKeys=["revenue","cogs","grossProfit","operatingExpenses","operatingProfit","ebitda","netIncome","interestExpense","tax","cash","currentAssets","nonCurrentAssets","currentLiabilities","totalLiabilities","inventory","receivables","totalAssets","totalDebt","equity","shareCapital","retainedEarnings","operatingCashFlow","investingCashFlow","financingCashFlow","capex","depreciation","netChangeInCash","openingCash","closingCash","dividends","freeCashFlow","workingCapital","bookValuePerShare"];
+      const percentKeys=["grossMargin","operatingMargin","netMargin","roa","roe","dividendPayoutRatio"];
 
       $("financialTable").innerHTML=`
         <table>
-          <thead><tr><th>Metric</th><th>Value</th><th>Basis</th><th>Source</th></tr></thead>
+          <thead><tr><th>Metric</th><th>Value</th><th>Basis</th><th>Statement</th><th>Source</th></tr></thead>
           <tbody>
             ${entries.map(([key,item])=>{
               const value=percentKeys.includes(key)?percent(item.value):currencyKeys.includes(key)?currency(item.value):item.value.toFixed(2);
-              return `<tr><td>${escapeHTML(humanize(key))}</td><td>${escapeHTML(value)}</td><td>${escapeHTML(item.label||"Calculated")}</td><td>${escapeHTML(item.derived?"Derived":item.source||"Unknown")}</td></tr>`;
+              const statementLabel={balanceSheet:"Balance Sheet",incomeStatement:"Income Statement",cashFlow:"Cash Flow",equityStatement:"Equity"}[item.statementType]||"—";
+              return `<tr><td>${escapeHTML(humanize(key))}</td><td>${escapeHTML(value)}</td><td>${escapeHTML(item.label||"Calculated")}</td><td>${escapeHTML(item.derived?"Derived":statementLabel)}</td><td>${escapeHTML(item.derived?"Derived":item.source||"Unknown")}</td></tr>`;
             }).join("")}
           </tbody>
         </table>`;
@@ -1024,8 +1245,9 @@
         "Current liabilities 350000","Inventory 180000","Total debt 400000",
         "Equity 500000","Interest expense 45000","Operating cash flow 220000",
         "Capital expenditure 80000","Total assets 1500000"
-      ].map(text=>({label:text,value:text,source:"Neutral sample",location:"sample"}));
+      ].map(text=>({label:text,value:text,source:"Neutral sample",location:"sample",statementType:null}));
 
+      state.detectedStatements=new Set();
       renderFiles();
       $("analyseButton").disabled=false;
       state.metrics=calculateMetrics(state.rows);
@@ -1040,6 +1262,8 @@
       state.rows=[];
       state.metrics={};
       state.analysed=false;
+      state.detectedStatements=new Set();
+      state.narrative="";
       renderFiles();
       $("analyseButton").disabled=true;
       $("dashboard").classList.add("hidden");
@@ -1065,6 +1289,7 @@
         doc.text(`Assessment: ${state.verdict}`,14,45);
         doc.setFontSize(10);
         doc.text(doc.splitTextToSize(state.explanation,180),14,53);
+        doc.text(doc.splitTextToSize(state.narrative,180),14,66);
 
         const rows=Object.entries(state.metrics)
           .filter(([,item])=>item&&Number.isFinite(item.value))
@@ -1072,14 +1297,14 @@
 
         if(typeof doc.autoTable==="function"){
           doc.autoTable({
-            startY:70,
+            startY:88,
             head:[["Metric","Value","Basis","Source"]],
             body:rows,
             theme:"grid",
             styles:{fontSize:8}
           });
         }else{
-          let y=70;
+          let y=88;
           rows.forEach(row=>{
             doc.text(`${row[0]}: ${row[1]}`,14,y);
             y+=7;
@@ -1095,8 +1320,8 @@
     }
 
     function reportValue(key,value){
-      if(["grossMargin","operatingMargin","netMargin","roa","roe"].includes(key))return percent(value);
-      if(["revenue","cogs","grossProfit","operatingExpenses","operatingProfit","netIncome","interestExpense","tax","cash","currentAssets","currentLiabilities","inventory","receivables","totalAssets","totalDebt","equity","operatingCashFlow","capex","depreciation","dividends","freeCashFlow","workingCapital"].includes(key))return currency(value);
+      if(["grossMargin","operatingMargin","netMargin","roa","roe","dividendPayoutRatio"].includes(key))return percent(value);
+      if(["revenue","cogs","grossProfit","operatingExpenses","operatingProfit","ebitda","netIncome","interestExpense","tax","cash","currentAssets","nonCurrentAssets","currentLiabilities","totalLiabilities","inventory","receivables","totalAssets","totalDebt","equity","shareCapital","retainedEarnings","operatingCashFlow","investingCashFlow","financingCashFlow","capex","depreciation","netChangeInCash","openingCash","closingCash","dividends","freeCashFlow","workingCapital","bookValuePerShare"].includes(key))return currency(value);
       return Number(value).toFixed(2);
     }
 
