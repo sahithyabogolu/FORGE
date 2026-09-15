@@ -734,7 +734,7 @@
           <label class="field-label" for="stmtType">Document Classification Mode</label>
           <select id="stmtType" class="full-width">
             <option value="auto">Auto-Detect Statement Type</option>
-            <option value="balance">Income Statement / P&amp;L</option>
+            <option value="income">Income Statement / P&amp;L</option>
             <option value="balance_sheet">Balance Sheet</option>
             <option value="cashflow">Cash Flow Statement</option>
             <option value="equity">Statement of Equity</option>
@@ -1071,7 +1071,8 @@
 
     const money = (value) =>
       "$" + Number(value).toLocaleString("en-US", {
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2
       });
 
     const escapeHTML = (value) =>
@@ -1243,6 +1244,33 @@
     }
 
     /* =====================================================
+       TEXT EXTRACTION HELPER
+       ===================================================== */
+
+    function extractMetric(text, keywords) {
+      const lines = text.split(/\r?\n/);
+      for (const line of lines) {
+        const lowerLine = line.toLowerCase();
+        for (const kw of keywords) {
+          if (lowerLine.includes(kw)) {
+            // Match numeric values (including formatted like $1,234.56 or (1,234))
+            const matches = line.match(/\(?\$?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\)?/g);
+            if (matches && matches.length > 0) {
+              const lastMatch = matches[matches.length - 1];
+              let isNegative = lastMatch.includes('(') || line.includes('-');
+              let valStr = lastMatch.replace(/[\$\(\)\,\s]/g, '');
+              let val = parseFloat(valStr);
+              if (!isNaN(val)) {
+                return isNegative ? -val : val;
+              }
+            }
+          }
+        }
+      }
+      return 0;
+    }
+
+    /* =====================================================
        TAB 1: STATEMENT SCANNER LOGIC
        ===================================================== */
 
@@ -1267,8 +1295,6 @@
           return;
         }
 
-        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        
         let rev = extractMetric(text, ["revenue", "sales", "total revenue", "turnover"]);
         let burn = extractMetric(text, ["operating expenses", "total expenses", "cost of goods", "cogs", "expenses"]);
         let cash = extractMetric(text, ["cash and cash equivalents", "cash balance", "cash", "total cash"]);
@@ -1277,40 +1303,40 @@
         // Auto-classify statement type
         let docType = $("stmtType").value;
         if (docType === "auto") {
-          const lowerText = text.toLowerCase();
-          if (lowerText.includes("balance sheet") || (lowerText.includes("assets") && lowerText.includes("liabilities"))) {
-            docType = "balance_sheet";
-          } else if (lowerText.includes("cash flow") || lowerText.includes("operating activities")) {
-            docType = "cashflow";
-          } else if (lowerText.includes("equity") || lowerText.includes("stockholders")) {
-            docType = "equity";
+          const lower = text.toLowerCase();
+          if (lower.includes("balance sheet") || lower.includes("assets") && lower.includes("liabilities")) {
+            docType = "Balance Sheet";
+          } else if (lower.includes("cash flow") || lower.includes("operating activities")) {
+            docType = "Cash Flow Statement";
+          } else if (lower.includes("equity") || lower.includes("retained earnings")) {
+            docType = "Statement of Equity";
           } else {
-            docType = "balance"; // Income Statement
+            docType = "Income Statement / P&L";
           }
+        } else {
+          const map = {
+            "income": "Income Statement / P&L",
+            "balance_sheet": "Balance Sheet",
+            "cashflow": "Cash Flow Statement",
+            "equity": "Statement of Equity"
+          };
+          docType = map[docType] || "Financial Statement";
         }
 
-        parsedExtractedRev = rev;
-        parsedExtractedBurn = burn;
-        parsedCashBalance = cash;
+        parsedExtractedRev = Math.abs(rev);
+        parsedExtractedBurn = Math.abs(burn);
+        parsedCashBalance = Math.abs(cash);
         parsedDocumentType = docType;
         parsedStatementReady = true;
 
-        const docTypeTitles = {
-          "balance": "Income Statement (P&L)",
-          "balance_sheet": "Balance Sheet",
-          "cashflow": "Cash Flow Statement",
-          "equity": "Statement of Equity"
-        };
-
-        setText("stmtTitle", `CLASSIFIED: ${docTypeTitles[docType] || "Financial Statement"}`);
-        setText("detectedTag", docType.toUpperCase().replace("_", " "));
-
+        setText("stmtTitle", `CLASSIFIED: ${docType.toUpperCase()}`);
+        
         let html = `
-          <li><span class="lbl">Detected Type</span><span class="val">${docTypeTitles[docType] || docType}</span></li>
-          <li><span class="lbl">Extracted Revenue / Inflows</span><span class="val">${money(rev)}</span></li>
-          <li><span class="lbl">Extracted Expenses / Operating Costs</span><span class="val">${money(burn)}</span></li>
-          <li><span class="lbl">Extracted Cash Position</span><span class="val">${money(cash)}</span></li>
-          <li><span class="lbl">Net Operating Result</span><span class="val">${money(rev - burn || netInc)}</span></li>
+          <li><span class="lbl">Detected Type</span><span class="val">${escapeHTML(docType)}</span></li>
+          <li><span class="lbl">Extracted Base Revenue</span><span class="val">${money(parsedExtractedRev)}</span></li>
+          <li><span class="lbl">Extracted Operating Expenses</span><span class="val">${money(parsedExtractedBurn)}</span></li>
+          <li><span class="lbl">Extracted Cash Balance</span><span class="val">${money(parsedCashBalance)}</span></li>
+          <li><span class="lbl">Extracted Net Income</span><span class="val">${money(netInc)}</span></li>
         `;
 
         setHTML("stmtResults", html);
@@ -1318,29 +1344,12 @@
 
       } catch (err) {
         show("stmtSpinner", false);
-        setError("stmtError", "Failed to parse document: " + err.message);
+        setError("stmtError", err.message || "An error occurred while parsing the document.");
       }
-    }
-
-    function extractMetric(text, keywords) {
-      const lines = text.split(/\r?\n/);
-      for (let line of lines) {
-        const lower = line.toLowerCase();
-        for (let kw of keywords) {
-          if (lower.includes(kw)) {
-            const matches = line.match(/[\$]?\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/);
-            if (matches && matches[1]) {
-              const val = parseFloat(matches[1].replace(/,/g, ""));
-              if (!isNaN(val)) return val;
-            }
-          }
-        }
-      }
-      return 0;
     }
 
     /* =====================================================
-       TAB 2: 10-K & FILING SCANNER (INVESTOR ENGINE)
+       TAB 2: 10-K & FILING SCANNER LOGIC
        ===================================================== */
 
     async function analyzeInvestorDecision() {
@@ -1349,7 +1358,7 @@
 
       const fileInput = $("tenkFile");
       if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        setError("tenkError", "Please select a PDF, CSV, or TXT 10-K report to analyze.");
+        setError("tenkError", "Please select a 10-K report or filing file.");
         return;
       }
 
@@ -1360,40 +1369,58 @@
         show("tenkSpinner", false);
 
         if (!text || text.trim().length === 0) {
-          setError("tenkError", "The uploaded report contains no readable text.");
+          setError("tenkError", "The filing file contains no readable text.");
           return;
         }
 
-        let rev = extractMetric(text, ["revenue", "total revenue", "sales"]);
-        let burn = extractMetric(text, ["expenses", "total expenses", "operating costs"]);
-        let cash = extractMetric(text, ["cash", "cash equivalents"]);
-        let debt = extractMetric(text, ["total debt", "long term debt", "liabilities"]);
+        let rev = extractMetric(text, ["revenue", "sales", "total revenue"]);
+        let burn = extractMetric(text, ["operating expenses", "total expenses", "cogs"]);
+        let cash = extractMetric(text, ["cash and cash equivalents", "cash balance", "cash"]);
+        let debt = extractMetric(text, ["total debt", "long-term debt", "liabilities"]);
+        let netInc = extractMetric(text, ["net income", "net profit"]);
 
-        let margin = rev > 0 ? ((rev - burn) / rev) * 100 : 0;
+        parsedExtractedRev = Math.abs(rev);
+        parsedExtractedBurn = Math.abs(burn);
+        parsedCashBalance = Math.abs(cash);
+        parsedDocumentType = "10-K Filing";
+        parsedStatementReady = true;
+
+        // Health Score & Decision Engine
         let score = 50;
-        if (margin > 20) score += 25; else if (margin > 0) score += 10;
-        if (cash > debt) score += 25; else score -= 15;
+        let risks = [];
 
-        score = Math.max(0, Math.min(100, score));
+        if (parsedExtractedRev > parsedExtractedBurn) score += 20;
+        else { score -= 15; risks.push("Operating Burn exceeds Revenue"); }
 
-        let verdict = score >= 70 ? "SUITABLE (PASS)" : score >= 40 ? "WATCHLIST (CAUTION)" : "HIGH RISK (FAIL)";
-        let riskRating = score >= 70 ? "LOW RISK" : score >= 40 ? "MODERATE RISK" : "CRITICAL RISK";
+        if (netInc > 0) score += 15;
+        else risks.push("Negative Net Income");
+
+        if (parsedCashBalance > debt) score += 15;
+        else if (debt > 0) { score -= 10; risks.push("High Debt relative to Cash"); }
+
+        score = Math.min(100, Math.max(0, score));
+
+        let verdict = "NEUTRAL / HOLD";
+        let flag = "MEDIUM";
+
+        if (score >= 70) {
+          verdict = "INVEST / STRONG";
+          flag = "LOW";
+        } else if (score < 45) {
+          verdict = "PASS / HIGH RISK";
+          flag = "HIGH";
+        }
 
         setText("verdictVal", verdict);
         setText("healthVal", `${score}/100`);
-        setText("flagVal", riskRating);
-
-        parsedExtractedRev = rev;
-        parsedExtractedBurn = burn;
-        parsedCashBalance = cash;
-        parsedStatementReady = true;
+        setText("flagVal", `${flag} RISK`);
 
         let html = `
-          <li><span class="lbl">Extracted Annual Revenue</span><span class="val">${money(rev)}</span></li>
-          <li><span class="lbl">Extracted Total Expenses</span><span class="val">${money(burn)}</span></li>
-          <li><span class="lbl">Liquid Cash Reserves</span><span class="val">${money(cash)}</span></li>
-          <li><span class="lbl">Reported Debt/Liabilities</span><span class="val">${money(debt)}</span></li>
-          <li><span class="lbl">Calculated Operating Margin</span><span class="val">${margin.toFixed(1)}%</span></li>
+          <li><span class="lbl">Reported Revenue</span><span class="val">${money(parsedExtractedRev)}</span></li>
+          <li><span class="lbl">Reported Expenses</span><span class="val">${money(parsedExtractedBurn)}</span></li>
+          <li><span class="lbl">Cash Reserves</span><span class="val">${money(parsedCashBalance)}</span></li>
+          <li><span class="lbl">Total Debt Identified</span><span class="val">${money(debt)}</span></li>
+          <li><span class="lbl">Key Risk Factors</span><span class="val">${risks.length > 0 ? escapeHTML(risks.join(", ")) : "None Detected"}</span></li>
         `;
 
         setHTML("tenkResults", html);
@@ -1401,17 +1428,17 @@
 
       } catch (err) {
         show("tenkSpinner", false);
-        setError("tenkError", "Failed to evaluate report: " + err.message);
+        setError("tenkError", err.message || "An error occurred while evaluating the filing.");
       }
     }
 
     /* =====================================================
-       TAB 3: FORECAST SIMULATOR LOGIC (GATED)
+       TAB 3: FORECAST SIMULATOR & SYNC LOGIC
        ===================================================== */
 
     function syncToSimulator() {
       if (!parsedStatementReady) {
-        alert("Please parse a financial statement or 10-K file first.");
+        alert("Please parse a financial document first in Tab 1 or Tab 2.");
         return;
       }
 
@@ -1422,53 +1449,63 @@
       show("simLockedNotice", false);
       show("simContent", true);
 
-      const forecastTabBtn = document.querySelector('[data-tab="forecast"]');
-      if (forecastTabBtn) switchTab("forecast", forecastTabBtn);
+      // Navigate to Forecast Simulator tab
+      const tabBtn = document.querySelector('[data-tab="forecast"]');
+      if (tabBtn) switchTab("forecast", tabBtn);
 
       runSimulation();
     }
 
     function runSimulation() {
-      if (!parsedStatementReady) return;
-
-      const baseCash = readAmount("simCash");
+      const openingCash = readAmount("simCash");
       const baseRev = readAmount("simRev");
       const baseBurn = readAmount("simBurn");
       const growthRate = (parseFloat($("simGrowth").value) || 0) / 100;
-      const scaleMultiplier = (parseFloat($("scaleSlider").value) || 100) / 100;
-      const mode = $("simWindow").value;
+      const scaleMultiplier = (parseInt($("scaleSlider").value, 10) || 100) / 100;
+      const windowMode = $("simWindow").value;
 
       setText("sliderVal", `${Math.round(scaleMultiplier * 100)}%`);
 
-      const periods = mode === "monthly" ? 12 : 4;
-      const periodLabel = mode === "monthly" ? "Months" : "Weeks";
+      const periods = windowMode === "monthly" ? 12 : 4;
+      const periodLabel = windowMode === "monthly" ? "Months" : "Weeks";
 
-      let totalRev = 0;
-      let totalBurn = 0;
+      let totalProjectedRev = 0;
+      let totalProjectedBurn = 0;
       let currentRev = baseRev * scaleMultiplier;
       let currentBurn = baseBurn * scaleMultiplier;
 
       for (let i = 0; i < periods; i++) {
-        totalRev += currentRev;
-        totalBurn += currentBurn;
+        totalProjectedRev += currentRev;
+        totalProjectedBurn += currentBurn;
         currentRev *= (1 + growthRate);
       }
 
-      const netYield = totalRev - totalBurn;
-      const margin = totalRev > 0 ? (netYield / totalRev) * 100 : 0;
-      const endingCash = baseCash + netYield;
-      const monthlyNetBurn = currentBurn - currentRev;
-      const runwayMonths = monthlyNetBurn > 0 ? baseCash / monthlyNetBurn : Infinity;
+      const netCashYield = totalProjectedRev - totalProjectedBurn;
+      const endingCash = openingCash + netCashYield;
+      const opMargin = totalProjectedRev > 0 ? (netCashYield / totalProjectedRev) * 100 : 0;
 
-      setText("netVal", money(netYield));
-      setText("marginVal", `${margin.toFixed(1)}%`);
+      // Runway Calculation
+      const netPeriodBurn = (totalProjectedBurn - totalProjectedRev) / periods;
+      let runwayText = "Infinite / Cash Positive";
+      let runwayViability = "HEALTHY";
+
+      if (netPeriodBurn > 0) {
+        const monthsOfRunway = openingCash / netPeriodBurn;
+        runwayText = `${monthsOfRunway.toFixed(1)} ${periodLabel}`;
+        if (monthsOfRunway < 3) runwayViability = "CRITICAL";
+        else if (monthsOfRunway < 6) runwayViability = "MODERATE";
+        else runwayViability = "STRONG";
+      }
+
+      setText("netVal", money(netCashYield));
+      setText("marginVal", `${opMargin.toFixed(1)}%`);
       setText("endingCashVal", money(endingCash));
-      setText("runwayVal", runwayMonths === Infinity ? "Sustainable" : runwayMonths < 6 ? "Critical" : "Stable");
+      setText("runwayVal", runwayViability);
 
       setText("projectionVal", `${periods} ${periodLabel}`);
-      setText("projectedRevVal", money(totalRev));
-      setText("projectedBurnVal", money(totalBurn));
-      setText("cashRunwayVal", runwayMonths === Infinity ? "Indefinite" : `${runwayMonths.toFixed(1)} Months`);
+      setText("projectedRevVal", money(totalProjectedRev));
+      setText("projectedBurnVal", money(totalProjectedBurn));
+      setText("cashRunwayVal", runwayText);
     }
   </script>
 </body>
