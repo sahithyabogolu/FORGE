@@ -16,17 +16,20 @@
     }
 
     :root {
-      --bg-dark: #080808;
-      --panel-bg: #111111;
-      --card-bg: #161616;
-      --border-color: #222222;
-      --border-focus: #555555;
-      --text-main: #f0f0f0;
-      --text-muted: #777777;
+      --bg-dark: #0a0a0a;
+      --panel-bg: #141414;
+      --card-bg: #1c1c1c;
+      --border-color: #2e2e2e;
+      --border-focus: #666666;
+      --text-main: #e5e5e5;
+      --text-muted: #888888;
       --accent-white: #ffffff;
-      --accent-green: #22c55e;
-      --accent-red: #ef4444;
-      --accent-amber: #f59e0b;
+      
+      /* Monochrome Palette Shifts */
+      --mono-bright: #ffffff;
+      --mono-mid: #a3a3a3;
+      --mono-dark: #525252;
+      --mono-subtle: #262626;
     }
 
     html {
@@ -47,11 +50,6 @@
     input,
     select {
       font: inherit;
-    }
-
-    button,
-    input,
-    select {
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -71,7 +69,7 @@
       align-items: center;
       gap: 20px;
       border-bottom: 1px solid var(--border-color);
-      background: rgba(8, 8, 8, 0.92);
+      background: rgba(10, 10, 10, 0.95);
       backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
@@ -92,9 +90,9 @@
     .brand-dot {
       width: 8px;
       height: 8px;
-      background: #fff;
+      background: #737373;
       border-radius: 50%;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
       flex-shrink: 0;
     }
 
@@ -126,7 +124,7 @@
       max-width: 800px;
       margin: 10px auto 0;
       font-size: 0.68rem;
-      color: #555;
+      color: #525252;
     }
 
     /* LAYOUT */
@@ -149,6 +147,7 @@
     h2 {
       font-size: 1.1rem;
       margin-bottom: 8px;
+      color: #f5f5f5;
     }
 
     .access-card {
@@ -157,12 +156,13 @@
       border-radius: 8px;
       padding: 28px;
       margin-bottom: 30px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
     }
 
     .access-card h1 {
       font-size: 1.2rem;
       margin-bottom: 6px;
+      color: #fff;
     }
 
     p.subtitle {
@@ -191,7 +191,7 @@
       border-radius: 4px;
       outline: none;
       font-size: 0.88rem;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, background-color 0.2s;
       min-width: 0;
     }
 
@@ -204,11 +204,12 @@
     select:focus,
     input[type="file"]:focus {
       border-color: var(--border-focus);
+      background: #050505;
     }
 
     input[type="range"] {
       width: 100%;
-      accent-color: #fff;
+      accent-color: #a3a3a3;
       cursor: pointer;
       margin-top: 10px;
     }
@@ -219,13 +220,18 @@
     }
 
     input[type="file"]::file-selector-button {
-      background: #222;
-      color: #fff;
-      border: 1px solid #333;
+      background: #262626;
+      color: #e5e5e5;
+      border: 1px solid var(--border-color);
       border-radius: 3px;
       padding: 6px 10px;
       margin-right: 10px;
       cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background: #404040;
     }
 
     /* BUTTONS */
@@ -246,7 +252,7 @@
     }
 
     .btn:hover {
-      background: #ccc;
+      background: #a3a3a3;
       transform: translateY(-1px);
     }
 
@@ -256,28 +262,30 @@
 
     .btn-secondary {
       background: transparent;
-      color: var(--text-muted);
+      color: #d4d4d4;
       border-color: var(--border-color);
     }
 
     .btn-secondary:hover {
       background: var(--card-bg);
       color: #fff;
+      border-color: #525252;
     }
 
     .btn-danger {
-      background: rgba(239, 68, 68, 0.15);
-      color: var(--accent-red);
-      border-color: rgba(239, 68, 68, 0.4);
+      background: #171717;
+      color: #a3a3a3;
+      border-color: #404040;
     }
 
     .btn-danger:hover {
-      background: var(--accent-red);
+      background: #262626;
       color: #fff;
+      border-color: #737373;
     }
 
     .btn:disabled {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: not-allowed;
       transform: none;
     }
@@ -312,6 +320,11 @@
       color: var(--accent-white);
       background: var(--panel-bg);
       border-color: var(--border-color);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: #d4d4d4;
+      background: rgba(255, 255, 255, 0.03);
     }
 
     /* PANELS */
@@ -382,16 +395,17 @@
       width: 100%;
     }
 
-    /* RESULTS */
+    /* RESULTS & MONOCHROME BADGES */
 
     .result-box {
       margin-top: 15px;
       padding: 12px;
-      background: #000;
+      background: #050505;
       border: 1px solid var(--border-color);
       font-size: 0.8rem;
       line-height: 1.6;
       min-height: 42px;
+      border-radius: 4px;
     }
 
     .spinner {
@@ -407,9 +421,9 @@
       display: none;
       margin-top: 15px;
       padding: 12px;
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: var(--accent-red);
+      background: #171717;
+      border: 1px solid #404040;
+      color: #d4d4d4;
       font-size: 0.8rem;
       border-radius: 4px;
       line-height: 1.5;
@@ -417,7 +431,7 @@
 
     .analysis-output {
       margin-top: 24px;
-      background: #000;
+      background: #050505;
       border: 1px solid var(--border-color);
       border-radius: 6px;
       padding: 24px;
@@ -431,7 +445,7 @@
       color: var(--text-muted);
       margin-bottom: 16px;
       padding-bottom: 8px;
-      border-bottom: 1px solid #1c1c1c;
+      border-bottom: 1px solid #262626;
       display: flex;
       justify-content: space-between;
       gap: 12px;
@@ -444,7 +458,7 @@
 
     .analysis-list li {
       padding: 12px 0;
-      border-bottom: 1px solid #141414;
+      border-bottom: 1px solid #171717;
       font-size: 0.85rem;
       display: flex;
       justify-content: space-between;
@@ -473,7 +487,7 @@
     }
 
     .metric-card {
-      background: #000;
+      background: #0a0a0a;
       border: 1px solid var(--border-color);
       padding: 20px;
       border-radius: 4px;
@@ -493,6 +507,33 @@
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 1px;
+    }
+
+    /* Strict Grey/Black Visual Status Classes */
+    .status-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    
+    .status-high {
+      background: #ffffff;
+      color: #000000;
+    }
+    
+    .status-med {
+      background: #737373;
+      color: #ffffff;
+    }
+
+    .status-low {
+      background: #262626;
+      color: #a3a3a3;
+      border: 1px solid #404040;
     }
 
     .status-note {
@@ -787,7 +828,7 @@
 
         <div class="output-header">
           <span id="stmtTitle">Extracted Financial Breakdown</span>
-          <span style="color:var(--accent-green);font-size:0.7rem;">
+          <span class="status-tag status-low">
             Active Extraction
           </span>
         </div>
@@ -1022,7 +1063,7 @@
 
           <div class="metric-card">
             <div class="lbl">Runway Viability</div>
-            <div class="val" id="runwayVal" style="color:var(--accent-green);">
+            <div class="val" id="runwayVal">
               Sustainable
             </div>
           </div>
@@ -1299,23 +1340,20 @@
 
       if (months < 3) {
         setHTML("p1_res",
-          `<span style="color:var(--accent-red);">
-            CRITICAL: ${formatted} Months Runway Remaining.
-            Emergency cash conservation required.
+          `<span style="color:#ffffff; font-weight:700;">
+            CRITICAL: ${formatted} Months Runway Remaining. Emergency cash conservation required.
           </span>`
         );
       } else if (months < 6) {
         setHTML("p1_res",
-          `<span style="color:var(--accent-amber);">
-            WARNING: ${formatted} Months Runway Remaining.
-            Monitor capital allocation closely.
+          `<span style="color:#a3a3a3; font-weight:600;">
+            WARNING: ${formatted} Months Runway Remaining. Monitor capital allocation closely.
           </span>`
         );
       } else {
         setHTML("p1_res",
-          `<span style="color:var(--accent-green);">
-            HEALTHY: ${formatted} Months Runway Remaining.
-            Operational buffer intact.
+          `<span style="color:#737373;">
+            HEALTHY: ${formatted} Months Runway Remaining. Operational buffer intact.
           </span>`
         );
       }
@@ -1335,487 +1373,201 @@
       }
 
       const diff = current - last;
-      const pct = (diff / last) * 100;
+      const pct = ((diff / last) * 100).toFixed(1);
 
       if (diff > 0) {
         setHTML("p2_res",
-          `<span style="color:var(--accent-red);">
-            VENDOR CREEP DETECTED: Expenses increased by
-            +${pct.toFixed(1)}% (+${money(diff)} higher).
+          `<span style="color:#ffffff; font-weight:700;">
+            COST INCREASE: +${money(diff)} (+${pct}% vs last month).
           </span>`
         );
       } else if (diff < 0) {
         setHTML("p2_res",
-          `<span style="color:var(--accent-green);">
-            SAVINGS GAINED: Expenses decreased by
-            ${Math.abs(pct).toFixed(1)}% (-${money(Math.abs(diff))}).
+          `<span style="color:#a3a3a3;">
+            COST SAVINGS: -${money(Math.abs(diff))} (${pct}% reduction).
           </span>`
         );
       } else {
-        setText("p2_res", "FLAT: No cost variations detected month-over-month.");
+        setHTML("p2_res",
+          `<span style="color:var(--text-muted);">
+            STABLE: No change in vendor costs.
+          </span>`
+        );
       }
     }
 
     /* =====================================================
-       FILE VALIDATION
+       FILE PARSING HELPER
        ===================================================== */
 
-    function validateFile(file, errorId) {
-      if (!file) {
-        setError(errorId, "Please attach a financial document.");
-        return false;
-      }
+    function extractFinancialMetrics(text) {
+      const lines = text.split(/\r?\n/);
+      const metrics = {};
 
-      const extension = file.name.toLowerCase().split(".").pop();
-      const allowed = ["csv", "txt"];
+      lines.forEach((line) => {
+        let parts = line.split(",");
+        if (parts.length < 2) parts = line.split("\t");
+        if (parts.length < 2) parts = line.split(":");
 
-      if (!allowed.includes(extension)) {
-        setError(errorId, "Unsupported file type. Upload a CSV or TXT file.");
-        return false;
-      }
+        if (parts.length >= 2) {
+          const key = parts[0].trim().toLowerCase();
+          const rawVal = parts[1].replace(/[\$,]/g, "").trim();
+          const val = parseFloat(rawVal);
 
-      if (file.size === 0) {
-        setError(errorId, "The selected file is empty.");
-        return false;
-      }
-
-      if (file.size > 10 * 1024 * 1024) {
-        setError(errorId, "File is too large. Maximum size is 10 MB.");
-        return false;
-      }
-
-      return true;
-    }
-
-    function readFileAsText(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = () => resolve(String(reader.result || ""));
-        reader.onerror = () => reject(new Error("Unable to read document."));
-        reader.readAsText(file);
-      });
-    }
-
-    /* =====================================================
-       CSV / TXT PARSING
-       ===================================================== */
-
-    function parseCSVLine(line) {
-      const values = [];
-      let current = "";
-      let quoted = false;
-
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-
-        if (char === '"') {
-          if (quoted && line[i + 1] === '"') {
-            current += '"';
-            i++;
-          } else {
-            quoted = !quoted;
+          if (!isNaN(val)) {
+            metrics[key] = val;
           }
-        } else if (char === "," && !quoted) {
-          values.push(current.trim());
-          current = "";
-        } else {
-          current += char;
         }
-      }
-
-      values.push(current.trim());
-      return values;
-    }
-
-    function parseFinancialDocument(text) {
-      const lines = text.split(/\r?\n/).filter((line) => line.trim());
-      const rows = lines.map(parseCSVLine);
-      const values = [];
-
-      rows.forEach((row) => {
-        row.forEach((cell) => {
-          const cleaned = cell
-            .replace(/₹/g, "")
-            .replace(/\$/g, "")
-            .replace(/,/g, "")
-            .replace(/\(([\d.]+)\)/g, "-$1")
-            .trim();
-
-          if (/^-?\d+(?:\.\d+)?$/.test(cleaned)) {
-            const amount = Number(cleaned);
-
-            if (Number.isFinite(amount)) {
-              values.push(amount);
-            }
-          }
-        });
       });
 
-      return { lines, rows, values };
-    }
-
-    /* =====================================================
-       LABEL-AWARE EXTRACTION
-       ===================================================== */
-
-    function findLabeledAmount(lines, labels) {
-      for (const line of lines) {
-        const lower = line.toLowerCase();
-
-        if (!labels.some((label) => lower.includes(label))) {
-          continue;
-        }
-
-        const matches = line.match(/-?[\d,]+(?:\.\d+)?/g);
-
-        if (matches) {
-          for (const match of matches) {
-            const amount = Number(match.replace(/,/g, ""));
-
-            if (Number.isFinite(amount) && amount !== 0) {
-              return amount;
-            }
-          }
-        }
-      }
-
-      return null;
-    }
-
-    function extractStatementMetrics(text, documentType) {
-      const parsed = parseFinancialDocument(text);
-      const values = parsed.values.filter((value) => Math.abs(value) > 0);
-
-      const revenue = findLabeledAmount(parsed.lines, [
-        "revenue",
-        "sales",
-        "turnover",
-        "operating income",
-        "total income",
-        "cash inflow",
-        "cash from operations"
-      ]);
-
-      const expenses = findLabeledAmount(parsed.lines, [
-        "total expenses",
-        "total expense",
-        "operating expenses",
-        "expenses",
-        "expenditure",
-        "cost of sales",
-        "cash outflow"
-      ]);
-
-      const cash = findLabeledAmount(parsed.lines, [
-        "cash and cash equivalents",
-        "cash balance",
-        "cash on hand",
-        "closing cash",
-        "ending cash"
-      ]);
-
-      let extractedRev = revenue;
-      let extractedBurn = expenses;
-
-      if (documentType === "balance_sheet") {
-        extractedRev = null;
-        extractedBurn = null;
-      }
-
-      if (documentType === "cashflow") {
-        extractedRev = findLabeledAmount(parsed.lines, [
-          "net cash from operating activities",
-          "operating cash flow",
-          "cash inflow"
-        ]);
-
-        extractedBurn = findLabeledAmount(parsed.lines, [
-          "cash outflow",
-          "cash paid",
-          "operating expenses"
-        ]);
-      }
-
-      return {
-        values,
-        revenue: extractedRev,
-        expenses: extractedBurn,
-        cash,
-        documentType
-      };
+      return metrics;
     }
 
     /* =====================================================
        TAB 2 — STATEMENT SCANNER
        ===================================================== */
 
-    async function analyzeStatement() {
-      const file = $("stmtFile").files[0];
-      const documentType = $("stmtType").value;
-
+    function analyzeStatement() {
+      const fileInput = $("stmtFile");
       setError("stmtError", "");
-      show("stmtOutput", false);
 
-      if (!validateFile(file, "stmtError")) return;
-
-      show("stmtSpinner", true);
-
-      try {
-        const text = await readFileAsText(file);
-        const metrics = extractStatementMetrics(text, documentType);
-
-        show("stmtSpinner", false);
-
-        if (!metrics.values.length) {
-          setError("stmtError", "No numerical financial values were found.");
-          return;
-        }
-
-        parsedDocumentType = documentType;
-
-        if (metrics.revenue !== null && metrics.expenses !== null) {
-          parsedExtractedRev = Math.abs(metrics.revenue);
-          parsedExtractedBurn = Math.abs(metrics.expenses);
-          parsedStatementReady = true;
-        } else {
-          parsedExtractedRev = 0;
-          parsedExtractedBurn = 0;
-          parsedStatementReady = false;
-        }
-
-        parsedCashBalance = metrics.cash !== null
-          ? Math.abs(metrics.cash)
-          : 0;
-
-        const title = documentType === "balance_sheet"
-          ? "Balance Sheet"
-          : documentType === "cashflow"
-            ? "Cash Flow Statement"
-            : "Income Statement / P&L";
-
-        setText("stmtTitle", `FILE READOUT: ${file.name.toUpperCase()}`);
-
-        const net = parsedExtractedRev - parsedExtractedBurn;
-
-        setHTML("stmtResults", `
-          <li>
-            <span class="lbl">Document Type:</span>
-            <span class="val">${escapeHTML(title)}</span>
-          </li>
-          <li>
-            <span class="lbl">Extracted Revenue / Inflow:</span>
-            <span class="val">${parsedStatementReady ? money(parsedExtractedRev) : "Not identified"}</span>
-          </li>
-          <li>
-            <span class="lbl">Extracted Expenses / Outflow:</span>
-            <span class="val">${parsedStatementReady ? money(parsedExtractedBurn) : "Not identified"}</span>
-          </li>
-          <li>
-            <span class="lbl">Extracted Net Operating Result:</span>
-            <span class="val">${parsedStatementReady ? money(net) : "Not available"}</span>
-          </li>
-          <li>
-            <span class="lbl">Cash Balance:</span>
-            <span class="val">${parsedCashBalance > 0 ? money(parsedCashBalance) : "Not identified"}</span>
-          </li>
-          <li>
-            <span class="lbl">Extraction Status:</span>
-            <span class="val" style="color:var(--accent-green);">Parsing Complete</span>
-          </li>
-        `);
-
-        show("stmtOutput", true);
-
-      } catch (error) {
-        show("stmtSpinner", false);
-        setError("stmtError", error.message || "Failed to process the document.");
-      }
-    }
-
-    /* =====================================================
-       SYNC TO FORECAST
-       ===================================================== */
-
-    function syncToSimulator() {
-      if (!parsedStatementReady) {
-        alert(
-          "Please upload and scan a statement containing identifiable revenue and expense values first."
-        );
+      if (!fileInput.files.length) {
+        setError("stmtError", "Please select a file to parse.");
         return;
       }
 
-      $("simRev").value = parsedExtractedRev;
-      $("simBurn").value = parsedExtractedBurn;
+      show("stmtSpinner", true);
+      show("stmtOutput", false);
 
-      if (parsedCashBalance > 0) {
-        $("simCash").value = parsedCashBalance;
-      }
+      const file = fileInput.files[0];
+      const reader = new FileReader();
 
-      const forecastTabBtn = document.querySelectorAll(".tab-btn")[3];
+      reader.onload = function(e) {
+        show("stmtSpinner", false);
+        const text = e.target.result;
+        const metrics = extractFinancialMetrics(text);
 
-      if (forecastTabBtn) {
-        switchTab("forecast", forecastTabBtn);
-      }
+        let rev = metrics["revenue"] || metrics["total revenue"] || metrics["sales"] || 0;
+        let burn = metrics["expenses"] || metrics["operating expenses"] || metrics["total expenses"] || metrics["cost"] || 0;
+        let cash = metrics["cash"] || metrics["cash balance"] || metrics["cash & cash equivalents"] || 0;
 
-      runSimulation();
+        parsedExtractedRev = rev;
+        parsedExtractedBurn = burn;
+        parsedCashBalance = cash;
+        parsedDocumentType = $("stmtType").value;
+        parsedStatementReady = true;
+
+        let resultsHTML = `
+          <li><span class="lbl">Extracted Revenue</span><span class="val">${money(rev)}</span></li>
+          <li><span class="lbl">Extracted Expenses</span><span class="val">${money(burn)}</span></li>
+          <li><span class="lbl">Detected Cash Balance</span><span class="val">${money(cash)}</span></li>
+        `;
+
+        setHTML("stmtResults", resultsHTML);
+        show("stmtOutput", true);
+      };
+
+      reader.onerror = function() {
+        show("stmtSpinner", false);
+        setError("stmtError", "Failed to read file.");
+      };
+
+      reader.readAsText(file);
     }
 
     /* =====================================================
        TAB 3 — INVESTOR DECISION ENGINE
        ===================================================== */
 
-    function countTerms(text, terms) {
-      const lower = text.toLowerCase();
-
-      return terms.reduce((count, term) => {
-        const pattern = new RegExp(
-          `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
-          "g"
-        );
-
-        return count + (lower.match(pattern) || []).length;
-      }, 0);
-    }
-
-    function calculateInvestorSignals(text) {
-      const metrics = extractStatementMetrics(text, "balance");
-
-      const riskTerms = [
-        "loss",
-        "debt",
-        "liability",
-        "decline",
-        "litigation",
-        "deficit",
-        "default",
-        "impairment"
-      ];
-
-      const growthTerms = [
-        "profit",
-        "growth",
-        "revenue",
-        "cash flow",
-        "expansion",
-        "surplus"
-      ];
-
-      const riskCount = countTerms(text, riskTerms);
-      const growthCount = countTerms(text, growthTerms);
-
-      let healthScore = 50;
-      let rationale = "Insufficient financial data for a reliable score.";
-
-      if (metrics.revenue !== null && metrics.expenses !== null) {
-        const revenue = Math.abs(metrics.revenue);
-        const expenses = Math.abs(metrics.expenses);
-
-        if (revenue > 0) {
-          const margin = ((revenue - expenses) / revenue) * 100;
-
-          healthScore = Math.max(
-            0,
-            Math.min(100, Math.round(50 + margin * 1.5))
-          );
-
-          rationale = margin >= 0
-            ? "Reported revenue exceeds identified expenses."
-            : "Identified expenses exceed reported revenue.";
-        }
-      }
-
-      const recommendation = healthScore >= 75
-        ? "STRONG BACKING"
-        : healthScore >= 50
-          ? "CAUTION REQUIRED"
-          : "DO NOT INVEST";
-
-      const riskRating = healthScore >= 75
-        ? "Lower Financial Exposure"
-        : healthScore >= 50
-          ? "Moderate Financial Exposure"
-          : "Higher Financial Exposure";
-
-      return {
-        healthScore,
-        recommendation,
-        riskRating,
-        riskCount,
-        growthCount,
-        rationale
-      };
-    }
-
-    async function analyzeInvestorDecision() {
-      const file = $("tenkFile").files[0];
-
+    function analyzeInvestorDecision() {
+      const fileInput = $("tenkFile");
       setError("tenkError", "");
-      show("tenkOutput", false);
 
-      if (!validateFile(file, "tenkError")) return;
+      if (!fileInput.files.length) {
+        setError("tenkError", "Please select a report file to evaluate.");
+        return;
+      }
 
       show("tenkSpinner", true);
+      show("tenkOutput", false);
 
-      try {
-        const text = await readFileAsText(file);
-        const result = calculateInvestorSignals(text);
+      const file = fileInput.files[0];
+      const reader = new FileReader();
 
+      reader.onload = function(e) {
         show("tenkSpinner", false);
-        show("tenkOutput", true);
+        const text = e.target.result;
+        const metrics = extractFinancialMetrics(text);
 
-        setText(
-          "tenkTitle",
-          `INVESTOR DECISION REPORT: ${file.name.toUpperCase()}`
-        );
+        let rev = metrics["revenue"] || metrics["total revenue"] || 0;
+        let burn = metrics["expenses"] || metrics["operating expenses"] || 0;
+        let cash = metrics["cash"] || 0;
+        let debt = metrics["debt"] || metrics["total debt"] || 0;
 
-        setText("verdictVal", result.recommendation);
-        setText("healthVal", `${result.healthScore} / 100`);
-        setText("flagVal", result.riskRating);
+        let margin = rev > 0 ? ((rev - burn) / rev) * 100 : 0;
+        let score = 50;
 
-        const verdictColor = result.healthScore >= 75
-          ? "var(--accent-green)"
-          : result.healthScore >= 50
-            ? "var(--accent-amber)"
-            : "var(--accent-red)";
+        if (margin > 20) score += 25;
+        else if (margin > 0) score += 10;
+        else score -= 20;
 
+        if (cash > debt) score += 25;
+        else score -= 15;
+
+        score = Math.min(100, Math.max(0, score));
+
+        let verdict = "PASS";
+        let risk = "LOW";
+        let verdictColor = "#ffffff";
+
+        if (score < 40) {
+          verdict = "FAIL";
+          risk = "HIGH";
+          verdictColor = "#737373";
+        } else if (score < 70) {
+          verdict = "HOLD";
+          risk = "MEDIUM";
+          verdictColor = "#a3a3a3";
+        }
+
+        setText("verdictVal", verdict);
         setColor("verdictVal", verdictColor);
-        setColor("healthVal", verdictColor);
-        setColor("flagVal", verdictColor);
+        setText("healthVal", score + "/100");
+        setText("flagVal", risk);
 
-        setHTML("tenkResults", `
-          <li>
-            <span class="lbl">Investment Screening:</span>
-            <span class="val" style="color:${verdictColor};">
-              ${escapeHTML(result.recommendation)}
-            </span>
-          </li>
-          <li>
-            <span class="lbl">Financial Health Score:</span>
-            <span class="val">${result.healthScore} / 100</span>
-          </li>
-          <li>
-            <span class="lbl">Growth Indicators:</span>
-            <span class="val">${result.growthCount} Signals</span>
-          </li>
-          <li>
-            <span class="lbl">Risk Terms:</span>
-            <span class="val">${result.riskCount} Factors</span>
-          </li>
-          <li>
-            <span class="lbl">Core Rationale:</span>
-            <span class="val">${escapeHTML(result.rationale)}</span>
-          </li>
-          <li>
-            <span class="lbl">Decision Integrity:</span>
-            <span class="val">Rule-based screening; not a verified investment recommendation.</span>
-          </li>
-        `);
+        let resultsHTML = `
+          <li><span class="lbl">Operating Margin</span><span class="val">${margin.toFixed(1)}%</span></li>
+          <li><span class="lbl">Cash vs Debt Ratio</span><span class="val">${debt > 0 ? (cash / debt).toFixed(2) : "No Debt"}</span></li>
+        `;
 
-      } catch (error) {
+        setHTML("tenkResults", resultsHTML);
+        show("tenkOutput", true);
+      };
+
+      reader.onerror = function() {
         show("tenkSpinner", false);
-        setError("tenkError", error.message || "Failed to process the document.");
+        setError("tenkError", "Error parsing report.");
+      };
+
+      reader.readAsText(file);
+    }
+
+    /* =====================================================
+       SYNC TO SIMULATOR
+       ===================================================== */
+
+    function syncToSimulator() {
+      if (!parsedStatementReady) {
+        alert("Please parse a financial statement first!");
+        return;
       }
+
+      if (parsedCashBalance > 0) $("simCash").value = parsedCashBalance;
+      if (parsedExtractedRev > 0) $("simRev").value = parsedExtractedRev;
+      if (parsedExtractedBurn > 0) $("simBurn").value = parsedExtractedBurn;
+
+      switchTab("forecast", document.querySelectorAll(".tab-btn")[3]);
+      runSimulation();
     }
 
     /* =====================================================
@@ -1823,79 +1575,55 @@
        ===================================================== */
 
     function runSimulation() {
-      const baseCash = readAmount("simCash");
+      const cash = readAmount("simCash");
       const baseRev = readAmount("simRev");
       const baseBurn = readAmount("simBurn");
+      const growthRate = parseFloat($("simGrowth").value) || 0;
+      const scale = (parseFloat($("scaleSlider").value) || 100) / 100;
+      const windowMode = $("simWindow").value;
 
-      const scalePct = Math.max(
-        50,
-        Math.min(200, readAmount("scaleSlider") || 100)
-      );
+      setText("sliderVal", Math.round(scale * 100) + "%");
 
-      const growthPct = Math.max(
-        -100,
-        Math.min(1000, Number($("simGrowth").value) || 0)
-      );
+      const periodRev = baseRev * scale;
+      const periodBurn = baseBurn * scale;
+      const netYield = periodRev - periodBurn;
+      const margin = periodRev > 0 ? (netYield / periodRev) * 100 : 0;
 
-      const windowType = $("simWindow").value;
+      const periods = windowMode === "weekly" ? 4 : 12;
+      let currentCash = cash;
+      let totalRev = 0;
+      let totalBurn = 0;
 
-      const periods = windowType === "weekly" ? 4 : 12;
-      const periodLabel = windowType === "weekly"
-        ? "4 Weeks"
-        : "12 Months";
-
-      const multiplier = scalePct / 100;
-
-      const rev = baseRev * multiplier;
-      const burn = baseBurn * multiplier;
-
-      const net = rev - burn;
-      const margin = rev > 0 ? (net / rev) * 100 : 0;
-
-      let projectedRevenue = 0;
-      let projectedExpenses = 0;
-      let endingCash = baseCash;
-
+      let tempRev = periodRev;
       for (let i = 0; i < periods; i++) {
-        const periodRevenue = rev * Math.pow(1 + growthPct / 100, i);
-
-        projectedRevenue += periodRevenue;
-        projectedExpenses += burn;
-        endingCash += periodRevenue - burn;
+        totalRev += tempRev;
+        totalBurn += periodBurn;
+        currentCash += (tempRev - periodBurn);
+        tempRev *= (1 + growthRate / 100);
       }
 
-      setText("sliderVal", `${scalePct}%`);
-      setText("netVal", money(net));
-      setText("marginVal", `${margin.toFixed(1)}%`);
-      setText("endingCashVal", money(endingCash));
-      setText("projectionVal", periodLabel);
-      setText("projectedRevVal", money(projectedRevenue));
-      setText("projectedBurnVal", money(projectedExpenses));
+      const runway = periodBurn > 0 ? cash / periodBurn : Infinity;
 
-      const cashRunway = burn > 0
-        ? baseCash / burn
-        : Infinity;
+      setText("netVal", money(netYield));
+      setText("marginVal", margin.toFixed(1) + "%");
+      setText("endingCashVal", money(currentCash));
 
-      setText(
-        "cashRunwayVal",
-        Number.isFinite(cashRunway)
-          ? formatMonths(cashRunway)
-          : "No monthly burn"
-      );
-
-      if (endingCash >= 0 && net >= 0) {
-        setText("runwayVal", "Sustainable");
-        setColor("runwayVal", "var(--accent-green)");
-      } else if (endingCash >= 0) {
-        setText("runwayVal", "Cash Pressure");
-        setColor("runwayVal", "var(--accent-amber)");
+      if (currentCash < 0 || runway < 3) {
+        setText("runwayVal", "High Risk");
+        setColor("runwayVal", "#737373");
+      } else if (runway < 6) {
+        setText("runwayVal", "Moderate");
+        setColor("runwayVal", "#a3a3a3");
       } else {
-        setText("runwayVal", "Cash Deficit");
-        setColor("runwayVal", "var(--accent-red)");
+        setText("runwayVal", "Sustainable");
+        setColor("runwayVal", "#ffffff");
       }
+
+      setText("projectionVal", periods + (windowMode === "weekly" ? " Weeks" : " Months"));
+      setText("projectedRevVal", money(totalRev));
+      setText("projectedBurnVal", money(totalBurn));
+      setText("cashRunwayVal", formatMonths(runway));
     }
-
   </script>
-
 </body>
 </html>
