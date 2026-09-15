@@ -339,7 +339,7 @@
             <div id="uploadZone" class="upload-zone">
               <div class="upload-icon">↑</div>
               <h3>Drop your financial documents here</h3>
-              <p>Upload XLSX, XLS, CSV, TXT, PDF, DOCX, JSON or XML files containing Balance Sheet, Income Statement, Cash Flow, or Equity Statements.</p>
+              <p>Upload XLSX, XLS, CSV, TXT, PDF, DOCX, JSON or XML files containing Balance Sheet, Income Statement, Cash Flow, or Equity Statements. Max 25MB per file.</p>
               <button id="chooseFilesButton" class="primary-button" type="button">Choose documents</button>
               <input id="fileInput" class="file-input" type="file" multiple accept=".xlsx,.xls,.csv,.txt,.pdf,.docx,.doc,.json,.xml">
               <div class="muted" style="font-size:10px;margin-top:15px">No file is uploaded to a backend.</div>
@@ -439,6 +439,8 @@
       analysed:false
     };
 
+    const MAX_FILE_SIZE = 25 * 1024 * 1024;
+
     let pdfLibrary = null;
     let pdfPromise = null;
 
@@ -505,7 +507,16 @@
       const match = text.match(/[\d.]+/);
       if(!match) return null;
       let num = parseFloat(match[0]);
-      return isNaN(num) ? null : (isNegative ? -num : num);
+      if(isNaN(num)) return null;
+
+      const trailing = text.slice(match.index + match[0].length).trim();
+      const suffixMatch = trailing.match(/^([kmb])/i);
+      if(suffixMatch){
+        const multipliers = {k:1e3, m:1e6, b:1e9};
+        num *= multipliers[suffixMatch[1].toLowerCase()];
+      }
+
+      return isNegative ? -num : num;
     }
 
     function escapeHTML(value){
@@ -523,7 +534,8 @@
     }
 
     function bytes(value){
-      if(!value) return "sample data";
+      if(value === undefined || value === null) return "sample data";
+      if(value === 0) return "0 B";
       const units=["B","KB","MB","GB"];
       const i=Math.min(Math.floor(Math.log(value)/Math.log(1024)),3);
       return `${(value/Math.pow(1024,i)).toFixed(i?1:0)} ${units[i]}`;
@@ -602,15 +614,21 @@
     function addFiles(files){
       const allowed=[".xlsx",".xls",".csv",".txt",".pdf",".docx",".doc",".json",".xml"];
       let rejected=0;
+      let oversized=0;
 
       files.forEach(file=>{
         if(!allowed.includes(extension(file.name))){rejected++;return}
+        if(file.size > MAX_FILE_SIZE){oversized++;return}
         if(!state.files.some(old=>old.name===file.name&&old.size===file.size)){
           state.files.push(file);
         }
       });
 
-      if(rejected)toast(`${rejected} unsupported file(s) skipped.`);
+      const notices=[];
+      if(rejected)notices.push(`${rejected} unsupported file(s) skipped`);
+      if(oversized)notices.push(`${oversized} file(s) skipped (exceeds 25MB limit)`);
+      if(notices.length)toast(notices.join(" · ")+".");
+
       renderFiles();
       $("analyseButton").disabled=!state.files.length;
       status(state.files.length?`${state.files.length} document(s) ready for analysis.`:"No supported documents loaded.");
@@ -658,12 +676,19 @@
     }
 
     async function parseFile(file){
+      if(typeof File !== "undefined" && !(file instanceof File)){
+        throw new Error("This entry is sample data and cannot be re-parsed as a file");
+      }
+
       const ext=extension(file.name);
 
       if(ext===".xlsx"||ext===".xls")return parseSpreadsheet(file);
       if(ext===".csv")return parseCSV(file);
       if(ext===".pdf")return parsePDF(file);
       if(ext===".docx")return parseDOCX(file);
+      if(ext===".doc")throw new Error("Legacy .doc format is not supported — please save as .docx and re-upload");
+      if(ext===".json")return parseJSON(await file.text(),file.name);
+      if(ext===".xml")return parseXML(await file.text(),file.name);
       return parseText(await file.text(),file.name);
     }
 
@@ -719,15 +744,71 @@
         .filter(Boolean);
     }
 
-    async function parsePDF(file){
-      const pdf=await loadPDF();
-      if(!pdf)throw new Error("PDF parser unavailable");
+    async function parseJSON(text,name){
+      let data;
+      try{
+        data = JSON.parse(text);
+      }catch(error){
+        throw new Error("Invalid JSON file");
+      }
 
-      const document=await pdf.getDocument({data:await file.arrayBuffer()}).promise;
       const output=[];
 
-      for(let pageNo=1;pageNo<=document.numPages;pageNo++){
-        const page=await document.getPage(pageNo);
+      function walk(value,path){
+        if(value === null || value === undefined) return;
+        if(typeof value === "object"){
+          if(Array.isArray(value)){
+            value.forEach((item,i)=>walk(item, path ? `${path}[${i}]` : `[${i}]`));
+          }else{
+            Object.entries(value).forEach(([key,val])=>walk(val, path ? `${path}.${key}` : key));
+          }
+        }else{
+          const label = path || "value";
+          output.push({label, value:String(value), source:name, location:label});
+        }
+      }
+
+      walk(data,"");
+      if(!output.length)throw new Error("No usable data found in JSON");
+      return output;
+    }
+
+    async function parseXML(text,name){
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text,"application/xml");
+
+      if(doc.querySelector("parsererror"))throw new Error("Invalid XML file");
+      if(!doc.documentElement)throw new Error("Invalid XML file");
+
+      const output=[];
+
+      function walk(node,path){
+        Array.from(node.children).forEach(child=>{
+          const tag = child.tagName;
+          const childPath = path ? `${path}.${tag}` : tag;
+          if(child.children.length){
+            walk(child,childPath);
+          }else{
+            const text = clean(child.textContent);
+            if(text)output.push({label:childPath, value:text, source:name, location:childPath});
+          }
+        });
+      }
+
+      walk(doc.documentElement,doc.documentElement.tagName);
+      if(!output.length)throw new Error("No usable data found in XML");
+      return output;
+    }
+
+    async function parsePDF(file){
+      const pdf=await loadPDF();
+      if(!pdf)throw new Error("PDF parser unavailable — check your connection and try again");
+
+      const pdfDoc=await pdf.getDocument({data:await file.arrayBuffer()}).promise;
+      const output=[];
+
+      for(let pageNo=1;pageNo<=pdfDoc.numPages;pageNo++){
+        const page=await pdfDoc.getPage(pageNo);
         const content=await page.getTextContent();
         const lines = {};
 
@@ -741,7 +822,7 @@
         sortedYs.forEach((y, idx) => {
           const lineStr = lines[y].join(" ").replace(/\s+/g," ").trim();
           if(lineStr){
-            const match = lineStr.match(/^(.*?)([\(\$-]?\d[\d,.]*\)?)$/);
+            const match = lineStr.match(/^(.*?)([\(\$-]?\d[\d,.]*\)?\s*[%kmbKMB]?)$/);
             if(match){
               output.push({label:match[1].trim(), value:match[2].trim(), source:file.name, location:`page ${pageNo}, line ${idx+1}`});
             } else {
@@ -750,7 +831,7 @@
           }
         });
 
-        progress(Math.min(80,20+Math.round(pageNo/document.numPages*50)),`Reading PDF page ${pageNo} of ${document.numPages}…`);
+        progress(Math.min(80,20+Math.round(pageNo/pdfDoc.numPages*50)),`Reading PDF page ${pageNo} of ${pdfDoc.numPages}…`);
       }
 
       if(!output.length)throw new Error("No selectable text found in PDF");
@@ -846,27 +927,42 @@
         if(r.debtToEquity > 2.0){
           state.negatives.push({title:"High Financial Leverage", desc:`Debt-to-Equity ratio is ${r.debtToEquity.toFixed(2)}, indicating heavy reliance on debt financing.`});
           state.risks.push({title:"Interest Rate Sensitivity", desc:"Excessive debt burdens future cash flows with interest expenses."});
-        } else if(r.debtToEquity < 0.8){
+        } else if(r.debtToEquity >= 0 && r.debtToEquity < 0.8){
           state.positives.push({title:"Conservative Balance Sheet", desc:`Low Debt-to-Equity ratio of ${r.debtToEquity.toFixed(2)} reflects low solvency risk.`});
         }
+      }
+
+      if(p.equity !== null && p.equity < 0){
+        state.negatives.push({title:"Negative Shareholders' Equity", desc:"Accumulated losses or liabilities have driven equity below zero, a significant solvency concern."});
+        state.risks.push({title:"Balance Sheet Insolvency", desc:"Total liabilities exceed total assets on a book-value basis."});
       }
 
       if(p.operatingCashFlow !== null){
         if(p.operatingCashFlow > 0){
           state.positives.push({title:"Positive Operating Cash Flow", desc:`Core operations generated ${formatCurrency(p.operatingCashFlow)} in organic cash flow.`});
-        } else {
-          state.negatives.push({title:"Negative Operating Cash Flow", desc:`Operations consumed ${formatCurrency(p.operatingCashFlow)} of cash.`});
+        } else if(p.operatingCashFlow < 0){
+          state.negatives.push({title:"Negative Operating Cash Flow", desc:`Operations consumed ${formatCurrency(Math.abs(p.operatingCashFlow))} of cash.`});
         }
       }
 
-      if(r.freeCashFlow !== null && r.freeCashFlow > 0){
-        state.positives.push({title:"Free Cash Flow Generative", desc:`Company generated ${formatCurrency(r.freeCashFlow)} in Free Cash Flow after capital expenditures.`});
+      if(r.freeCashFlow !== null){
+        if(r.freeCashFlow > 0){
+          state.positives.push({title:"Free Cash Flow Generative", desc:`Company generated ${formatCurrency(r.freeCashFlow)} in Free Cash Flow after capital expenditures.`});
+        } else if(r.freeCashFlow < 0){
+          state.negatives.push({title:"Negative Free Cash Flow", desc:`Capital expenditures exceeded operating cash flow by ${formatCurrency(Math.abs(r.freeCashFlow))}.`});
+        }
       }
 
       const identified = sourceKeys.filter(k => p[k] !== null).length;
       state.confidence = Math.round((identified / sourceKeys.length) * 100);
 
-      if(state.positives.length > state.negatives.length && state.confidence >= 40){
+      if(state.confidence < 40){
+        state.verdict = "Insufficient Evidence";
+        state.explanation = "The uploaded documents do not contain enough structured financial indicators to establish a definitive investment recommendation.";
+      } else if(state.risks.length >= 2 && state.negatives.length > state.positives.length){
+        state.verdict = "Avoid Investment";
+        state.explanation = "Multiple significant financial risks and a preponderance of negative indicators were identified, suggesting this investment carries substantial downside risk.";
+      } else if(state.positives.length > state.negatives.length){
         state.verdict = "Consider Investment";
         state.explanation = "The extracted numbers show positive operational performance, favorable profitability margins, and strong cash flow capability relative to identified risks.";
       } else if(state.negatives.length > 0 || state.risks.length > 0){
@@ -907,6 +1003,11 @@
         const file=state.files[i];
         progress(Math.round(i/state.files.length*75),`Reading ${file.name}…`);
 
+        if(typeof File !== "undefined" && !(file instanceof File)){
+          warnings.push(`${file.name}: sample data cannot be re-analysed — remove it or add a real file`);
+          continue;
+        }
+
         try{
           state.rows.push(...await parseFile(file));
         }catch(error){
@@ -915,8 +1016,9 @@
       }
 
       if(!state.rows.length){
-        status("No readable financial content was found.");
+        status(warnings.length ? `No readable financial content was found (${warnings[0]}).` : "No readable financial content was found.");
         toast("No readable documents found.");
+        $("progressWrap").classList.add("hidden");
         $("analyseButton").disabled=false;
         $("sampleButton").disabled=false;
         return;
@@ -971,6 +1073,7 @@
       evaluate();
       render();
       state.analysed = true;
+      $("analyseButton").disabled = false;
       status("Loaded sample financial dataset containing all 4 statements.");
       toast("Sample dataset loaded.");
     }
@@ -1012,17 +1115,17 @@
           <div class="metric-value">${formatCurrency(p.revenue)}</div>
           <div class="metric-foot">Income Statement</div>
         </div>
-        <div class="metric-card ${p.netIncome !== null && p.netIncome >= 0 ? 'positive' : 'negative'}">
+        <div class="metric-card ${p.netIncome !== null ? (p.netIncome >= 0 ? 'positive' : 'negative') : ''}">
           <div class="metric-label">Net Income</div>
           <div class="metric-value">${formatCurrency(p.netIncome)}</div>
           <div class="metric-foot">Margin: ${formatPercent(r.netMargin)}</div>
         </div>
-        <div class="metric-card ${r.currentRatio !== null && r.currentRatio >= 1.2 ? 'positive' : 'negative'}">
+        <div class="metric-card ${r.currentRatio !== null ? (r.currentRatio >= 1.2 ? 'positive' : 'negative') : ''}">
           <div class="metric-label">Current Ratio</div>
           <div class="metric-value">${r.currentRatio !== null ? r.currentRatio.toFixed(2) : 'N/A'}</div>
           <div class="metric-foot">Balance Sheet Liquidity</div>
         </div>
-        <div class="metric-card ${r.freeCashFlow !== null && r.freeCashFlow > 0 ? 'positive' : ''}">
+        <div class="metric-card ${r.freeCashFlow !== null ? (r.freeCashFlow > 0 ? 'positive' : 'negative') : ''}">
           <div class="metric-label">Free Cash Flow</div>
           <div class="metric-value">${formatCurrency(r.freeCashFlow)}</div>
           <div class="metric-foot">Cash Flow Statement</div>
@@ -1031,7 +1134,11 @@
 
       const verdEl = $("investmentVerdict");
       verdEl.textContent = state.verdict;
-      verdEl.className = "investment-verdict " + (state.verdict.includes("Consider") ? "consider" : state.verdict.includes("Caution") ? "caution" : "");
+      verdEl.className = "investment-verdict " + (
+        state.verdict.includes("Avoid") ? "avoid" :
+        state.verdict.includes("Consider") ? "consider" :
+        state.verdict.includes("Caution") ? "caution" : ""
+      );
       $("investmentExplanation").textContent = state.explanation;
       $("confidenceText").textContent = `${state.confidence}%`;
       $("confidenceFill").style.width = `${state.confidence}%`;
@@ -1106,14 +1213,14 @@
       doc.text("FORGE Financial Analysis Report", 14, 20);
 
       doc.setFontSize(10);
-      doc.text(`Analyst: ${state.userName}`, 14, 28);
+      doc.text(`Analyst: ${state.userName || "N/A"}`, 14, 28);
       doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 34);
 
       doc.setFontSize(14);
       doc.text(`Verdict: ${state.verdict}`, 14, 46);
 
       doc.setFontSize(10);
-      const splitExp = doc.splitTextToSize(state.explanation, 180);
+      const splitExp = doc.splitTextToSize(state.explanation || "", 180);
       doc.text(splitExp, 14, 52);
 
       const tableData = state.rows.map(r => [r.label, r.value, r.source, r.location]);
@@ -1123,7 +1230,8 @@
         body: tableData,
       });
 
-      doc.save(`FORGE_Analysis_${state.userName.replace(/\s+/g, '_')}.pdf`);
+      const safeName = (state.userName || "Analyst").trim().replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g,"").slice(0,60) || "Analyst";
+      doc.save(`FORGE_Analysis_${safeName}.pdf`);
       toast("Report downloaded successfully.");
     }
   </script>
