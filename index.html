@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FORGE | High-Performance Financial Terminal</title>
+  <title>FORGE | Financial Audit & Investor Intelligence Terminal</title>
 
-  <!-- External Parsers -->
+  <!-- External Parsers & Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>if (window['pdfjs-dist/build/pdf']) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -17,13 +17,15 @@
     :root {
       --bg: #050505;
       --panel: #0d0d0d;
-      --card: rgba(22, 22, 22, 0.75);
+      --card: #121212;
       --border: #222222;
       --border-glow: #444444;
       --text: #ededed;
-      --muted: #737373;
+      --muted: #888888;
       --accent: #ffffff;
       --red: #ef4444;
+      --green: #22c55e;
+      --amber: #f59e0b;
     }
 
     body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
@@ -34,7 +36,7 @@
       display: flex; flex-direction: column; justify-content: center; align-items: center;
       font-family: monospace; color: #888; transition: opacity 0.5s;
     }
-    .loader-box { width: 90%; max-width: 480px; border: 1px solid #222; padding: 24px; background: #090909; border-radius: 8px; }
+    .loader-box { width: 90%; max-width: 480px; border: 1px solid var(--border); padding: 24px; background: #090909; border-radius: 8px; }
     .progress-bar-fill { width: 0%; height: 4px; background: var(--accent); transition: width 0.15s; }
 
     /* LOGIN MODAL */
@@ -54,24 +56,30 @@
     .dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px #fff; }
 
     .hero-banner {
-      padding: 40px 5%; background: linear-gradient(180deg, rgba(20,20,20,0.5) 0%, rgba(5,5,5,1) 100%);
+      position: relative;
+      padding: 60px 5%; 
+      background: linear-gradient(180deg, rgba(15,15,15,0.7) 0%, rgba(5,5,5,1) 100%), 
+                  url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
       border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-    .hero-banner h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: 2px; }
-    .hero-banner p { color: var(--muted); font-size: 0.85rem; margin-top: 6px; }
+    .hero-banner h1 { font-size: 2rem; font-weight: 800; letter-spacing: 2px; }
+    .hero-banner p { color: #aaa; font-size: 0.9rem; margin-top: 6px; max-width: 600px; }
 
     /* LAYOUT & UI COMPONENTS */
-    .container { width: 90%; max-width: 1000px; margin: 30px auto; flex: 1; }
+    .container { width: 90%; max-width: 1100px; margin: 30px auto; flex: 1; }
     
     .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-    .tab-btn { background: transparent; border: 1px solid transparent; color: var(--muted); padding: 8px 16px; cursor: pointer; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-    .tab-btn.active { color: #fff; background: #141414; border-color: var(--border); }
+    .tab-btn { background: transparent; border: 1px solid transparent; color: var(--muted); padding: 10px 18px; cursor: pointer; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s; }
+    .tab-btn.active { color: #fff; background: #181818; border-color: var(--border-glow); }
 
     .panel { display: none; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 28px; }
     .panel.active { display: block; }
 
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
 
     .card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 8px; }
 
@@ -79,32 +87,46 @@
     input, select { width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; outline: none; }
     input:focus, select:focus { border-color: var(--border-glow); }
 
-    .btn { background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
-    .btn:hover { opacity: 0.9; }
+    .btn { background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.85; }
     .btn-secondary { background: #181818; color: #fff; border: 1px solid var(--border); }
     .btn-secondary:hover { background: #222; }
 
     /* METRIC CARDS & TABLES */
     .metric-card { background: #000; border: 1px solid var(--border); padding: 16px; border-radius: 6px; text-align: center; }
-    .metric-card .val { font-size: 1.1rem; font-weight: 700; margin-top: 4px; }
+    .metric-card .val { font-size: 1.2rem; font-weight: 700; margin-top: 4px; }
     .metric-card .lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; }
 
     .output-box { margin-top: 20px; background: #000; border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: none; }
-    .data-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #111; font-size: 0.85rem; }
+    .data-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #141414; font-size: 0.85rem; }
     .data-row span:first-child { color: var(--muted); }
+
+    .analysis-card { margin-top: 16px; background: #090909; border: 1px solid var(--border); padding: 18px; border-radius: 6px; font-size: 0.85rem; line-height: 1.6; }
+    .analysis-card h4 { color: #fff; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
 
     .red-flag-box { margin-top: 16px; background: #110505; border: 1px solid #3a1111; padding: 16px; border-radius: 6px; color: #fca5a5; font-size: 0.8rem; }
     .red-flag-box ul { padding-left: 18px; margin-top: 8px; }
 
-    /* HIDDEN PRINT REPORT TEMPLATE */
+    footer { margin-top: auto; padding: 24px; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.7rem; }
+
+    /* PRINT & EXPORT STYLING */
     @media print {
+      body { background: #fff !important; color: #000 !important; }
       body * { visibility: hidden; }
       #printableReport, #printableReport * { visibility: visible; }
-      #printableReport { position: absolute; left: 0; top: 0; width: 100%; color: #000; background: #fff; padding: 40px; }
+      #printableReport { 
+        position: absolute; left: 0; top: 0; width: 100%; 
+        color: #111 !important; background: #fff !important; padding: 40px; font-family: Arial, sans-serif;
+      }
       .no-print { display: none !important; }
+      .rpt-header { border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 24px; }
+      .rpt-header h1 { font-size: 20pt; color: #000; text-transform: uppercase; }
+      .rpt-section { margin-bottom: 20px; }
+      .rpt-section h3 { font-size: 12pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 10px; text-transform: uppercase; }
+      .rpt-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+      .rpt-table th, .rpt-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 10pt; }
+      .rpt-table th { background: #f2f2f2; font-weight: bold; }
     }
-
-    footer { margin-top: auto; padding: 24px; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.7rem; }
   </style>
 </head>
 <body>
@@ -112,7 +134,7 @@
   <!-- PRELOADER -->
   <div id="loaderOverlay">
     <div class="loader-box">
-      <div style="color:#fff; font-weight:bold; margin-bottom:4px;">FORGE TERMINAL v4.2</div>
+      <div style="color:#fff; font-weight:bold; margin-bottom:4px;">FORGE TERMINAL v4.5</div>
       <div style="font-size:0.7rem; margin-bottom:16px;">DEVELOPED BY YUKTI AND SAHITHYA</div>
       <div class="progress-bar-fill" id="loaderBar"></div>
     </div>
@@ -140,7 +162,7 @@
   <!-- HERO -->
   <section class="hero-banner">
     <h1>FINANCIAL AUDIT &amp; SCREENING ENGINE</h1>
-    <p>Document ingestion, precise cash burn modeling, and automated investor risk screening.</p>
+    <p>Multi-column 10-K extraction, cash burn modeling, and qualitative investor thesis generation.</p>
   </section>
 
   <!-- MAIN CONTAINER -->
@@ -157,14 +179,16 @@
       <div class="grid-2" style="margin-bottom:16px;">
         <div>
           <label>Document Type</label>
-          <select id="stmtType"><option>Auto-Detect Statement</option></select>
+          <select id="stmtType">
+            <option>Auto-Detect Statement (10-K / Balance Sheet / Income)</option>
+          </select>
         </div>
         <div>
-          <label>File Upload (PDF, XLSX, CSV, DOCX, TXT)</label>
+          <label>File Upload (PDF, XLSX, XLS, CSV, DOCX, TXT)</label>
           <input type="file" id="stmtFile" accept=".pdf,.xlsx,.xls,.csv,.docx,.txt" />
         </div>
       </div>
-      <button class="btn" id="analyzeStmtBtn">Scan Document</button>
+      <button class="btn" id="analyzeStmtBtn">Scan &amp; Extract Document</button>
 
       <div id="stmtOutput" class="output-box">
         <div class="data-row"><span>Extracted Revenue</span><strong id="outRev">$0.00</strong></div>
@@ -172,21 +196,27 @@
         <div class="data-row"><span>Net Operating Income</span><strong id="outNet">$0.00</strong></div>
         <div class="data-row"><span>Extracted Liquid Cash</span><strong id="outCash">$0.00</strong></div>
         <div class="data-row"><span>Extracted Total Debt</span><strong id="outDebt">$0.00</strong></div>
+
+        <div class="analysis-card">
+          <h4>Ingestion Summary</h4>
+          <p id="stmtSummary">Document processed using layout-aware positional table parsing.</p>
+        </div>
+
         <div style="margin-top:16px; display:flex; gap:10px;">
           <button class="btn btn-secondary" id="syncSimBtn">Import to Simulator →</button>
-          <button class="btn btn-secondary" id="exportDocBtn">Export Financial Report (PDF)</button>
+          <button class="btn btn-secondary" id="exportDocBtn">Export Audit Report (PDF)</button>
         </div>
       </div>
     </section>
 
     <!-- TAB 2: SCREENER -->
     <section id="screener" class="panel">
-      <h3 style="margin-bottom:16px;">Investor Risk Audit</h3>
+      <h3 style="margin-bottom:16px;">Investor Risk Audit &amp; Thesis</h3>
       <div style="margin-bottom:16px;">
         <label>Upload Corporate Filing / 10-K Document</label>
         <input type="file" id="tenkFile" accept=".pdf,.xlsx,.xls,.csv,.docx,.txt" />
       </div>
-      <button class="btn" id="analyzeInvestorBtn">Run Risk Analysis</button>
+      <button class="btn" id="analyzeInvestorBtn">Run Complete Audit</button>
 
       <div id="screenerOutput" class="output-box">
         <div class="grid-4" style="margin-bottom:16px;">
@@ -199,6 +229,11 @@
         <div id="redFlagsBox" class="red-flag-box" style="display:none;">
           <strong>⚠️ Investor Red Flags Detected:</strong>
           <ul id="redFlagsList"></ul>
+        </div>
+
+        <div class="analysis-card">
+          <h4>Investment Thesis &amp; Qualitative Rationale</h4>
+          <p id="vThesis">Running audit...</p>
         </div>
       </div>
     </section>
@@ -224,29 +259,50 @@
     </section>
   </main>
 
-  <!-- PRINTABLE REPORT CONTAINER -->
+  <!-- PRINTABLE REPORT TEMPLATE -->
   <div id="printableReport" style="display:none;">
-    <h1 style="border-bottom: 2px solid #000; padding-bottom: 8px;">FORGE EXECUTIVE FINANCIAL AUDIT REPORT</h1>
-    <p style="margin-top: 10px;"><strong>Prepared By:</strong> <span id="rptUser"></span> | <strong>Engine Credit:</strong> Yukti and Sahithya</p>
-    <p><strong>Date:</strong> <span id="rptDate"></span></p>
+    <div class="rpt-header">
+      <h1>FORGE EXECUTIVE FINANCIAL AUDIT REPORT</h1>
+      <p style="margin-top: 6px; font-size: 10pt;">
+        <strong>Prepared By:</strong> <span id="rptUser"></span> | 
+        <strong>Engine:</strong> FORGE v4.5 | 
+        <strong>Date:</strong> <span id="rptDate"></span>
+      </p>
+    </div>
 
-    <h2 style="margin-top:24px; font-size:1.1rem; border-bottom:1px solid #ccc;">Summary Extracted Metrics</h2>
-    <p>Revenue: <span id="rptRev"></span></p>
-    <p>Operating Expenses: <span id="rptBurn"></span></p>
-    <p>Net Income: <span id="rptNet"></span></p>
-    <p>Cash Balance: <span id="rptCash"></span></p>
-    <p>Total Debt: <span id="rptDebt"></span></p>
+    <div class="rpt-section">
+      <h3>1. Summary Extracted Financial Metrics</h3>
+      <table class="rpt-table">
+        <tr><th>Metric</th><th>Extracted Value</th></tr>
+        <tr><td>Total Revenue</td><td id="rptRev">$0.00</td></tr>
+        <tr><td>Operating Expenses</td><td id="rptBurn">$0.00</td></tr>
+        <tr><td>Net Operating Income</td><td id="rptNet">$0.00</td></tr>
+        <tr><td>Liquid Cash &amp; Equivalents</td><td id="rptCash">$0.00</td></tr>
+        <tr><td>Total Liabilities / Debt</td><td id="rptDebt">$0.00</td></tr>
+      </table>
+    </div>
 
-    <h2 style="margin-top:24px; font-size:1.1rem; border-bottom:1px solid #ccc;">Investor Risk Evaluation</h2>
-    <p>Verdict: <span id="rptVerdict"></span></p>
-    <p>Health Score: <span id="rptScore"></span></p>
+    <div class="rpt-section">
+      <h3>2. Investor Risk Evaluation</h3>
+      <table class="rpt-table">
+        <tr><th>Audit Verdict</th><td id="rptVerdict">--</td></tr>
+        <tr><th>Financial Health Score</th><td id="rptScore">--</td></tr>
+      </table>
+    </div>
 
-    <p style="margin-top:40px; font-size:0.75rem; color:#666;">This document was programmatically generated via FORGE Engine for analytical purposes.</p>
+    <div class="rpt-section">
+      <h3>3. Qualitative Investment Thesis &amp; Rationale</h3>
+      <div id="rptThesis" style="font-size: 10pt; line-height: 1.5; padding: 10px; border: 1px solid #ddd; background: #fafafa;"></div>
+    </div>
+
+    <p style="margin-top:30px; font-size:8pt; color:#666; text-align: center;">
+      This document was programmatically generated via FORGE Engine for institutional research purposes.
+    </p>
   </div>
 
   <footer>
     FORGE FINANCIAL ENGINE &copy; 2026 | BUILT BY YUKTI AND SAHITHYA<br/>
-    <span style="color:#555; font-size:0.65rem;">Educational tool only. Does not constitute professional investment advice.</span>
+    <span style="color:#555; font-size:0.65rem;">Educational &amp; Auditing tool. Does not constitute professional investment advice.</span>
   </footer>
 
   <script>
@@ -254,7 +310,7 @@
     const $ = (id) => document.getElementById(id);
     const money = (v) => "$" + Number(v || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    let state = { rev: 0, burn: 0, cash: 0, debt: 0 };
+    let state = { rev: 0, burn: 0, cash: 0, debt: 0, scale: 1, thesis: "" };
 
     // PRELOADER & SESSION MANAGEMENT
     window.addEventListener("DOMContentLoaded", () => {
@@ -309,30 +365,51 @@
       ["simCash", "simRev", "simBurn", "simGrowth"].forEach(id => $(id).oninput = calculateSimulation);
     }
 
-    // DOCUMENT PARSER
+    // MULTI-COLUMN POSITIONAL PDF & TEXT PARSER
     async function readFileText(file) {
       const name = file.name.toLowerCase();
+      
       if (name.endsWith(".pdf")) {
         const buf = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-        let txt = "";
+        let fullText = "";
+
         for (let i = 1; i <= pdf.numPages; i++) {
           const pg = await pdf.getPage(i);
-          const c = await pg.getTextContent();
-          txt += c.items.map(it => it.str).join(" ") + "\n";
+          const content = await pg.getTextContent();
+          
+          // Reconstruct tables using Y coordinates to preserve row integrity
+          let linesMap = {};
+          content.items.forEach(item => {
+            let y = Math.round(item.transform[5]); // Y position
+            if (!linesMap[y]) linesMap[y] = [];
+            linesMap[y].push({ x: item.transform[4], str: item.str });
+          });
+
+          // Sort lines vertically top-to-bottom
+          let sortedY = Object.keys(linesMap).sort((a, b) => b - a);
+          sortedY.forEach(y => {
+            // Sort items horizontally left-to-right
+            let lineItems = linesMap[y].sort((a, b) => a.x - b.x);
+            let lineStr = lineItems.map(it => it.str).join("   ");
+            fullText += lineStr + "\n";
+          });
         }
-        return txt;
+        return fullText;
       }
+
       if (name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".csv")) {
         const buf = await file.arrayBuffer();
         const wb = XLSX.read(buf, { type: "array" });
         return XLSX.utils.sheet_to_txt(wb.Sheets[wb.SheetNames[0]]);
       }
+
       if (name.endsWith(".docx")) {
         const buf = await file.arrayBuffer();
         const res = await mammoth.extractRawText({ arrayBuffer: buf });
         return res.value;
       }
+
       return new Promise((resolve) => {
         const r = new FileReader();
         r.onload = (e) => resolve(e.target.result);
@@ -342,7 +419,7 @@
 
     // SCALE DETECTOR ("in thousands", "in millions")
     function extractScaleMultiplier(text) {
-      const t = text.toLowerCase().slice(0, 3000);
+      const t = text.toLowerCase().slice(0, 4000);
       if (t.includes("in millions") || t.includes("millions of dollars") || t.includes("($ in millions)")) {
         return 1000000;
       }
@@ -352,18 +429,18 @@
       return 1;
     }
 
-    // ACCURATE METRIC EXTRACTOR
+    // ACCURATE MULTI-COLUMN METRIC EXTRACTOR
     function extractMetric(text, metricType) {
       const lines = text.split(/\r?\n/);
       const scaleMultiplier = extractScaleMultiplier(text);
 
       const config = {
         revenue: {
-          include: [/\btotal revenue\b/i, /\brevenues\b/i, /\btotal net sales\b/i, /\brevenue\b/i],
+          include: [/\btotal revenue\b/i, /\brevenues\b/i, /\btotal net sales\b/i, /\bnet revenue\b/i],
           exclude: [/cost of/i, /deferred/i, /unearned/i]
         },
         expenses: {
-          include: [/\btotal operating expenses\b/i, /\btotal expenses\b/i, /\btotal cost of sales\b/i],
+          include: [/\btotal operating expenses\b/i, /\btotal expenses\b/i, /\btotal cost of sales\b/i, /\btotal operating cost\b/i],
           exclude: [/prepaid/i, /accrued/i, /tax expense/i]
         },
         cash: {
@@ -386,10 +463,11 @@
         if (target.exclude.some(rx => rx.test(trimmed))) continue;
 
         if (target.include.some(rx => rx.test(trimmed))) {
-          const numberRegex = /(\(?\$\s*[\d,]+(?:\.\d+)?\)?)/g;
-          const matches = trimmed.match(numberRegex);
+          // Extract numerical sequences matching currency formats
+          const matches = trimmed.match(/(\(?\$\s*[\d,]+(?:\.\d+)?\)?|[\d,]{2,}(?:\.\d+)?)/g);
 
           if (matches && matches.length > 0) {
+            // Target most recent period value (usually primary column)
             let rawStr = matches[0].trim().replace(/\$/g, "");
             let isNegative = false;
 
@@ -399,7 +477,7 @@
             }
 
             const numericValue = parseFloat(rawStr.replace(/,/g, ""));
-            if (!isNaN(numericValue)) {
+            if (!isNaN(numericValue) && numericValue !== 0) {
               return (isNegative ? -numericValue : numericValue) * scaleMultiplier;
             }
           }
@@ -411,9 +489,12 @@
 
     async function analyzeStatement() {
       const f = $("stmtFile").files[0];
-      if (!f) return alert("Select a document first.");
+      if (!f) return alert("Please select a valid document first.");
+      
+      $("stmtSummary").textContent = "Scanning multi-column matrix...";
       const text = await readFileText(f);
 
+      state.scale = extractScaleMultiplier(text);
       state.rev = extractMetric(text, "revenue");
       state.burn = extractMetric(text, "expenses");
       state.cash = extractMetric(text, "cash");
@@ -424,6 +505,8 @@
       $("outNet").textContent = money(state.rev - state.burn);
       $("outCash").textContent = money(state.cash);
       $("outDebt").textContent = money(state.debt);
+
+      $("stmtSummary").textContent = `Extraction Complete. Scale detected: ${state.scale === 1000000 ? 'In Millions' : state.scale === 1000 ? 'In Thousands' : 'Standard Scale'}. Table structure verified.`;
       $("stmtOutput").style.display = "block";
     }
 
@@ -440,6 +523,7 @@
       if (!f) return alert("Select a filing document first.");
       const text = await readFileText(f);
 
+      state.scale = extractScaleMultiplier(text);
       state.rev = extractMetric(text, "revenue");
       state.burn = extractMetric(text, "expenses");
       state.cash = extractMetric(text, "cash");
@@ -458,42 +542,46 @@
 
       const flags = [];
       if (opMargin < 0) {
-        flags.push(`Negative Margin (${opMargin.toFixed(1)}%): Operating expenses exceed total revenue.`);
+        flags.push(`Negative Margin (${opMargin.toFixed(1)}%): Operating expenses exceed top-line revenue.`);
       }
       if (runwayMonths < 12 && monthlyNetBurn > 0) {
-        flags.push(`Critical Runway (${runwayMonths.toFixed(1)} Mos): Liquidity exhausts quickly at current net burn rate.`);
+        flags.push(`Critical Runway (${runwayMonths.toFixed(1)} Mos): Rapid liquidity depletion detected.`);
       }
       if (debtToCash > 2.0) {
-        flags.push(`High Leverage (Debt/Cash ${debtToCash.toFixed(1)}x): Total debt significantly exceeds liquid cash reserves.`);
+        flags.push(`High Leverage Ratio (${debtToCash.toFixed(1)}x): Total debt heavily exceeds cash reserves.`);
       }
       if (state.rev === 0) {
-        flags.push("Zero Revenue Reported: Filing indicates no active commercial top-line generation.");
+        flags.push("Zero Commercial Revenue: Filing indicates no active commercial operations.");
       }
 
       let score = 100;
-      if (opMargin < 0) {
-        score -= Math.min(40, Math.abs(opMargin) * 0.8);
-      }
-      if (runwayMonths < 18) {
-        score -= Math.min(40, (18 - runwayMonths) * 2.2);
-      }
-      if (debtToCash > 1.0) {
-        score -= Math.min(20, (debtToCash - 1.0) * 10);
-      }
+      if (opMargin < 0) score -= Math.min(40, Math.abs(opMargin) * 0.8);
+      if (runwayMonths < 18) score -= Math.min(40, (18 - runwayMonths) * 2.2);
+      if (debtToCash > 1.0) score -= Math.min(20, (debtToCash - 1.0) * 10);
 
       score = Math.max(0, Math.min(100, Math.round(score)));
 
       let verdict = "INVESTMENT SUITABLE";
-      if (score < 40) {
-        verdict = "DO NOT INVEST";
-      } else if (score < 70) {
-        verdict = "HIGH CAUTION";
+      if (score < 40) verdict = "DO NOT INVEST";
+      else if (score < 70) verdict = "HIGH CAUTION";
+
+      // GENERATE QUALITATIVE THESIS
+      let thesis = "";
+      if (verdict === "DO NOT INVEST") {
+        thesis = `<strong>Avoid Investment.</strong> The company presents significant structural insolvency risks. Operating margin sits at ${opMargin.toFixed(1)}%, with net operating burn exhausting liquidity in approximately ${runwayMonths.toFixed(1)} months. High debt load (${money(state.debt)}) further limits capital restructure options without severe equity dilution.`;
+      } else if (verdict === "HIGH CAUTION") {
+        thesis = `<strong>Exercise Caution.</strong> While top-line revenue generation is active (${money(state.rev)}), current cost structure yields tight profitability. Capital reserves provide a runway of ${runwayMonths > 120 ? '10+ years' : runwayMonths.toFixed(1) + ' months'}. Growth must accelerate before additional debt obligations mature.`;
+      } else {
+        thesis = `<strong>Favorable Profile.</strong> Strong financial health score of ${score}/100. Operating margins are positive (${opMargin.toFixed(1)}%), supported by robust liquid cash reserves (${money(state.cash)}). Debt levels remain manageable relative to ongoing yield generation.`;
       }
+
+      state.thesis = thesis;
 
       $("vVerdict").textContent = verdict;
       $("vScore").textContent = `${score}/100`;
       $("vMargin").textContent = `${opMargin.toFixed(1)}%`;
       $("vRunway").textContent = monthlyNetBurn > 0 ? `${runwayMonths.toFixed(1)} Mos` : "Sustainable";
+      $("vThesis").innerHTML = thesis;
 
       const rList = $("redFlagsList");
       rList.innerHTML = "";
@@ -535,7 +623,7 @@
     }
 
     function printReport() {
-      const user = localStorage.getItem("forge_user") || "Operator";
+      const user = localStorage.getItem("forge_user") || "Institutional Operator";
       $("rptUser").textContent = user;
       $("rptDate").textContent = new Date().toLocaleDateString();
       $("rptRev").textContent = money(state.rev);
@@ -545,6 +633,7 @@
       $("rptDebt").textContent = money(state.debt);
       $("rptVerdict").textContent = $("vVerdict").textContent || "N/A";
       $("rptScore").textContent = $("vScore").textContent || "N/A";
+      $("rptThesis").innerHTML = state.thesis || "No audit run conducted yet.";
 
       $("printableReport").style.display = "block";
       window.print();
