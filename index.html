@@ -1,644 +1,2769 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FORGE | Financial Audit & Investor Intelligence Terminal</title>
+  <meta name="description" content="FORGE — Financial Clarity Engine for financial document analysis, risk assessment and investor-ready reporting." />
+  <title>FORGE | Financial Clarity Engine</title>
 
-  <!-- External Parsers & Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>if (window['pdfjs-dist/build/pdf']) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }</script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; }
-    
     :root {
-      --bg: #050505;
-      --panel: #0d0d0d;
-      --card: #121212;
-      --border: #222222;
-      --border-glow: #444444;
-      --text: #ededed;
-      --muted: #888888;
-      --accent: #ffffff;
-      --red: #ef4444;
-      --green: #22c55e;
-      --amber: #f59e0b;
+      --bg: #070809;
+      --panel: #0d1012;
+      --panel-2: #111518;
+      --panel-3: #171b1e;
+      --border: #293036;
+      --border-soft: #1b2227;
+      --text: #f2f5f7;
+      --muted: #8b969f;
+      --muted-2: #626e77;
+      --accent: #a9f5d0;
+      --accent-2: #73c9aa;
+      --warning: #f3c66b;
+      --danger: #ff8585;
+      --blue: #9bbdff;
+      --radius: 16px;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .32);
     }
 
-    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
-
-    /* PRELOADER */
-    #loaderOverlay {
-      position: fixed; inset: 0; background: #000; z-index: 9999;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      font-family: monospace; color: #888; transition: opacity 0.5s;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .loader-box { width: 90%; max-width: 480px; border: 1px solid var(--border); padding: 24px; background: #090909; border-radius: 8px; }
-    .progress-bar-fill { width: 0%; height: 4px; background: var(--accent); transition: width 0.15s; }
 
-    /* LOGIN MODAL */
-    #loginModal {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(16px);
-      z-index: 8888; display: flex; justify-content: center; align-items: center; padding: 20px;
+    html {
+      scroll-behavior: smooth;
     }
-    .modal-card { background: #0a0a0a; border: 1px solid var(--border); padding: 36px; border-radius: 12px; width: 100%; max-width: 420px; text-align: center; }
 
-    /* HEADER & HERO */
-    header {
-      padding: 16px 5%; display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid var(--border); background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(12px);
-      position: sticky; top: 0; z-index: 100;
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 80% 0%, rgba(91, 116, 130, .11), transparent 32%),
+        linear-gradient(135deg, #070809, #0b0e10 55%, #080a0b);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
     }
-    .brand { font-size: 1rem; font-weight: 800; letter-spacing: 4px; display: flex; align-items: center; gap: 8px; }
-    .dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px #fff; }
 
-    .hero-banner {
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 42px;
+      border-bottom: 1px solid var(--border-soft);
+      background: rgba(7, 8, 9, .84);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .brand-name {
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: 8px;
+    }
+
+    .brand-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    .brand-subtitle {
+      color: #a5afb7;
+      font-size: 14px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ghost-button,
+    .primary-button,
+    .danger-button,
+    .small-button {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 11px 17px;
+      background: transparent;
+      color: var(--text);
+      transition: .2s ease;
+    }
+
+    .ghost-button:hover,
+    .small-button:hover {
+      border-color: #65737d;
+      background: #151a1d;
+    }
+
+    .primary-button {
+      background: var(--text);
+      color: #080909;
+      border-color: var(--text);
+      font-weight: 700;
+    }
+
+    .primary-button:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .danger-button {
+      color: var(--danger);
+      border-color: rgba(255, 133, 133, .35);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 238px minmax(0, 1fr);
+      min-height: calc(100vh - 76px);
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border-soft);
+      padding: 28px 16px;
+      background: rgba(8, 10, 11, .72);
+    }
+
+    .sidebar-label {
+      color: var(--muted-2);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 12px 14px;
+    }
+
+    .nav-button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 14px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+      margin-bottom: 5px;
+    }
+
+    .nav-button:hover,
+    .nav-button.active {
+      color: var(--text);
+      background: #171c20;
+      border-color: var(--border);
+    }
+
+    .nav-icon {
+      width: 18px;
+      text-align: center;
+      color: #aab5bc;
+    }
+
+    .sidebar-bottom {
+      margin-top: 42px;
+      padding: 18px 14px;
+      border-top: 1px solid var(--border-soft);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 34px;
+    }
+
+    .hero {
+      min-height: 330px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
       position: relative;
-      padding: 60px 5%; 
-      background: linear-gradient(180deg, rgba(15,15,15,0.7) 0%, rgba(5,5,5,1) 100%), 
-                  url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
-      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      background:
+        linear-gradient(90deg, rgba(5, 7, 8, .98) 0%, rgba(5, 7, 8, .86) 37%, rgba(5, 7, 8, .28) 100%),
+        linear-gradient(180deg, rgba(5, 7, 8, .1), rgba(5, 7, 8, .72)),
+        url("forge-hero.png") center / cover no-repeat,
+        radial-gradient(circle at 80% 30%, #273039, #090b0c 65%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-content {
+      width: min(680px, 100%);
+      padding: 42px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .eyebrow {
+      color: #b7c4cc;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-size: 11px;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 4vw, 58px);
+      line-height: 1.05;
+      letter-spacing: -2px;
+      max-width: 620px;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 span {
+      color: #b8c6d0;
+    }
+
+    .hero p {
+      color: #b2bec7;
+      max-width: 560px;
+      font-size: 15px;
+      margin-bottom: 25px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hero-note {
+      margin-top: 18px;
+      color: #87949d;
+      font-size: 11px;
+    }
+
+    .page-section {
+      margin-top: 28px;
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 15px;
+    }
+
+    .section-heading h2 {
+      font-size: 19px;
+      letter-spacing: -.4px;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, .85fr);
+      gap: 18px;
+    }
+
+    .panel {
+      min-width: 0;
+      border: 1px solid var(--border);
+      background: linear-gradient(145deg, rgba(17, 21, 24, .96), rgba(10, 13, 15, .96));
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .panel-title h3 {
+      font-size: 15px;
+    }
+
+    .panel-title span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .upload-zone {
+      min-height: 235px;
+      border: 1px dashed #4a5963;
+      border-radius: 13px;
       display: flex;
       flex-direction: column;
+      align-items: center;
       justify-content: center;
+      text-align: center;
+      padding: 28px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(133, 158, 175, .09), transparent 60%),
+        rgba(4, 7, 8, .3);
+      transition: .2s ease;
     }
-    .hero-banner h1 { font-size: 2rem; font-weight: 800; letter-spacing: 2px; }
-    .hero-banner p { color: #aaa; font-size: 0.9rem; margin-top: 6px; max-width: 600px; }
 
-    /* LAYOUT & UI COMPONENTS */
-    .container { width: 90%; max-width: 1100px; margin: 30px auto; flex: 1; }
-    
-    .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-    .tab-btn { background: transparent; border: 1px solid transparent; color: var(--muted); padding: 10px 18px; cursor: pointer; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s; }
-    .tab-btn.active { color: #fff; background: #181818; border-color: var(--border-glow); }
+    .upload-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(169, 245, 208, .06);
+    }
 
-    .panel { display: none; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 28px; }
-    .panel.active { display: block; }
+    .upload-symbol {
+      width: 60px;
+      height: 60px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #48545d;
+      border-radius: 17px;
+      font-size: 28px;
+      margin-bottom: 16px;
+      color: #c4d0d8;
+    }
 
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    .upload-zone h3 {
+      font-size: 18px;
+      margin-bottom: 7px;
+    }
 
-    .card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 8px; }
+    .upload-zone p {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 17px;
+    }
 
-    label { display: block; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-    input, select { width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; outline: none; }
-    input:focus, select:focus { border-color: var(--border-glow); }
+    .format-list {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 17px;
+    }
 
-    .btn { background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.2s; }
-    .btn:hover { opacity: 0.85; }
-    .btn-secondary { background: #181818; color: #fff; border: 1px solid var(--border); }
-    .btn-secondary:hover { background: #222; }
+    .format-chip,
+    .status-chip,
+    .statement-chip {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: var(--muted);
+      font-size: 10px;
+      background: #101417;
+    }
 
-    /* METRIC CARDS & TABLES */
-    .metric-card { background: #000; border: 1px solid var(--border); padding: 16px; border-radius: 6px; text-align: center; }
-    .metric-card .val { font-size: 1.2rem; font-weight: 700; margin-top: 4px; }
-    .metric-card .lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; }
+    .status-chip.success {
+      color: var(--accent);
+      border-color: rgba(169, 245, 208, .25);
+      background: rgba(169, 245, 208, .06);
+    }
 
-    .output-box { margin-top: 20px; background: #000; border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: none; }
-    .data-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #141414; font-size: 0.85rem; }
-    .data-row span:first-child { color: var(--muted); }
+    .status-chip.warning {
+      color: var(--warning);
+      border-color: rgba(243, 198, 107, .25);
+    }
 
-    .analysis-card { margin-top: 16px; background: #090909; border: 1px solid var(--border); padding: 18px; border-radius: 6px; font-size: 0.85rem; line-height: 1.6; }
-    .analysis-card h4 { color: #fff; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+    .status-chip.danger {
+      color: var(--danger);
+      border-color: rgba(255, 133, 133, .25);
+    }
 
-    .red-flag-box { margin-top: 16px; background: #110505; border: 1px solid #3a1111; padding: 16px; border-radius: 6px; color: #fca5a5; font-size: 0.8rem; }
-    .red-flag-box ul { padding-left: 18px; margin-top: 8px; }
+    .recent-list {
+      display: grid;
+      gap: 10px;
+    }
 
-    footer { margin-top: auto; padding: 24px; text-align: center; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.7rem; }
+    .recent-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px;
+      border: 1px solid var(--border-soft);
+      border-radius: 11px;
+      background: #0c1012;
+    }
 
-    /* PRINT & EXPORT STYLING */
-    @media print {
-      body { background: #fff !important; color: #000 !important; }
-      body * { visibility: hidden; }
-      #printableReport, #printableReport * { visibility: visible; }
-      #printableReport { 
-        position: absolute; left: 0; top: 0; width: 100%; 
-        color: #111 !important; background: #fff !important; padding: 40px; font-family: Arial, sans-serif;
+    .file-icon {
+      width: 37px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: #c6d0d6;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .recent-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .recent-details strong {
+      display: block;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .recent-details span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: 3px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric-card {
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 17px;
+      background: linear-gradient(145deg, #111619, #0b0f11);
+      min-width: 0;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 10px;
+    }
+
+    .metric-value {
+      font-size: 23px;
+      font-weight: 750;
+      letter-spacing: -.7px;
+      overflow-wrap: anywhere;
+    }
+
+    .metric-meta {
+      color: var(--muted-2);
+      font-size: 10px;
+      margin-top: 7px;
+    }
+
+    .metric-meta.good {
+      color: var(--accent-2);
+    }
+
+    .metric-meta.bad {
+      color: var(--danger);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .health-row {
+      display: flex;
+      align-items: center;
+      gap: 17px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .health-row:last-child {
+      border-bottom: 0;
+    }
+
+    .health-row strong {
+      display: block;
+      font-size: 12px;
+    }
+
+    .health-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    .health-value {
+      margin-left: auto;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .risk-layout {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      align-items: center;
+      gap: 22px;
+    }
+
+    .risk-ring {
+      width: 145px;
+      height: 145px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--accent) 0deg, var(--accent) 230deg, #354047 230deg, #354047 360deg);
+      position: relative;
+    }
+
+    .risk-ring::after {
+      content: "";
+      position: absolute;
+      inset: 11px;
+      background: #0d1113;
+      border-radius: 50%;
+    }
+
+    .risk-ring-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+
+    .risk-ring-content strong {
+      display: block;
+      font-size: 33px;
+      letter-spacing: -1px;
+    }
+
+    .risk-ring-content span {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .risk-legend {
+      display: grid;
+      gap: 13px;
+    }
+
+    .legend-line {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .legend-dot.warning {
+      background: var(--warning);
+    }
+
+    .legend-dot.danger {
+      background: var(--danger);
+    }
+
+    .statement-tabs {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-bottom: 17px;
+    }
+
+    .statement-tab {
+      border: 1px solid var(--border);
+      background: #0c1012;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 11px;
+    }
+
+    .statement-tab.active {
+      color: #07100c;
+      background: var(--accent);
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border-soft);
+      border-radius: 11px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 560px;
+      font-size: 11px;
+    }
+
+    th,
+    td {
+      padding: 12px 13px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    th {
+      background: #14191c;
+      color: #aebac2;
+      font-weight: 650;
+    }
+
+    td {
+      color: #cbd4da;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td.numeric,
+    th.numeric {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .risk-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .risk-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--border-soft);
+      border-radius: 11px;
+      background: #0b0f11;
+    }
+
+    .risk-mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: rgba(255, 133, 133, .08);
+      color: var(--danger);
+      border: 1px solid rgba(255, 133, 133, .2);
+      flex-shrink: 0;
+    }
+
+    .risk-item.warning .risk-mark {
+      color: var(--warning);
+      background: rgba(243, 198, 107, .08);
+      border-color: rgba(243, 198, 107, .2);
+    }
+
+    .risk-item.good .risk-mark {
+      color: var(--accent);
+      background: rgba(169, 245, 208, .08);
+      border-color: rgba(169, 245, 208, .2);
+    }
+
+    .risk-item strong {
+      font-size: 12px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .risk-item p {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .thesis {
+      display: grid;
+      gap: 15px;
+    }
+
+    .thesis-block {
+      padding: 15px;
+      border: 1px solid var(--border-soft);
+      border-radius: 11px;
+      background: #0b0f11;
+    }
+
+    .thesis-block h4 {
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .thesis-block p,
+    .thesis-block li {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .thesis-block ul {
+      padding-left: 18px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .export-button {
+      border: 1px solid var(--border);
+      background: #0c1012;
+      color: var(--text);
+      border-radius: 11px;
+      padding: 14px 10px;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .export-button:hover {
+      background: #171d21;
+      border-color: #64717b;
+    }
+
+    .audit-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .audit-card {
+      border: 1px solid var(--border-soft);
+      background: #0b0f11;
+      border-radius: 11px;
+      padding: 15px;
+    }
+
+    .audit-card strong {
+      display: block;
+      font-size: 21px;
+      margin-bottom: 4px;
+    }
+
+    .audit-card span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .empty-state {
+      padding: 32px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .progress-area {
+      margin-top: 18px;
+    }
+
+    .progress-track {
+      height: 5px;
+      background: #252d32;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width .2s ease;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 10px;
+      margin-bottom: 7px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      max-width: 360px;
+      padding: 15px 17px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #151b1f;
+      box-shadow: var(--shadow);
+      color: var(--text);
+      font-size: 12px;
+      z-index: 100;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .72);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      z-index: 200;
+    }
+
+    .modal {
+      width: min(520px, 100%);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: #0d1113;
+      padding: 25px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal h2 {
+      font-size: 21px;
+      margin-bottom: 8px;
+    }
+
+    .modal p {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+
+    .modal input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: #080b0d;
+      color: var(--text);
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    .modal input:focus {
+      border-color: var(--accent);
+    }
+
+    .loading-screen {
+      position: fixed;
+      inset: 0;
+      background: #070809;
+      display: grid;
+      place-items: center;
+      z-index: 300;
+      transition: opacity .5s ease;
+    }
+
+    .loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loader-content {
+      text-align: center;
+    }
+
+    .loader-logo {
+      font-size: 40px;
+      letter-spacing: 12px;
+      font-weight: 800;
+      margin-bottom: 22px;
+    }
+
+    .loader-line {
+      width: 220px;
+      height: 2px;
+      background: #252d32;
+      overflow: hidden;
+      margin: auto;
+    }
+
+    .loader-line span {
+      display: block;
+      height: 100%;
+      width: 45%;
+      background: var(--accent);
+      animation: loadLine 1.2s infinite ease-in-out;
+    }
+
+    .loader-status {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 14px;
+      letter-spacing: 1px;
+    }
+
+    @keyframes loadLine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(320%); }
+    }
+
+    @media (max-width: 1250px) {
+      .metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
       }
-      .no-print { display: none !important; }
-      .rpt-header { border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 24px; }
-      .rpt-header h1 { font-size: 20pt; color: #000; text-transform: uppercase; }
-      .rpt-section { margin-bottom: 20px; }
-      .rpt-section h3 { font-size: 12pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 10px; text-transform: uppercase; }
-      .rpt-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-      .rpt-table th, .rpt-table td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 10pt; }
-      .rpt-table th { background: #f2f2f2; font-weight: bold; }
+
+      .layout {
+        grid-template-columns: 205px minmax(0, 1fr);
+      }
+
+      .main {
+        padding: 24px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .topbar {
+        padding: 0 20px;
+      }
+
+      .brand-subtitle,
+      .brand-divider {
+        display: none;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      .sidebar {
+        display: flex;
+        gap: 5px;
+        overflow-x: auto;
+        padding: 12px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border-soft);
+      }
+
+      .sidebar-label,
+      .sidebar-bottom {
+        display: none;
+      }
+
+      .nav-button {
+        width: auto;
+        white-space: nowrap;
+        margin: 0;
+      }
+
+      .workspace-grid,
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-content {
+        padding: 30px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .topbar {
+        height: auto;
+        min-height: 70px;
+        gap: 15px;
+        padding: 15px;
+      }
+
+      .brand-name {
+        font-size: 21px;
+        letter-spacing: 5px;
+      }
+
+      .top-actions .ghost-button {
+        display: none;
+      }
+
+      .main {
+        padding: 15px;
+      }
+
+      .hero {
+        min-height: 390px;
+        background-position: 66% center;
+      }
+
+      .hero-content {
+        padding: 24px;
+        align-self: flex-end;
+        background: linear-gradient(0deg, rgba(5, 7, 8, .95), transparent);
+      }
+
+      .hero h1 {
+        font-size: 34px;
+      }
+
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .metric-card {
+        padding: 13px;
+      }
+
+      .metric-value {
+        font-size: 20px;
+      }
+
+      .risk-layout {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .risk-legend {
+        width: 100%;
+      }
+
+      .export-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .audit-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
-
-  <!-- PRELOADER -->
-  <div id="loaderOverlay">
-    <div class="loader-box">
-      <div style="color:#fff; font-weight:bold; margin-bottom:4px;">FORGE TERMINAL v4.5</div>
-      <div style="font-size:0.7rem; margin-bottom:16px;">DEVELOPED BY YUKTI AND SAHITHYA</div>
-      <div class="progress-bar-fill" id="loaderBar"></div>
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loader-content">
+      <div class="loader-logo">FORGE</div>
+      <div class="loader-line"><span></span></div>
+      <div class="loader-status">INITIALISING FINANCIAL CLARITY ENGINE</div>
     </div>
   </div>
 
-  <!-- LOGIN MODAL -->
-  <div id="loginModal" style="display:none;">
-    <div class="modal-card">
-      <h2 style="font-size:1.1rem; letter-spacing:2px; margin-bottom:8px;">TERMINAL ACCESS</h2>
-      <p style="color:var(--muted); font-size:0.8rem; margin-bottom:20px;">Enter full operator name to continue.</p>
-      <input type="text" id="modalUserName" placeholder="Operator Name" style="margin-bottom:12px;" />
-      <button class="btn" id="modalLoginBtn" style="width:100%;">Initialize Workspace</button>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-name">FORGE</div>
+        <div class="brand-divider"></div>
+        <div class="brand-subtitle">Financial Clarity Engine</div>
+      </div>
+
+      <div class="top-actions">
+        <button class="ghost-button" id="resetButton">Reset Workspace</button>
+        <button class="primary-button" id="topUploadButton">Get Started →</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-label">Workspace</div>
+
+        <button class="nav-button active" data-section="home">
+          <span class="nav-icon">⌂</span>
+          Home
+        </button>
+
+        <button class="nav-button" data-section="analysis">
+          <span class="nav-icon">⌕</span>
+          Analyse
+        </button>
+
+        <button class="nav-button" data-section="statements">
+          <span class="nav-icon">▤</span>
+          Statements
+        </button>
+
+        <button class="nav-button" data-section="risks">
+          <span class="nav-icon">◈</span>
+          Risk Analysis
+        </button>
+
+        <button class="nav-button" data-section="reports">
+          <span class="nav-icon">↗</span>
+          Reports
+        </button>
+
+        <div class="sidebar-bottom">
+          Real data.<br />
+          Deeper insights.<br />
+          Smarter investors.
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="hero" id="home">
+          <div class="hero-content">
+            <div class="eyebrow">From documents to decisions</div>
+
+            <h1>
+              Smarter <span>Analysis.</span><br />
+              Better Investment<br />
+              Decisions.
+            </h1>
+
+            <p>
+              FORGE scans financial documents, identifies financial statements,
+              calculates meaningful ratios, highlights risk signals and creates
+              investor-ready reports without inventing missing figures.
+            </p>
+
+            <div class="hero-actions">
+              <button class="primary-button" id="heroUploadButton">
+                Upload Financial Document →
+              </button>
+              <button class="ghost-button" id="sampleButton">
+                Load Sample Workspace
+              </button>
+            </div>
+
+            <div class="hero-note">
+              Browser-based analysis · No account required · No financial data uploaded to a server
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section" id="analysis">
+          <div class="section-heading">
+            <div>
+              <h2>Financial Document Workspace</h2>
+              <p>Upload a report to begin evidence-backed analysis.</p>
+            </div>
+            <span class="status-chip" id="scanStatus">Awaiting document</span>
+          </div>
+
+          <div class="workspace-grid">
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Upload Your Financial Document</h3>
+                <span>Table-aware extraction</span>
+              </div>
+
+              <div class="upload-zone" id="uploadZone">
+                <div class="upload-symbol">↥</div>
+                <h3>Drop your file here</h3>
+                <p>Or select a financial document from your computer.</p>
+
+                <button class="primary-button" id="browseButton">
+                  Browse Files
+                </button>
+
+                <input
+                  type="file"
+                  id="fileInput"
+                  accept=".pdf,.xlsx,.xls,.csv,.docx,.doc,.txt"
+                  hidden
+                />
+
+                <div class="format-list">
+                  <span class="format-chip">PDF</span>
+                  <span class="format-chip">XLSX</span>
+                  <span class="format-chip">XLS</span>
+                  <span class="format-chip">CSV</span>
+                  <span class="format-chip">DOCX</span>
+                  <span class="format-chip">TXT</span>
+                </div>
+              </div>
+
+              <div class="progress-area hidden" id="progressArea">
+                <div class="progress-label">
+                  <span id="progressText">Reading document...</span>
+                  <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-bar" id="progressBar"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Recent Analysis</h3>
+                <span>Local workspace</span>
+              </div>
+
+              <div class="recent-list" id="recentList">
+                <div class="empty-state">
+                  No documents analysed yet.<br />
+                  Your recent files will appear here.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section">
+          <div class="section-heading">
+            <div>
+              <h2>Key Metrics Overview</h2>
+              <p>Verified values and calculated indicators from the selected document.</p>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-label">Revenue</div>
+              <div class="metric-value" id="metricRevenue">—</div>
+              <div class="metric-meta" id="metricRevenueMeta">Not available</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Net Income</div>
+              <div class="metric-value" id="metricNetIncome">—</div>
+              <div class="metric-meta" id="metricNetIncomeMeta">Not available</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Cash</div>
+              <div class="metric-value" id="metricCash">—</div>
+              <div class="metric-meta" id="metricCashMeta">Not available</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Total Debt</div>
+              <div class="metric-value" id="metricDebt">—</div>
+              <div class="metric-meta" id="metricDebtMeta">Not available</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Operating Cash Flow</div>
+              <div class="metric-value" id="metricCfo">—</div>
+              <div class="metric-meta" id="metricCfoMeta">Not available</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Total Equity</div>
+              <div class="metric-value" id="metricEquity">—</div>
+              <div class="metric-meta" id="metricEquityMeta">Not available</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section">
+          <div class="dashboard-grid">
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Financial Health</h3>
+                <span id="healthStatus">Awaiting analysis</span>
+              </div>
+
+              <div id="healthRows">
+                <div class="empty-state">
+                  Upload a document to calculate financial health indicators.
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Risk Assessment</h3>
+                <span>Evidence-weighted</span>
+              </div>
+
+              <div class="risk-layout">
+                <div class="risk-ring" id="riskRing">
+                  <div class="risk-ring-content">
+                    <strong id="riskScore">—</strong>
+                    <span id="riskLabel">No score</span>
+                  </div>
+                </div>
+
+                <div class="risk-legend">
+                  <div class="legend-line">
+                    <span class="legend-dot"></span>
+                    <span id="positiveCount">Positive signals: —</span>
+                  </div>
+
+                  <div class="legend-line">
+                    <span class="legend-dot warning"></span>
+                    <span id="warningCount">Watch items: —</span>
+                  </div>
+
+                  <div class="legend-line">
+                    <span class="legend-dot danger"></span>
+                    <span id="dangerCount">Critical flags: —</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section" id="statements">
+          <div class="section-heading">
+            <div>
+              <h2>Financial Statements</h2>
+              <p>Extracted line items, periods and source evidence.</p>
+            </div>
+            <span class="status-chip" id="statementStatus">No statement detected</span>
+          </div>
+
+          <div class="panel">
+            <div class="statement-tabs" id="statementTabs">
+              <button class="statement-tab active" data-statement="all">All Statements</button>
+              <button class="statement-tab" data-statement="income">Income Statement</button>
+              <button class="statement-tab" data-statement="balance">Balance Sheet</button>
+              <button class="statement-tab" data-statement="cashflow">Cash Flow</button>
+              <button class="statement-tab" data-statement="equity">Changes in Equity</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Statement</th>
+                    <th>Line Item</th>
+                    <th>Period</th>
+                    <th class="numeric">Value</th>
+                    <th>Confidence</th>
+                  </tr>
+                </thead>
+                <tbody id="statementTableBody">
+                  <tr>
+                    <td colspan="5" class="empty-state">
+                      Upload a document to view extracted statement data.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section" id="risks">
+          <div class="dashboard-grid">
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Risk Signals</h3>
+                <span>Why the signal matters</span>
+              </div>
+
+              <div class="risk-list" id="riskList">
+                <div class="empty-state">
+                  Risk signals will appear after analysis.
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">
+                <h3>Investor Rationale</h3>
+                <span>Decision support, not a guarantee</span>
+              </div>
+
+              <div class="thesis" id="thesis">
+                <div class="empty-state">
+                  Investor rationale will be generated from available evidence.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section" id="reports">
+          <div class="section-heading">
+            <div>
+              <h2>Professional Report Export</h2>
+              <p>Generate a structured report with metrics, risks, rationale and methodology.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="export-grid">
+              <button class="export-button" id="exportPdf">▧ PDF Report</button>
+              <button class="export-button" id="exportHtml">▤ HTML Report</button>
+              <button class="export-button" id="exportCsv">▥ CSV Data</button>
+              <button class="export-button" id="printReport">⎙ Print Report</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="page-section">
+          <div class="section-heading">
+            <div>
+              <h2>Data Quality & Audit Trail</h2>
+              <p>FORGE distinguishes extracted values, calculations and missing information.</p>
+            </div>
+          </div>
+
+          <div class="audit-grid">
+            <div class="audit-card">
+              <strong id="auditVerified">0</strong>
+              <span>Verified or strongly matched values</span>
+            </div>
+
+            <div class="audit-card">
+              <strong id="auditCalculated">0</strong>
+              <span>Calculated indicators</span>
+            </div>
+
+            <div class="audit-card">
+              <strong id="auditMissing">0</strong>
+              <span>Missing or manual-verification items</span>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   </div>
 
-  <!-- HEADER -->
-  <header>
-    <div class="brand"><div class="dot"></div>FORGE</div>
-    <div id="userBadge" style="display:none; font-size:0.75rem; gap:12px; align-items:center;">
-      <span id="userBadgeName" style="color:var(--muted);"></span>
-      <button class="btn btn-secondary" id="logoutBtn" style="padding:4px 8px; font-size:0.65rem;">Reset</button>
-    </div>
-  </header>
-
-  <!-- HERO -->
-  <section class="hero-banner">
-    <h1>FINANCIAL AUDIT &amp; SCREENING ENGINE</h1>
-    <p>Multi-column 10-K extraction, cash burn modeling, and qualitative investor thesis generation.</p>
-  </section>
-
-  <!-- MAIN CONTAINER -->
-  <main class="container">
-    <nav class="tabs">
-      <button class="tab-btn active" data-tab="scanner">1. Statement Scanner</button>
-      <button class="tab-btn" data-tab="screener">2. Investor Screener</button>
-      <button class="tab-btn" data-tab="forecast">3. Forecast Simulator</button>
-    </nav>
-
-    <!-- TAB 1: SCANNER -->
-    <section id="scanner" class="panel active">
-      <h3 style="margin-bottom:16px;">Financial Statement Ingestion</h3>
-      <div class="grid-2" style="margin-bottom:16px;">
-        <div>
-          <label>Document Type</label>
-          <select id="stmtType">
-            <option>Auto-Detect Statement (10-K / Balance Sheet / Income)</option>
-          </select>
-        </div>
-        <div>
-          <label>File Upload (PDF, XLSX, XLS, CSV, DOCX, TXT)</label>
-          <input type="file" id="stmtFile" accept=".pdf,.xlsx,.xls,.csv,.docx,.txt" />
-        </div>
-      </div>
-      <button class="btn" id="analyzeStmtBtn">Scan &amp; Extract Document</button>
-
-      <div id="stmtOutput" class="output-box">
-        <div class="data-row"><span>Extracted Revenue</span><strong id="outRev">$0.00</strong></div>
-        <div class="data-row"><span>Extracted Operating Expenses</span><strong id="outBurn">$0.00</strong></div>
-        <div class="data-row"><span>Net Operating Income</span><strong id="outNet">$0.00</strong></div>
-        <div class="data-row"><span>Extracted Liquid Cash</span><strong id="outCash">$0.00</strong></div>
-        <div class="data-row"><span>Extracted Total Debt</span><strong id="outDebt">$0.00</strong></div>
-
-        <div class="analysis-card">
-          <h4>Ingestion Summary</h4>
-          <p id="stmtSummary">Document processed using layout-aware positional table parsing.</p>
-        </div>
-
-        <div style="margin-top:16px; display:flex; gap:10px;">
-          <button class="btn btn-secondary" id="syncSimBtn">Import to Simulator →</button>
-          <button class="btn btn-secondary" id="exportDocBtn">Export Audit Report (PDF)</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: SCREENER -->
-    <section id="screener" class="panel">
-      <h3 style="margin-bottom:16px;">Investor Risk Audit &amp; Thesis</h3>
-      <div style="margin-bottom:16px;">
-        <label>Upload Corporate Filing / 10-K Document</label>
-        <input type="file" id="tenkFile" accept=".pdf,.xlsx,.xls,.csv,.docx,.txt" />
-      </div>
-      <button class="btn" id="analyzeInvestorBtn">Run Complete Audit</button>
-
-      <div id="screenerOutput" class="output-box">
-        <div class="grid-4" style="margin-bottom:16px;">
-          <div class="metric-card"><div class="lbl">Verdict</div><div class="val" id="vVerdict">--</div></div>
-          <div class="metric-card"><div class="lbl">Health Score</div><div class="val" id="vScore">--</div></div>
-          <div class="metric-card"><div class="lbl">Op Margin</div><div class="val" id="vMargin">--</div></div>
-          <div class="metric-card"><div class="lbl">Est. Runway</div><div class="val" id="vRunway">--</div></div>
-        </div>
-
-        <div id="redFlagsBox" class="red-flag-box" style="display:none;">
-          <strong>⚠️ Investor Red Flags Detected:</strong>
-          <ul id="redFlagsList"></ul>
-        </div>
-
-        <div class="analysis-card">
-          <h4>Investment Thesis &amp; Qualitative Rationale</h4>
-          <p id="vThesis">Running audit...</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 3: SIMULATOR -->
-    <section id="forecast" class="panel">
-      <h3 style="margin-bottom:16px;">Compounded Forecast Engine</h3>
-      <div class="grid-2" style="margin-bottom:16px;">
-        <div><label>Opening Cash ($)</label><input type="number" id="simCash" value="0" /></div>
-        <div><label>Base Period Revenue ($)</label><input type="number" id="simRev" value="0" /></div>
-        <div><label>Base Period Expenses ($)</label><input type="number" id="simBurn" value="0" /></div>
-        <div><label>Revenue Growth Rate (% per period)</label><input type="number" id="simGrowth" value="0" step="0.1" /></div>
-      </div>
-
-      <div class="output-box" style="display:block;">
-        <div class="grid-4">
-          <div class="metric-card"><div class="lbl">Total Projected Revenue</div><div class="val" id="simOutRev">$0.00</div></div>
-          <div class="metric-card"><div class="lbl">Total Projected Expenses</div><div class="val" id="simOutBurn">$0.00</div></div>
-          <div class="metric-card"><div class="lbl">Net Cash Yield</div><div class="val" id="simOutNet">$0.00</div></div>
-          <div class="metric-card"><div class="lbl">Ending Cash Balance</div><div class="val" id="simOutEnd">$0.00</div></div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- PRINTABLE REPORT TEMPLATE -->
-  <div id="printableReport" style="display:none;">
-    <div class="rpt-header">
-      <h1>FORGE EXECUTIVE FINANCIAL AUDIT REPORT</h1>
-      <p style="margin-top: 6px; font-size: 10pt;">
-        <strong>Prepared By:</strong> <span id="rptUser"></span> | 
-        <strong>Engine:</strong> FORGE v4.5 | 
-        <strong>Date:</strong> <span id="rptDate"></span>
-      </p>
-    </div>
-
-    <div class="rpt-section">
-      <h3>1. Summary Extracted Financial Metrics</h3>
-      <table class="rpt-table">
-        <tr><th>Metric</th><th>Extracted Value</th></tr>
-        <tr><td>Total Revenue</td><td id="rptRev">$0.00</td></tr>
-        <tr><td>Operating Expenses</td><td id="rptBurn">$0.00</td></tr>
-        <tr><td>Net Operating Income</td><td id="rptNet">$0.00</td></tr>
-        <tr><td>Liquid Cash &amp; Equivalents</td><td id="rptCash">$0.00</td></tr>
-        <tr><td>Total Liabilities / Debt</td><td id="rptDebt">$0.00</td></tr>
-      </table>
-    </div>
-
-    <div class="rpt-section">
-      <h3>2. Investor Risk Evaluation</h3>
-      <table class="rpt-table">
-        <tr><th>Audit Verdict</th><td id="rptVerdict">--</td></tr>
-        <tr><th>Financial Health Score</th><td id="rptScore">--</td></tr>
-      </table>
-    </div>
-
-    <div class="rpt-section">
-      <h3>3. Qualitative Investment Thesis &amp; Rationale</h3>
-      <div id="rptThesis" style="font-size: 10pt; line-height: 1.5; padding: 10px; border: 1px solid #ddd; background: #fafafa;"></div>
-    </div>
-
-    <p style="margin-top:30px; font-size:8pt; color:#666; text-align: center;">
-      This document was programmatically generated via FORGE Engine for institutional research purposes.
-    </p>
-  </div>
-
-  <footer>
-    FORGE FINANCIAL ENGINE &copy; 2026 | BUILT BY YUKTI AND SAHITHYA<br/>
-    <span style="color:#555; font-size:0.65rem;">Educational &amp; Auditing tool. Does not constitute professional investment advice.</span>
-  </footer>
+  <div class="toast hidden" id="toast"></div>
 
   <script>
     "use strict";
+
+    const state = {
+      file: null,
+      rawText: "",
+      rows: [],
+      statements: [],
+      metrics: {},
+      ratios: {},
+      risks: [],
+      thesis: {},
+      activeStatement: "all",
+      company: "Unknown company",
+      periods: [],
+      units: "",
+      verified: 0,
+      calculated: 0,
+      missing: 0
+    };
+
     const $ = (id) => document.getElementById(id);
-    const money = (v) => "$" + Number(v || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    let state = { rev: 0, burn: 0, cash: 0, debt: 0, scale: 1, thesis: "" };
+    const formatNumber = (value) => {
+      if (value === null || value === undefined || !Number.isFinite(value)) return "—";
 
-    // PRELOADER & SESSION MANAGEMENT
-    window.addEventListener("DOMContentLoaded", () => {
-      let pct = 0;
-      const inv = setInterval(() => {
-        pct += 25;
-        $("loaderBar").style.width = pct + "%";
-        if (pct >= 100) {
-          clearInterval(inv);
-          $("loaderOverlay").style.opacity = "0";
-          setTimeout(() => $("loaderOverlay").style.display = "none", 500);
-          checkSession();
+      const absolute = Math.abs(value);
+      const sign = value < 0 ? "-" : "";
+
+      if (absolute >= 1e12) return `${sign}${(absolute / 1e12).toFixed(2)}T`;
+      if (absolute >= 1e9) return `${sign}${(absolute / 1e9).toFixed(2)}B`;
+      if (absolute >= 1e6) return `${sign}${(absolute / 1e6).toFixed(2)}M`;
+      if (absolute >= 1e3) return `${sign}${(absolute / 1e3).toFixed(2)}K`;
+
+      return `${sign}${absolute.toLocaleString("en-IN", {
+        maximumFractionDigits: 2
+      })}`;
+    };
+
+    const formatMoney = (value) => {
+      if (value === null || value === undefined || !Number.isFinite(value)) return "—";
+      return `${value < 0 ? "-₹" : "₹"}${formatNumber(Math.abs(value))}`;
+    };
+
+    const showToast = (message) => {
+      const toast = $("toast");
+      toast.textContent = message;
+      toast.classList.remove("hidden");
+
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 4000);
+    };
+
+    const setProgress = (percent, message) => {
+      $("progressArea").classList.remove("hidden");
+      $("progressBar").style.width = `${percent}%`;
+      $("progressPercent").textContent = `${Math.round(percent)}%`;
+      $("progressText").textContent = message;
+    };
+
+    const setStatus = (text, type = "") => {
+      const status = $("scanStatus");
+      status.textContent = text;
+      status.className = `status-chip ${type}`;
+    };
+
+    const cleanText = (text) => {
+      return String(text || "")
+        .replace(/\u00a0/g, " ")
+        .replace(/[ \t]+/g, " ")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    };
+
+    const parseNumber = (value) => {
+      if (value === null || value === undefined) return null;
+
+      let text = String(value)
+        .replace(/\u00a0/g, " ")
+        .replace(/[,$₹€£¥]/g, "")
+        .replace(/\s+/g, "")
+        .replace(/[a-zA-Z]+$/g, "")
+        .replace(/[†‡*]+$/g, "")
+        .trim();
+
+      if (!text || text === "-" || text === "—" || text === "–" || text === "N/A") {
+        return null;
+      }
+
+      let negative = false;
+
+      if (text.startsWith("(") && text.endsWith(")")) {
+        negative = true;
+        text = text.slice(1, -1);
+      }
+
+      text = text.replace(/[()]/g, "");
+
+      if (text.endsWith("%")) {
+        const percent = Number(text.slice(0, -1));
+        return Number.isFinite(percent) ? percent / 100 : null;
+      }
+
+      const number = Number(text.replace(/[^0-9.-]/g, ""));
+      if (!Number.isFinite(number)) return null;
+
+      return negative ? -Math.abs(number) : number;
+    };
+
+    const detectUnitMultiplier = (text) => {
+      const lower = text.toLowerCase();
+
+      if (/\bin billions?\b|\$ in billions|\₹ in billions/.test(lower)) return 1e9;
+      if (/\bin millions?\b|\$ in millions|\₹ in millions/.test(lower)) return 1e6;
+      if (/\bin thousands?\b|\$ in thousands|\₹ in thousands/.test(lower)) return 1e3;
+
+      return 1;
+    };
+
+    const normaliseLabel = (text) => {
+      return String(text || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9 ]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    };
+
+    const statementType = (text) => {
+      const lower = normaliseLabel(text);
+
+      if (
+        lower.includes("statement of operations") ||
+        lower.includes("income statement") ||
+        lower.includes("statement of income") ||
+        lower.includes("consolidated statements of income") ||
+        lower.includes("profit and loss")
+      ) return "income";
+
+      if (
+        lower.includes("balance sheet") ||
+        lower.includes("statement of financial position") ||
+        lower.includes("consolidated balance sheets")
+      ) return "balance";
+
+      if (
+        lower.includes("cash flows") ||
+        lower.includes("cash flow statement") ||
+        lower.includes("consolidated statements of cash flows")
+      ) return "cashflow";
+
+      if (
+        lower.includes("changes in equity") ||
+        lower.includes("changes in shareholders") ||
+        lower.includes("statement of changes")
+      ) return "equity";
+
+      return "other";
+    };
+
+    const metricDefinitions = [
+      {
+        key: "revenue",
+        statement: "income",
+        labels: [
+          "total revenue",
+          "total revenues",
+          "net revenue",
+          "net revenues",
+          "revenue",
+          "revenues",
+          "net sales",
+          "sales"
+        ]
+      },
+      {
+        key: "costOfRevenue",
+        statement: "income",
+        labels: [
+          "cost of revenue",
+          "cost of revenues",
+          "cost of sales",
+          "cost of goods sold"
+        ]
+      },
+      {
+        key: "grossProfit",
+        statement: "income",
+        labels: ["gross profit"]
+      },
+      {
+        key: "operatingIncome",
+        statement: "income",
+        labels: [
+          "operating income",
+          "income from operations",
+          "operating earnings"
+        ]
+      },
+      {
+        key: "netIncome",
+        statement: "income",
+        labels: [
+          "net income",
+          "net earnings",
+          "net profit",
+          "profit for the year",
+          "profit attributable"
+        ]
+      },
+      {
+        key: "cash",
+        statement: "balance",
+        labels: [
+          "cash and cash equivalents",
+          "cash equivalents",
+          "cash and due from banks",
+          "cash"
+        ]
+      },
+      {
+        key: "currentAssets",
+        statement: "balance",
+        labels: ["total current assets", "current assets"]
+      },
+      {
+        key: "currentLiabilities",
+        statement: "balance",
+        labels: ["total current liabilities", "current liabilities"]
+      },
+      {
+        key: "totalAssets",
+        statement: "balance",
+        labels: ["total assets"]
+      },
+      {
+        key: "totalLiabilities",
+        statement: "balance",
+        labels: ["total liabilities"]
+      },
+      {
+        key: "debt",
+        statement: "balance",
+        labels: [
+          "total debt",
+          "total borrowings",
+          "long term debt",
+          "long term borrowings",
+          "short term debt",
+          "short term borrowings"
+        ]
+      },
+      {
+        key: "equity",
+        statement: "balance",
+        labels: [
+          "total equity",
+          "total shareholders equity",
+          "shareholders equity",
+          "stockholders equity",
+          "total stockholders equity"
+        ]
+      },
+      {
+        key: "cfo",
+        statement: "cashflow",
+        labels: [
+          "net cash provided by operating activities",
+          "net cash from operating activities",
+          "cash generated from operations",
+          "operating activities"
+        ]
+      },
+      {
+        key: "cfi",
+        statement: "cashflow",
+        labels: [
+          "net cash used in investing activities",
+          "net cash from investing activities",
+          "investing activities"
+        ]
+      },
+      {
+        key: "cff",
+        statement: "cashflow",
+        labels: [
+          "net cash provided by financing activities",
+          "net cash used in financing activities",
+          "net cash from financing activities",
+          "financing activities"
+        ]
+      },
+      {
+        key: "capex",
+        statement: "cashflow",
+        labels: [
+          "capital expenditures",
+          "capital expenditure",
+          "purchases of property",
+          "purchase of property plant and equipment"
+        ]
+      }
+    ];
+
+    const extractYearTokens = (text) => {
+      const matches = String(text || "").match(/\b(?:19|20)\d{2}\b/g) || [];
+      return [...new Set(matches)];
+    };
+
+    const extractNumericTokens = (text) => {
+      const matches = String(text || "").match(
+        /(?:\(\s*)?(?:₹|\$|€|£|¥)?\s*\d[\d,]*(?:\.\d+)?\s*(?:\))?/g
+      ) || [];
+
+      return matches
+        .map((token) => ({
+          raw: token,
+          value: parseNumber(token)
+        }))
+        .filter((item) => item.value !== null);
+    };
+
+    const getBestNumber = (line) => {
+      const numbers = extractNumericTokens(line);
+      if (!numbers.length) return null;
+
+      return numbers[numbers.length - 1];
+    };
+
+    const identifyCompany = (text, fileName) => {
+      const known = [
+        "Apple",
+        "Microsoft",
+        "Morgan Stanley",
+        "JPMorgan",
+        "Goldman Sachs",
+        "Alphabet",
+        "Amazon",
+        "Tesla",
+        "Reliance",
+        "Tata",
+        "Infosys",
+        "Wipro"
+      ];
+
+      const match = known.find((name) =>
+        text.toLowerCase().includes(name.toLowerCase())
+      );
+
+      if (match) return match;
+
+      return fileName
+        .replace(/\.[^/.]+$/, "")
+        .replace(/[_-]+/g, " ")
+        .replace(/\b(annual report|10 k|10k|financial statements)\b/gi, "")
+        .trim() || "Unknown company";
+    };
+
+    const buildRowsFromText = (text, sourceName) => {
+      const lines = cleanText(text)
+        .split(/\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      const multiplier = detectUnitMultiplier(text);
+      const years = extractYearTokens(text);
+
+      state.periods = years.slice(0, 5);
+      state.units = multiplier === 1e9
+        ? "Billions"
+        : multiplier === 1e6
+          ? "Millions"
+          : multiplier === 1e3
+            ? "Thousands"
+            : "Reported units";
+
+      let currentStatement = "other";
+      const rows = [];
+
+      for (let index = 0; index < lines.length; index++) {
+        const line = lines[index];
+        const detectedStatement = statementType(line);
+
+        if (detectedStatement !== "other") {
+          currentStatement = detectedStatement;
         }
-      }, 150);
 
-      bindEvents();
+        const numeric = extractNumericTokens(line);
+        if (!numeric.length) continue;
+
+        const lower = normaliseLabel(line);
+
+        for (const definition of metricDefinitions) {
+          const labelMatch = definition.labels.find((label) =>
+            lower.includes(normaliseLabel(label))
+          );
+
+          if (!labelMatch) continue;
+          if (definition.statement !== currentStatement && currentStatement !== "other") {
+            continue;
+          }
+
+          const best = getBestNumber(line);
+          if (!best) continue;
+
+          rows.push({
+            statement: definition.statement,
+            key: definition.key,
+            label: labelMatch,
+            period: state.periods[0] || "Reported period",
+            value: best.value * multiplier,
+            raw: line,
+            confidence: "Matched"
+          });
+
+          break;
+        }
+      }
+
+      return rows;
+    };
+
+    const buildRowsFromWorkbook = (workbook) => {
+      const rows = [];
+      let fullText = "";
+
+      workbook.SheetNames.forEach((sheetName) => {
+        const sheet = workbook.Sheets[sheetName];
+        const data = XLSX.utils.sheet_to_json(sheet, {
+          header: 1,
+          defval: "",
+          raw: false
+        });
+
+        data.forEach((row) => {
+          const line = row.map((cell) => String(cell ?? "")).join(" | ");
+          fullText += `${line}\n`;
+        });
+      });
+
+      return {
+        rows: buildRowsFromText(fullText, "Workbook"),
+        text: fullText
+      };
+    };
+
+    const readPdf = async (file) => {
+      const buffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+      let text = "";
+
+      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+        setProgress(
+          10 + (pageNumber / pdf.numPages) * 65,
+          `Reading PDF page ${pageNumber} of ${pdf.numPages}...`
+        );
+
+        const page = await pdf.getPage(pageNumber);
+        const content = await page.getTextContent();
+
+        const items = content.items
+          .map((item) => ({
+            text: item.str,
+            x: item.transform[4],
+            y: item.transform[5]
+          }))
+          .filter((item) => item.text.trim());
+
+        const grouped = {};
+
+        items.forEach((item) => {
+          const y = Math.round(item.y / 3) * 3;
+          if (!grouped[y]) grouped[y] = [];
+          grouped[y].push(item);
+        });
+
+        const pageLines = Object.keys(grouped)
+          .sort((a, b) => Number(b) - Number(a))
+          .map((key) =>
+            grouped[key]
+              .sort((a, b) => a.x - b.x)
+              .map((item) => item.text)
+              .join(" ")
+          );
+
+        text += `\n--- Page ${pageNumber} ---\n${pageLines.join("\n")}\n`;
+      }
+
+      return text;
+    };
+
+    const readDocx = async (file) => {
+      const buffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+      return result.value || "";
+    };
+
+    const readFile = async (file) => {
+      const extension = file.name.split(".").pop().toLowerCase();
+
+      if (extension === "pdf") {
+        return await readPdf(file);
+      }
+
+      if (extension === "xlsx" || extension === "xls") {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, {
+          type: "array",
+          cellDates: true
+        });
+
+        const result = buildRowsFromWorkbook(workbook);
+        state.rows = result.rows;
+        return result.text;
+      }
+
+      if (extension === "csv") {
+        const text = await file.text();
+        return text;
+      }
+
+      if (extension === "docx") {
+        return await readDocx(file);
+      }
+
+      return await file.text();
+    };
+
+    const firstMetric = (key) => {
+      const found = state.rows.find((row) => row.key === key);
+      return found ? found.value : null;
+    };
+
+    const setMetric = (key, value, meta) => {
+      state.metrics[key] = value;
+
+      const map = {
+        revenue: ["metricRevenue", "metricRevenueMeta"],
+        netIncome: ["metricNetIncome", "metricNetIncomeMeta"],
+        cash: ["metricCash", "metricCashMeta"],
+        debt: ["metricDebt", "metricDebtMeta"],
+        cfo: ["metricCfo", "metricCfoMeta"],
+        equity: ["metricEquity", "metricEquityMeta"]
+      };
+
+      if (!map[key]) return;
+
+      $(map[key][0]).textContent = formatMoney(value);
+      $(map[key][1]).textContent = meta || (value === null ? "Not available" : "Extracted value");
+      $(map[key][1]).className = `metric-meta ${value === null ? "" : "good"}`;
+    };
+
+    const calculateRatios = () => {
+      const m = state.metrics;
+      const ratios = {};
+
+      if (m.revenue !== null && m.revenue !== undefined && m.revenue !== 0 && m.netIncome !== null) {
+        ratios.netMargin = m.netIncome / m.revenue;
+      }
+
+      if (m.revenue !== null && m.revenue !== undefined && m.revenue !== 0 && m.grossProfit !== null) {
+        ratios.grossMargin = m.grossProfit / m.revenue;
+      }
+
+      if (m.currentAssets !== null && m.currentLiabilities !== null && m.currentLiabilities !== 0) {
+        ratios.currentRatio = m.currentAssets / m.currentLiabilities;
+      }
+
+      if (m.debt !== null && m.equity !== null && m.equity !== 0) {
+        ratios.debtEquity = m.debt / m.equity;
+      }
+
+      if (m.debt !== null && m.totalAssets !== null && m.totalAssets !== 0) {
+        ratios.debtAssets = m.debt / m.totalAssets;
+      }
+
+      if (m.cfo !== null && m.netIncome !== null && m.netIncome !== 0) {
+        ratios.cashConversion = m.cfo / m.netIncome;
+      }
+
+      if (m.cfo !== null && m.capex !== null) {
+        ratios.freeCashFlow = m.cfo - Math.abs(m.capex);
+      }
+
+      state.ratios = ratios;
+      state.calculated = Object.keys(ratios).length;
+    };
+
+    const addRisk = (severity, title, description) => {
+      state.risks.push({
+        severity,
+        title,
+        description
+      });
+    };
+
+    const generateRisks = () => {
+      const m = state.metrics;
+      const r = state.ratios;
+
+      state.risks = [];
+
+      if (m.revenue === null) {
+        addRisk("danger", "Revenue unavailable", "Revenue could not be reliably matched to a financial-statement line. Investment conclusions should remain limited.");
+      }
+
+      if (m.netIncome === null) {
+        addRisk("danger", "Net income unavailable", "Profitability cannot be assessed without a verified net-income figure.");
+      } else if (m.netIncome < 0) {
+        addRisk("danger", "Negative net income", "The extracted net-income value is negative. This may indicate losses, restructuring pressure or unusual accounting items.");
+      } else {
+        addRisk("good", "Positive reported earnings", "The extracted net-income value is positive. Confirm earnings quality and whether the result is recurring.");
+      }
+
+      if (m.cfo === null) {
+        addRisk("warning", "Operating cash flow unavailable", "Cash generation cannot be tested against reported earnings.");
+      } else if (m.cfo < 0) {
+        addRisk("danger", "Negative operating cash flow", "The company appears to have generated negative operating cash flow in the extracted period.");
+      } else {
+        addRisk("good", "Positive operating cash flow", "Operating activities generated positive cash in the extracted period.");
+      }
+
+      if (r.currentRatio !== undefined) {
+        if (r.currentRatio < 1) {
+          addRisk("danger", "Weak short-term liquidity", `The current ratio is ${r.currentRatio.toFixed(2)}, below 1.0. Current liabilities exceed current assets based on extracted figures.`);
+        } else if (r.currentRatio < 1.5) {
+          addRisk("warning", "Moderate liquidity buffer", `The current ratio is ${r.currentRatio.toFixed(2)}. Liquidity may be adequate but leaves less room for disruption.`);
+        } else {
+          addRisk("good", "Healthy current ratio", `The current ratio is ${r.currentRatio.toFixed(2)}, indicating a stronger short-term liquidity position.`);
+        }
+      } else {
+        addRisk("warning", "Liquidity ratio unavailable", "Current assets or current liabilities were not reliably extracted.");
+      }
+
+      if (r.debtEquity !== undefined) {
+        if (r.debtEquity > 2) {
+          addRisk("danger", "High leverage", `Debt-to-equity is ${r.debtEquity.toFixed(2)}. High leverage can amplify losses and refinancing risk.`);
+        } else if (r.debtEquity > 1) {
+          addRisk("warning", "Elevated leverage", `Debt-to-equity is ${r.debtEquity.toFixed(2)}. The capital structure requires further review.`);
+        } else {
+          addRisk("good", "Moderate leverage", `Debt-to-equity is ${r.debtEquity.toFixed(2)}, subject to industry and business-model context.`);
+        }
+      } else {
+        addRisk("warning", "Leverage unavailable", "Debt or equity was not reliably extracted, so solvency cannot be fully assessed.");
+      }
+
+      if (r.cashConversion !== undefined) {
+        if (r.cashConversion < .8) {
+          addRisk("warning", "Weak earnings-to-cash conversion", `Operating cash flow is ${r.cashConversion.toFixed(2)} times net income. Review receivables, working capital and non-cash earnings.`);
+        } else {
+          addRisk("good", "Reasonable earnings-to-cash conversion", `Operating cash flow is ${r.cashConversion.toFixed(2)} times net income.`);
+        }
+      }
+
+      if (m.totalAssets !== null && m.totalLiabilities !== null && m.equity !== null) {
+        const difference = Math.abs(m.totalAssets - (m.totalLiabilities + m.equity));
+        const tolerance = Math.max(Math.abs(m.totalAssets) * .02, 1);
+
+        if (difference > tolerance) {
+          addRisk("warning", "Balance-sheet reconciliation difference", "Extracted assets do not reconcile closely with liabilities plus equity. This may be caused by parsing, scope or reporting-unit differences and requires manual verification.");
+        } else {
+          addRisk("good", "Balance-sheet reconciliation passed", "Extracted total assets are reasonably close to liabilities plus equity within a tolerance.");
+        }
+      } else {
+        addRisk("warning", "Balance-sheet reconciliation incomplete", "Assets, liabilities or equity were not all available for a complete reconciliation.");
+      }
+
+      state.missing = metricDefinitions.length - state.rows.length;
+      if (state.missing < 0) state.missing = 0;
+    };
+
+    const generateThesis = () => {
+      const m = state.metrics;
+      const r = state.ratios;
+
+      const positive = [];
+      const caution = [];
+      const conditions = [];
+
+      if (m.netIncome !== null && m.netIncome > 0) {
+        positive.push("The extracted financial statements show positive net income.");
+      } else {
+        caution.push("Profitability is negative or unavailable.");
+      }
+
+      if (m.cfo !== null && m.cfo > 0) {
+        positive.push("Operating activities generated positive cash.");
+      } else {
+        caution.push("Operating cash generation is negative or unavailable.");
+      }
+
+      if (r.currentRatio !== undefined && r.currentRatio >= 1.5) {
+        positive.push("The current ratio suggests a stronger short-term liquidity buffer.");
+      } else {
+        caution.push("Liquidity should be reviewed before relying on the reported earnings.");
+      }
+
+      if (r.debtEquity !== undefined && r.debtEquity <= 1) {
+        positive.push("Debt-to-equity is moderate based on the extracted values.");
+      } else {
+        caution.push("Leverage may increase financial and refinancing risk.");
+      }
+
+      conditions.push("Confirm the extracted figures against the original filing.");
+      conditions.push("Review business outlook, valuation, industry conditions and management quality.");
+      conditions.push("Investigate all warning flags before making an investment decision.");
+
+      state.thesis = {
+        positive,
+        caution,
+        conditions
+      };
+    };
+
+    const renderHealth = () => {
+      const r = state.ratios;
+      const rows = [
+        ["Net margin", r.netMargin, (v) => `${(v * 100).toFixed(1)}%`],
+        ["Gross margin", r.grossMargin, (v) => `${(v * 100).toFixed(1)}%`],
+        ["Current ratio", r.currentRatio, (v) => v.toFixed(2)],
+        ["Debt to equity", r.debtEquity, (v) => v.toFixed(2)],
+        ["Debt to assets", r.debtAssets, (v) => `${(v * 100).toFixed(1)}%`],
+        ["Free cash flow", r.freeCashFlow, (v) => formatMoney(v)]
+      ];
+
+      $("healthRows").innerHTML = rows
+        .map(([label, value, formatter]) => `
+          <div class="health-row">
+            <div>
+              <strong>${label}</strong>
+              <span>${value === undefined ? "Not enough verified data" : "Calculated from extracted values"}</span>
+            </div>
+            <div class="health-value">${value === undefined ? "—" : formatter(value)}</div>
+          </div>
+        `)
+        .join("");
+
+      $("healthStatus").textContent = Object.keys(r).length
+        ? "Calculated indicators"
+        : "Insufficient data";
+    };
+
+    const renderRisk = () => {
+      const danger = state.risks.filter((risk) => risk.severity === "danger").length;
+      const warning = state.risks.filter((risk) => risk.severity === "warning").length;
+      const good = state.risks.filter((risk) => risk.severity === "good").length;
+
+      const total = danger + warning + good;
+      const score = total
+        ? Math.max(0, Math.min(100, Math.round((good / total) * 100 - danger * 8 - warning * 3)))
+        : 0;
+
+      $("riskScore").textContent = total ? score : "—";
+      $("riskLabel").textContent = !total
+        ? "No score"
+        : score >= 75
+          ? "Lower risk"
+          : score >= 50
+            ? "Moderate"
+            : "High caution";
+
+      $("riskRing").style.background = total
+        ? `conic-gradient(var(--accent) 0deg, var(--accent) ${score * 3.6}deg, #354047 ${score * 3.6}deg, #354047 360deg)`
+        : "conic-gradient(#354047 0deg, #354047 360deg)";
+
+      $("positiveCount").textContent = `Positive signals: ${good}`;
+      $("warningCount").textContent = `Watch items: ${warning}`;
+      $("dangerCount").textContent = `Critical flags: ${danger}`;
+
+      $("riskList").innerHTML = state.risks
+        .map((risk) => `
+          <div class="risk-item ${risk.severity}">
+            <div class="risk-mark">${risk.severity === "good" ? "✓" : risk.severity === "warning" ? "!" : "×"}</div>
+            <div>
+              <strong>${risk.title}</strong>
+              <p>${risk.description}</p>
+            </div>
+          </div>
+        `)
+        .join("");
+    };
+
+    const renderThesis = () => {
+      $("thesis").innerHTML = `
+        <div class="thesis-block">
+          <h4>Why the company may be worth investigating</h4>
+          <ul>
+            ${state.thesis.positive.length
+              ? state.thesis.positive.map((item) => `<li>${item}</li>`).join("")
+              : "<li>No positive conclusion can be supported from the extracted data.</li>"}
+          </ul>
+        </div>
+
+        <div class="thesis-block">
+          <h4>Why caution is required</h4>
+          <ul>
+            ${state.thesis.caution.length
+              ? state.thesis.caution.map((item) => `<li>${item}</li>`).join("")
+              : "<li>No major caution was generated from the available indicators.</li>"}
+          </ul>
+        </div>
+
+        <div class="thesis-block">
+          <h4>Before making an investment decision</h4>
+          <ul>
+            ${state.thesis.conditions.map((item) => `<li>${item}</li>`).join("")}
+          </ul>
+        </div>
+      `;
+    };
+
+    const renderStatements = () => {
+      const filtered = state.activeStatement === "all"
+        ? state.rows
+        : state.rows.filter((row) => row.statement === state.activeStatement);
+
+      $("statementTableBody").innerHTML = filtered.length
+        ? filtered.map((row) => `
+            <tr>
+              <td>${row.statement}</td>
+              <td>${row.label}</td>
+              <td>${row.period}</td>
+              <td class="numeric">${formatMoney(row.value)}</td>
+              <td><span class="status-chip success">${row.confidence}</span></td>
+            </tr>
+          `).join("")
+        : `
+          <tr>
+            <td colspan="5" class="empty-state">
+              No reliably matched rows for this statement.
+            </td>
+          </tr>
+        `;
+
+      const statementCount = new Set(state.rows.map((row) => row.statement)).size;
+      $("statementStatus").textContent = `${statementCount} statement type(s) detected`;
+    };
+
+    const renderMetrics = () => {
+      const keys = [
+        "revenue",
+        "netIncome",
+        "cash",
+        "debt",
+        "cfo",
+        "equity"
+      ];
+
+      keys.forEach((key) => {
+        const value = state.metrics[key];
+        setMetric(key, value, value === null ? "Not available" : "Extracted from document");
+      });
+    };
+
+    const renderAudit = () => {
+      $("auditVerified").textContent = state.verified;
+      $("auditCalculated").textContent = state.calculated;
+      $("auditMissing").textContent = state.missing;
+    };
+
+    const analyseDocument = () => {
+      state.company = identifyCompany(state.rawText, state.file?.name || "Document");
+      state.rows = state.rows.length ? state.rows : buildRowsFromText(state.rawText, state.file?.name || "Document");
+
+      state.metrics = {};
+
+      metricDefinitions.forEach((definition) => {
+        state.metrics[definition.key] = firstMetric(definition.key);
+      });
+
+      state.verified = state.rows.length;
+      state.missing = Math.max(0, metricDefinitions.length - state.rows.length);
+
+      calculateRatios();
+      generateRisks();
+      generateThesis();
+
+      renderMetrics();
+      renderHealth();
+      renderRisk();
+      renderThesis();
+      renderStatements();
+      renderAudit();
+
+      $("scanStatus").textContent = "Analysis complete";
+      $("scanStatus").className = "status-chip success";
+
+      addRecentFile(state.file.name, state.company);
+    };
+
+    const processFile = async (file) => {
+      if (!file) return;
+
+      state.file = file;
+      state.rows = [];
+      state.rawText = "";
+      state.metrics = {};
+      state.ratios = {};
+      state.risks = [];
+      state.thesis = {};
+
+      try {
+        setStatus("Reading document...", "warning");
+        setProgress(4, "Preparing document...");
+
+        state.rawText = await readFile(file);
+
+        setProgress(88, "Matching financial statement line items...");
+        state.rows = state.rows.length
+          ? state.rows
+          : buildRowsFromText(state.rawText, file.name);
+
+        setProgress(96, "Calculating financial indicators...");
+        analyseDocument();
+
+        setProgress(100, "Analysis complete");
+        showToast(`${file.name} analysed successfully.`);
+      } catch (error) {
+        console.error(error);
+        setStatus("Analysis failed", "danger");
+        showToast("The document could not be read. Try a text-based PDF, XLSX or CSV file.");
+      } finally {
+        setTimeout(() => {
+          $("progressArea").classList.add("hidden");
+        }, 1000);
+      }
+    };
+
+    const addRecentFile = (name, company) => {
+      const list = $("recentList");
+
+      if (list.querySelector(".empty-state")) {
+        list.innerHTML = "";
+      }
+
+      const item = document.createElement("div");
+      item.className = "recent-item";
+      item.innerHTML = `
+        <div class="file-icon">${name.split(".").pop().toUpperCase()}</div>
+        <div class="recent-details">
+          <strong>${name}</strong>
+          <span>${company} · Analysed just now</span>
+        </div>
+        <span class="status-chip success">Complete</span>
+      `;
+
+      list.prepend(item);
+    };
+
+    const resetWorkspace = () => {
+      state.file = null;
+      state.rawText = "";
+      state.rows = [];
+      state.metrics = {};
+      state.ratios = {};
+      state.risks = [];
+      state.thesis = {};
+      state.activeStatement = "all";
+
+      [
+        "metricRevenue",
+        "metricNetIncome",
+        "metricCash",
+        "metricDebt",
+        "metricCfo",
+        "metricEquity"
+      ].forEach((id) => $(id).textContent = "—");
+
+      [
+        "metricRevenueMeta",
+        "metricNetIncomeMeta",
+        "metricCashMeta",
+        "metricDebtMeta",
+        "metricCfoMeta",
+        "metricEquityMeta"
+      ].forEach((id) => $(id).textContent = "Not available");
+
+      $("healthRows").innerHTML = `<div class="empty-state">Upload a document to calculate financial health indicators.</div>`;
+      $("riskList").innerHTML = `<div class="empty-state">Risk signals will appear after analysis.</div>`;
+      $("thesis").innerHTML = `<div class="empty-state">Investor rationale will be generated from available evidence.</div>`;
+      $("statementTableBody").innerHTML = `<tr><td colspan="5" class="empty-state">Upload a document to view extracted statement data.</td></tr>`;
+      $("recentList").innerHTML = `<div class="empty-state">No documents analysed yet.<br />Your recent files will appear here.</div>`;
+
+      $("riskScore").textContent = "—";
+      $("riskLabel").textContent = "No score";
+      $("riskRing").style.background = "conic-gradient(#354047 0deg, #354047 360deg)";
+      $("scanStatus").textContent = "Awaiting document";
+      $("scanStatus").className = "status-chip";
+      $("statementStatus").textContent = "No statement detected";
+
+      renderAudit();
+      showToast("Workspace reset.");
+    };
+
+    const reportData = () => {
+      return {
+        company: state.company,
+        file: state.file?.name || "No file",
+        periods: state.periods,
+        units: state.units,
+        metrics: state.metrics,
+        ratios: state.ratios,
+        risks: state.risks,
+        thesis: state.thesis,
+        rows: state.rows
+      };
+    };
+
+    const reportHtml = () => {
+      const data = reportData();
+
+      return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FORGE Investor Report - ${data.company}</title>
+<style>
+body{font-family:Arial,sans-serif;color:#171717;margin:40px;line-height:1.5}
+h1{font-size:30px;margin-bottom:5px}
+h2{margin-top:30px;border-bottom:1px solid #ccc;padding-bottom:8px}
+.meta{color:#666;font-size:12px}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px}
+th{background:#eee}
+.good{color:#18794e}.warning{color:#9a6700}.danger{color:#b42318}
+li{margin-bottom:6px}
+.disclaimer{margin-top:35px;font-size:11px;color:#666}
+</style>
+</head>
+<body>
+<h1>FORGE Investor Report</h1>
+<p class="meta">${data.company} · Source: ${data.file}</p>
+<p class="meta">Units: ${data.units || "Reported units"} · Periods: ${(data.periods || []).join(", ") || "Not detected"}</p>
+
+<h2>Executive Conclusion</h2>
+<p>This report provides analytical decision support based only on values extracted from the selected document. Missing or uncertain values are not treated as verified facts.</p>
+
+<h2>Key Metrics</h2>
+<table>
+<tr><th>Metric</th><th>Value</th></tr>
+${Object.entries(data.metrics).map(([key,value]) => `<tr><td>${key}</td><td>${value === null || value === undefined ? "Not available" : value}</td></tr>`).join("")}
+</table>
+
+<h2>Calculated Ratios</h2>
+<table>
+<tr><th>Ratio</th><th>Value</th></tr>
+${Object.entries(data.ratios).map(([key,value]) => `<tr><td>${key}</td><td>${typeof value === "number" ? value.toFixed(4) : value}</td></tr>`).join("")}
+</table>
+
+<h2>Risk Signals</h2>
+<ul>
+${data.risks.map(risk => `<li class="${risk.severity}"><strong>${risk.title}</strong>: ${risk.description}</li>`).join("")}
+</ul>
+
+<h2>Investor Rationale</h2>
+<h3>Potential positives</h3>
+<ul>${data.thesis.positive.map(item => `<li>${item}</li>`).join("")}</ul>
+<h3>Caution areas</h3>
+<ul>${data.thesis.caution.map(item => `<li>${item}</li>`).join("")}</ul>
+<h3>Decision conditions</h3>
+<ul>${data.thesis.conditions.map(item => `<li>${item}</li>`).join("")}</ul>
+
+<h2>Extracted Evidence</h2>
+<table>
+<tr><th>Statement</th><th>Line Item</th><th>Period</th><th>Value</th><th>Source Text</th></tr>
+${data.rows.map(row => `<tr><td>${row.statement}</td><td>${row.label}</td><td>${row.period}</td><td>${row.value}</td><td>${row.raw}</td></tr>`).join("")}
+</table>
+
+<p class="disclaimer">
+Methodology: FORGE uses document text extraction, line-item matching and transparent calculations.
+This report is not investment advice. Original filings must be reviewed before relying on any result,
+especially where the source is scanned, multi-column, poorly structured or incomplete.
+</p>
+</body>
+</html>`;
+    };
+
+    const downloadFile = (content, filename, type) => {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
+    const exportHtmlReport = () => {
+      downloadFile(
+        reportHtml(),
+        `FORGE-${state.company.replace(/\s+/g, "-")}-Report.html`,
+        "text/html"
+      );
+    };
+
+    const exportCsvReport = () => {
+      const rows = [
+        ["Statement", "Line Item", "Period", "Value", "Confidence", "Source"],
+        ...state.rows.map((row) => [
+          row.statement,
+          row.label,
+          row.period,
+          row.value,
+          row.confidence,
+          row.raw
+        ])
+      ];
+
+      const csv = rows
+        .map((row) =>
+          row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")
+        )
+        .join("\n");
+
+      downloadFile(
+        csv,
+        `FORGE-${state.company.replace(/\s+/g, "-")}-Data.csv`,
+        "text/csv"
+      );
+    };
+
+    const exportPdfReport = () => {
+      if (!window.jspdf) {
+        showToast("PDF library is still loading. Try again in a moment.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(20);
+      doc.text("FORGE Investor Report", 16, 18);
+
+      doc.setFontSize(11);
+      doc.text(state.company, 16, 27);
+      doc.setFontSize(9);
+      doc.text(`Source: ${state.file?.name || "No file"}`, 16, 34);
+
+      doc.setFontSize(14);
+      doc.text("Key Metrics", 16, 47);
+
+      const metricRows = Object.entries(state.metrics).map(([key, value]) => [
+        key,
+        value === null || value === undefined ? "Not available" : formatMoney(value)
+      ]);
+
+      doc.autoTable({
+        startY: 52,
+        head: [["Metric", "Value"]],
+        body: metricRows,
+        theme: "grid",
+        styles: { fontSize: 8 }
+      });
+
+      let y = doc.lastAutoTable.finalY + 13;
+
+      doc.setFontSize(14);
+      doc.text("Risk Signals", 16, y);
+      y += 5;
+
+      doc.autoTable({
+        startY: y,
+        head: [["Severity", "Risk", "Explanation"]],
+        body: state.risks.map((risk) => [
+          risk.severity.toUpperCase(),
+          risk.title,
+          risk.description
+        ]),
+        theme: "grid",
+        styles: { fontSize: 7 },
+        columnStyles: { 2: { cellWidth: 110 } }
+      });
+
+      y = doc.lastAutoTable.finalY + 13;
+
+      if (y > 250) {
+        doc.addPage();
+        y = 18;
+      }
+
+      doc.setFontSize(14);
+      doc.text("Investor Rationale", 16, y);
+      y += 7;
+
+      doc.setFontSize(9);
+      doc.text("Potential positives:", 16, y);
+      y += 5;
+
+      state.thesis.positive.forEach((item) => {
+        const lines = doc.splitTextToSize(`• ${item}`, 175);
+        doc.text(lines, 18, y);
+        y += lines.length * 4;
+      });
+
+      y += 4;
+      doc.text("Caution areas:", 16, y);
+      y += 5;
+
+      state.thesis.caution.forEach((item) => {
+        const lines = doc.splitTextToSize(`• ${item}`, 175);
+        doc.text(lines, 18, y);
+        y += lines.length * 4;
+      });
+
+      y += 8;
+      doc.setFontSize(7);
+      doc.text(
+        "FORGE is an analytical decision-support tool. Verify the original filing before relying on extracted values.",
+        16,
+        Math.min(y, 285)
+      );
+
+      doc.save(`FORGE-${state.company.replace(/\s+/g, "-")}-Report.pdf`);
+    };
+
+    const printReport = () => {
+      const report = reportHtml();
+      const printWindow = window.open("", "_blank");
+
+      if (!printWindow) {
+        showToast("Allow pop-ups to print the report.");
+        return;
+      }
+
+      printWindow.document.open();
+      printWindow.document.write(report);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    };
+
+    const loadSample = () => {
+      state.file = {
+        name: "Sample Financial Statements.txt"
+      };
+
+      state.rawText = `
+        SAMPLE COMPANY
+        Consolidated Statements of Income
+        Total revenue 125000000
+        Gross profit 52000000
+        Operating income 21000000
+        Net income 16000000
+
+        Consolidated Balance Sheets
+        Cash and cash equivalents 28000000
+        Total current assets 65000000
+        Total current liabilities 42000000
+        Total assets 180000000
+        Total liabilities 92000000
+        Total equity 88000000
+        Total debt 46000000
+
+        Consolidated Statements of Cash Flows
+        Net cash provided by operating activities 24000000
+        Capital expenditures 8000000
+      `;
+
+      state.rows = buildRowsFromText(state.rawText, state.file.name);
+      analyseDocument();
+      setStatus("Sample loaded", "success");
+      showToast("Sample workspace loaded.");
+    };
+
+    $("browseButton").addEventListener("click", () => $("fileInput").click());
+    $("heroUploadButton").addEventListener("click", () => $("fileInput").click());
+    $("topUploadButton").addEventListener("click", () => $("fileInput").click());
+
+    $("fileInput").addEventListener("change", (event) => {
+      processFile(event.target.files[0]);
     });
 
-    function checkSession() {
-      const user = localStorage.getItem("forge_user");
-      if (user) {
-        $("loginModal").style.display = "none";
-        $("userBadgeName").textContent = user.toUpperCase();
-        $("userBadge").style.display = "flex";
-      } else {
-        $("loginModal").style.display = "flex";
-      }
-    }
+    $("uploadZone").addEventListener("dragover", (event) => {
+      event.preventDefault();
+      $("uploadZone").classList.add("dragover");
+    });
 
-    function bindEvents() {
-      $("modalLoginBtn").onclick = () => {
-        const u = $("modalUserName").value.trim();
-        if (u) { localStorage.setItem("forge_user", u); checkSession(); }
-      };
+    $("uploadZone").addEventListener("dragleave", () => {
+      $("uploadZone").classList.remove("dragover");
+    });
 
-      $("logoutBtn").onclick = () => { localStorage.removeItem("forge_user"); location.reload(); };
+    $("uploadZone").addEventListener("drop", (event) => {
+      event.preventDefault();
+      $("uploadZone").classList.remove("dragover");
+      processFile(event.dataTransfer.files[0]);
+    });
 
-      document.querySelectorAll(".tab-btn").forEach(btn => {
-        btn.onclick = () => {
-          document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-          document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
-          btn.classList.add("active");
-          $(btn.dataset.tab).classList.add("active");
-        };
+    $("sampleButton").addEventListener("click", loadSample);
+    $("resetButton").addEventListener("click", resetWorkspace);
+
+    document.querySelectorAll(".nav-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".nav-button").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+
+        const section = $(button.dataset.section);
+        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
       });
+    });
 
-      $("analyzeStmtBtn").onclick = analyzeStatement;
-      $("analyzeInvestorBtn").onclick = analyzeInvestor;
-      $("syncSimBtn").onclick = syncToSim;
-      $("exportDocBtn").onclick = printReport;
-
-      ["simCash", "simRev", "simBurn", "simGrowth"].forEach(id => $(id).oninput = calculateSimulation);
-    }
-
-    // MULTI-COLUMN POSITIONAL PDF & TEXT PARSER
-    async function readFileText(file) {
-      const name = file.name.toLowerCase();
-      
-      if (name.endsWith(".pdf")) {
-        const buf = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-        let fullText = "";
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const pg = await pdf.getPage(i);
-          const content = await pg.getTextContent();
-          
-          // Reconstruct tables using Y coordinates to preserve row integrity
-          let linesMap = {};
-          content.items.forEach(item => {
-            let y = Math.round(item.transform[5]); // Y position
-            if (!linesMap[y]) linesMap[y] = [];
-            linesMap[y].push({ x: item.transform[4], str: item.str });
-          });
-
-          // Sort lines vertically top-to-bottom
-          let sortedY = Object.keys(linesMap).sort((a, b) => b - a);
-          sortedY.forEach(y => {
-            // Sort items horizontally left-to-right
-            let lineItems = linesMap[y].sort((a, b) => a.x - b.x);
-            let lineStr = lineItems.map(it => it.str).join("   ");
-            fullText += lineStr + "\n";
-          });
-        }
-        return fullText;
-      }
-
-      if (name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".csv")) {
-        const buf = await file.arrayBuffer();
-        const wb = XLSX.read(buf, { type: "array" });
-        return XLSX.utils.sheet_to_txt(wb.Sheets[wb.SheetNames[0]]);
-      }
-
-      if (name.endsWith(".docx")) {
-        const buf = await file.arrayBuffer();
-        const res = await mammoth.extractRawText({ arrayBuffer: buf });
-        return res.value;
-      }
-
-      return new Promise((resolve) => {
-        const r = new FileReader();
-        r.onload = (e) => resolve(e.target.result);
-        r.readAsText(file);
+    document.querySelectorAll(".statement-tab").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".statement-tab").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        state.activeStatement = button.dataset.statement;
+        renderStatements();
       });
-    }
+    });
 
-    // SCALE DETECTOR ("in thousands", "in millions")
-    function extractScaleMultiplier(text) {
-      const t = text.toLowerCase().slice(0, 4000);
-      if (t.includes("in millions") || t.includes("millions of dollars") || t.includes("($ in millions)")) {
-        return 1000000;
-      }
-      if (t.includes("in thousands") || t.includes("thousands of dollars") || t.includes("($ in thousands)")) {
-        return 1000;
-      }
-      return 1;
-    }
+    $("exportPdf").addEventListener("click", exportPdfReport);
+    $("exportHtml").addEventListener("click", exportHtmlReport);
+    $("exportCsv").addEventListener("click", exportCsvReport);
+    $("printReport").addEventListener("click", printReport);
 
-    // ACCURATE MULTI-COLUMN METRIC EXTRACTOR
-    function extractMetric(text, metricType) {
-      const lines = text.split(/\r?\n/);
-      const scaleMultiplier = extractScaleMultiplier(text);
-
-      const config = {
-        revenue: {
-          include: [/\btotal revenue\b/i, /\brevenues\b/i, /\btotal net sales\b/i, /\bnet revenue\b/i],
-          exclude: [/cost of/i, /deferred/i, /unearned/i]
-        },
-        expenses: {
-          include: [/\btotal operating expenses\b/i, /\btotal expenses\b/i, /\btotal cost of sales\b/i, /\btotal operating cost\b/i],
-          exclude: [/prepaid/i, /accrued/i, /tax expense/i]
-        },
-        cash: {
-          include: [/\bcash and cash equivalents\b/i, /\btotal cash\b/i, /\bcash and short-term investments\b/i],
-          exclude: [/provided by/i, /used in/i, /flow/i]
-        },
-        debt: {
-          include: [/\btotal debt\b/i, /\blong-term debt\b/i, /\bnotes payable\b/i, /\btotal liabilities\b/i],
-          exclude: [/interest expense/i, /debt issuance/i]
-        }
-      };
-
-      const target = config[metricType];
-      if (!target) return 0;
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-
-        if (target.exclude.some(rx => rx.test(trimmed))) continue;
-
-        if (target.include.some(rx => rx.test(trimmed))) {
-          // Extract numerical sequences matching currency formats
-          const matches = trimmed.match(/(\(?\$\s*[\d,]+(?:\.\d+)?\)?|[\d,]{2,}(?:\.\d+)?)/g);
-
-          if (matches && matches.length > 0) {
-            // Target most recent period value (usually primary column)
-            let rawStr = matches[0].trim().replace(/\$/g, "");
-            let isNegative = false;
-
-            if (rawStr.startsWith("(") && rawStr.endsWith(")")) {
-              isNegative = true;
-              rawStr = rawStr.slice(1, -1);
-            }
-
-            const numericValue = parseFloat(rawStr.replace(/,/g, ""));
-            if (!isNaN(numericValue) && numericValue !== 0) {
-              return (isNegative ? -numericValue : numericValue) * scaleMultiplier;
-            }
-          }
-        }
-      }
-
-      return 0;
-    }
-
-    async function analyzeStatement() {
-      const f = $("stmtFile").files[0];
-      if (!f) return alert("Please select a valid document first.");
-      
-      $("stmtSummary").textContent = "Scanning multi-column matrix...";
-      const text = await readFileText(f);
-
-      state.scale = extractScaleMultiplier(text);
-      state.rev = extractMetric(text, "revenue");
-      state.burn = extractMetric(text, "expenses");
-      state.cash = extractMetric(text, "cash");
-      state.debt = extractMetric(text, "debt");
-
-      $("outRev").textContent = money(state.rev);
-      $("outBurn").textContent = money(state.burn);
-      $("outNet").textContent = money(state.rev - state.burn);
-      $("outCash").textContent = money(state.cash);
-      $("outDebt").textContent = money(state.debt);
-
-      $("stmtSummary").textContent = `Extraction Complete. Scale detected: ${state.scale === 1000000 ? 'In Millions' : state.scale === 1000 ? 'In Thousands' : 'Standard Scale'}. Table structure verified.`;
-      $("stmtOutput").style.display = "block";
-    }
-
-    function syncToSim() {
-      $("simCash").value = state.cash;
-      $("simRev").value = state.rev;
-      $("simBurn").value = state.burn;
-      calculateSimulation();
-      document.querySelectorAll(".tab-btn")[2].click();
-    }
-
-    async function analyzeInvestor() {
-      const f = $("tenkFile").files[0];
-      if (!f) return alert("Select a filing document first.");
-      const text = await readFileText(f);
-
-      state.scale = extractScaleMultiplier(text);
-      state.rev = extractMetric(text, "revenue");
-      state.burn = extractMetric(text, "expenses");
-      state.cash = extractMetric(text, "cash");
-      state.debt = extractMetric(text, "debt");
-
-      const netIncome = state.rev - state.burn;
-      const opMargin = state.rev > 0 ? (netIncome / state.rev) * 100 : -100;
-      
-      const monthlyNetBurn = (state.burn - state.rev) / 12;
-      let runwayMonths = 999;
-      if (monthlyNetBurn > 0) {
-        runwayMonths = state.cash / monthlyNetBurn;
-      }
-
-      const debtToCash = state.cash > 0 ? state.debt / state.cash : (state.debt > 0 ? 99 : 0);
-
-      const flags = [];
-      if (opMargin < 0) {
-        flags.push(`Negative Margin (${opMargin.toFixed(1)}%): Operating expenses exceed top-line revenue.`);
-      }
-      if (runwayMonths < 12 && monthlyNetBurn > 0) {
-        flags.push(`Critical Runway (${runwayMonths.toFixed(1)} Mos): Rapid liquidity depletion detected.`);
-      }
-      if (debtToCash > 2.0) {
-        flags.push(`High Leverage Ratio (${debtToCash.toFixed(1)}x): Total debt heavily exceeds cash reserves.`);
-      }
-      if (state.rev === 0) {
-        flags.push("Zero Commercial Revenue: Filing indicates no active commercial operations.");
-      }
-
-      let score = 100;
-      if (opMargin < 0) score -= Math.min(40, Math.abs(opMargin) * 0.8);
-      if (runwayMonths < 18) score -= Math.min(40, (18 - runwayMonths) * 2.2);
-      if (debtToCash > 1.0) score -= Math.min(20, (debtToCash - 1.0) * 10);
-
-      score = Math.max(0, Math.min(100, Math.round(score)));
-
-      let verdict = "INVESTMENT SUITABLE";
-      if (score < 40) verdict = "DO NOT INVEST";
-      else if (score < 70) verdict = "HIGH CAUTION";
-
-      // GENERATE QUALITATIVE THESIS
-      let thesis = "";
-      if (verdict === "DO NOT INVEST") {
-        thesis = `<strong>Avoid Investment.</strong> The company presents significant structural insolvency risks. Operating margin sits at ${opMargin.toFixed(1)}%, with net operating burn exhausting liquidity in approximately ${runwayMonths.toFixed(1)} months. High debt load (${money(state.debt)}) further limits capital restructure options without severe equity dilution.`;
-      } else if (verdict === "HIGH CAUTION") {
-        thesis = `<strong>Exercise Caution.</strong> While top-line revenue generation is active (${money(state.rev)}), current cost structure yields tight profitability. Capital reserves provide a runway of ${runwayMonths > 120 ? '10+ years' : runwayMonths.toFixed(1) + ' months'}. Growth must accelerate before additional debt obligations mature.`;
-      } else {
-        thesis = `<strong>Favorable Profile.</strong> Strong financial health score of ${score}/100. Operating margins are positive (${opMargin.toFixed(1)}%), supported by robust liquid cash reserves (${money(state.cash)}). Debt levels remain manageable relative to ongoing yield generation.`;
-      }
-
-      state.thesis = thesis;
-
-      $("vVerdict").textContent = verdict;
-      $("vScore").textContent = `${score}/100`;
-      $("vMargin").textContent = `${opMargin.toFixed(1)}%`;
-      $("vRunway").textContent = monthlyNetBurn > 0 ? `${runwayMonths.toFixed(1)} Mos` : "Sustainable";
-      $("vThesis").innerHTML = thesis;
-
-      const rList = $("redFlagsList");
-      rList.innerHTML = "";
-      if (flags.length > 0) {
-        flags.forEach(flg => {
-          const li = document.createElement("li");
-          li.textContent = flg;
-          rList.appendChild(li);
-        });
-        $("redFlagsBox").style.display = "block";
-      } else {
-        $("redFlagsBox").style.display = "none";
-      }
-
-      $("screenerOutput").style.display = "block";
-    }
-
-    function calculateSimulation() {
-      const cash = parseFloat($("simCash").value) || 0;
-      const baseRev = parseFloat($("simRev").value) || 0;
-      const baseBurn = parseFloat($("simBurn").value) || 0;
-      const rate = (parseFloat($("simGrowth").value) || 0) / 100;
-
-      let totalRev = 0;
-      let curRev = baseRev;
-      for (let t = 0; t < 12; t++) {
-        totalRev += curRev;
-        curRev *= (1 + rate);
-      }
-
-      const totalBurn = baseBurn;
-      const netYield = totalRev - totalBurn;
-      const endingCash = cash + netYield;
-
-      $("simOutRev").textContent = money(totalRev);
-      $("simOutBurn").textContent = money(totalBurn);
-      $("simOutNet").textContent = money(netYield);
-      $("simOutEnd").textContent = money(endingCash);
-    }
-
-    function printReport() {
-      const user = localStorage.getItem("forge_user") || "Institutional Operator";
-      $("rptUser").textContent = user;
-      $("rptDate").textContent = new Date().toLocaleDateString();
-      $("rptRev").textContent = money(state.rev);
-      $("rptBurn").textContent = money(state.burn);
-      $("rptNet").textContent = money(state.rev - state.burn);
-      $("rptCash").textContent = money(state.cash);
-      $("rptDebt").textContent = money(state.debt);
-      $("rptVerdict").textContent = $("vVerdict").textContent || "N/A";
-      $("rptScore").textContent = $("vScore").textContent || "N/A";
-      $("rptThesis").innerHTML = state.thesis || "No audit run conducted yet.";
-
-      $("printableReport").style.display = "block";
-      window.print();
-      $("printableReport").style.display = "none";
-    }
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        $("loadingScreen").classList.add("hidden");
+      }, 850);
+    });
   </script>
 </body>
 </html>
