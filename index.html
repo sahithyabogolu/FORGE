@@ -2,201 +2,120 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="FORGE financial analysis dashboard">
-  <title>FORGE — Financial Intelligence</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FORGE | Filing Analyzer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main id="app">
-    <section class="welcome" id="welcomeScreen" aria-labelledby="welcomeTitle">
-      <div class="welcome-card">
-        <p class="eyebrow">FINANCIAL OBSERVATION &amp; RESEARCH</p>
-        <h1 id="welcomeTitle">FORGE<span>.</span></h1>
-        <p class="lede">
-          A focused financial-statement dashboard for clear, source-led company analysis.
-        </p>
+  <main>
+    <header>
+      <a href="#">FORGE<span>.</span></a>
+      <p>Local filing analysis</p>
+    </header>
 
-        <form id="nameForm" novalidate>
-          <label for="analystName">Your name</label>
-
-          <div class="name-row">
-            <input
-              id="analystName"
-              name="analystName"
-              type="text"
-              maxlength="40"
-              autocomplete="name"
-              placeholder="Enter your name"
-              required
-            >
-            <button type="submit">Enter FORGE <span aria-hidden="true">→</span></button>
-          </div>
-
-          <p class="form-error" id="nameError" role="alert"></p>
-        </form>
-
-        <p class="fine-print">
-          Bundled annual-report data · No live feeds · No investment recommendations
-        </p>
-      </div>
+    <section class="hero">
+      <p class="eyebrow">FINANCIAL STATEMENT READER</p>
+      <h1>Read the filing.<br>Check the numbers.</h1>
+      <p>Drop a 10-K PDF, spreadsheet, CSV, or Word document. Your file stays in your browser.</p>
     </section>
 
-    <section class="dashboard hidden" id="dashboard" aria-live="polite">
-      <header class="topbar">
-        <a class="brand" href="#top" aria-label="FORGE home">FORGE<span>.</span></a>
+    <section class="upload-card" id="dropZone">
+      <input id="fileInput" type="file" accept=".pdf,.csv,.xlsx,.xls,.docx" hidden>
+      <button id="chooseFile" class="upload-button">Choose a file</button>
+      <p>or drag it here</p>
+      <small>PDF · CSV · XLSX/XLS · DOCX · maximum recommended size: 50 MB</small>
+    </section>
 
-        <div class="topbar-right">
-          <span id="welcomeName"></span>
-          <button class="text-button" id="resetName">Change name</button>
-        </div>
-      </header>
+    <p id="status" role="status"></p>
 
-      <div id="top"></div>
-
-      <div class="hero">
-        <p class="eyebrow">FINANCIAL INTELLIGENCE / 2020—2024</p>
-        <h1>See the business<br>behind the numbers.</h1>
-        <p>
-          Five-year reported financials, calculated ratios, and transparent rule-based observations.
-        </p>
-      </div>
-
-      <nav class="company-tabs" id="companyTabs" aria-label="Choose a company"></nav>
-
-      <div class="status" id="status" role="status"></div>
-
-      <section class="company-heading panel">
+    <section id="results" hidden>
+      <section class="file-summary">
         <div>
-          <p class="eyebrow">SELECTED COMPANY</p>
-          <h2 id="companyName">—</h2>
-          <p id="companyDescription"></p>
+          <p class="eyebrow">LOADED DOCUMENT</p>
+          <h2 id="fileName">—</h2>
+          <p id="fileDetails"></p>
         </div>
-
-        <div class="ticker" id="companyTicker">—</div>
+        <button id="newFile" class="secondary">Analyse another file</button>
       </section>
 
-      <section class="metrics-grid" id="metricsGrid" aria-label="Latest financial metrics"></section>
+      <section class="notice">
+        <strong>Review required.</strong>
+        FORGE identifies likely statement values from uploaded content.
+        Confirm every extracted number against its displayed source evidence
+        before relying on it. It does not make investment recommendations.
+      </section>
 
-      <section class="section">
-        <div class="section-heading">
+      <section>
+        <div class="section-head">
           <div>
-            <p class="eyebrow">FIVE-YEAR VIEW</p>
-            <h2>Financial trends</h2>
+            <p class="eyebrow">EXTRACTED FINANCIALS</p>
+            <h2>Statement values</h2>
           </div>
-
-          <p>USD billions except per-share and ratio data</p>
+          <p>Click a value to review its source text</p>
         </div>
 
-        <div class="chart-grid" id="chartGrid"></div>
+        <div id="metricCards" class="metrics"></div>
       </section>
 
-      <section class="section split">
+      <section class="two-col">
         <div>
-          <div class="section-heading">
+          <div class="section-head">
             <div>
               <p class="eyebrow">CALCULATED</p>
-              <h2>Financial statistics</h2>
+              <h2>Ratios and signals</h2>
             </div>
           </div>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Metric</th>
-                  <th>2020</th>
-                  <th>2021</th>
-                  <th>2022</th>
-                  <th>2023</th>
-                  <th>2024</th>
-                </tr>
-              </thead>
-              <tbody id="statisticsTable"></tbody>
-            </table>
-          </div>
+          <div id="ratios" class="ratio-list"></div>
         </div>
 
-        <aside class="method-note">
-          <h3>Reading the figures</h3>
-          <p>
-            <strong>Reported</strong> values come from the companies’ annual filings.
-            <strong>Calculated</strong> values are derived from those figures using the
-            formulas shown in the methodology.
-          </p>
-          <p>
-            Ratios are best read over time and alongside the company’s business model.
-          </p>
+        <aside>
+          <p class="eyebrow">ANALYSIS NOTES</p>
+          <h2>What FORGE can say</h2>
+          <div id="analysis"></div>
         </aside>
       </section>
 
-      <section class="section">
-        <div class="section-heading">
+      <section>
+        <div class="section-head">
           <div>
-            <p class="eyebrow">RULE-BASED REVIEW</p>
-            <h2>Investor analysis</h2>
+            <p class="eyebrow">AUDIT TRAIL</p>
+            <h2>Extraction evidence</h2>
           </div>
-
-          <p>Observations, not recommendations</p>
+          <p>Exact nearby text from your document</p>
         </div>
 
-        <div class="analysis-grid">
-          <div class="analysis-card">
-            <h3>Business signals</h3>
-            <div id="signals"></div>
-          </div>
-
-          <div class="analysis-card risk">
-            <h3>Risk indicators</h3>
-            <div id="risks"></div>
-          </div>
-
-          <div class="analysis-card">
-            <h3>Going concern</h3>
-            <div id="goingConcern"></div>
-          </div>
-        </div>
+        <div id="evidence" class="evidence"></div>
       </section>
 
-      <section class="section source-section">
-        <p class="eyebrow">SOURCE &amp; METHODOLOGY</p>
-        <h2>Designed to be inspectable.</h2>
+      <section class="method">
+        <p class="eyebrow">METHOD</p>
+        <h2>Transparent by design.</h2>
+        <p>
+          PDF and DOCX files are converted to text locally in this browser.
+          CSV and Excel sheets are read locally. FORGE looks for standard
+          consolidated-statement labels and values near them. It does not
+          upload, store, or send the document to a server.
+        </p>
 
-        <div class="source-grid">
-          <div>
-            <h3>Dataset</h3>
-            <p id="sourceText"></p>
-          </div>
-
-          <div>
-            <h3>Calculated measures</h3>
-            <ul>
-              <li>Current ratio = current assets ÷ current liabilities</li>
-              <li>Debt/equity = total debt ÷ shareholders’ equity</li>
-              <li>Gross margin = gross profit ÷ revenue</li>
-              <li>Net margin = net income ÷ revenue</li>
-              <li>Cash conversion = operating cash flow ÷ net income</li>
-            </ul>
-          </div>
-
-          <div>
-            <h3>Important limitation</h3>
-            <p>
-              This static educational tool does not fetch current market prices,
-              forecasts, or new filings. Review original filings before making
-              financial decisions.
-            </p>
-          </div>
-        </div>
+        <ul>
+          <li>Current ratio = current assets ÷ current liabilities</li>
+          <li>Debt/equity = total debt ÷ shareholders’ equity</li>
+          <li>Gross margin = gross profit ÷ revenue</li>
+          <li>Net margin = net income ÷ revenue</li>
+          <li>Cash conversion = operating cash flow ÷ net income</li>
+        </ul>
       </section>
-
-      <footer>
-        Built by Sahithya &amp; Yukti <span>·</span> FORGE financial intelligence
-      </footer>
     </section>
+
+    <footer>
+      Built by Sahithya &amp; Yukti · FORGE · No BUY/SELL recommendations
+    </footer>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
   <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
