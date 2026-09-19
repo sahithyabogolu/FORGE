@@ -1,2199 +1,265 @@
-/* =========================================================
-   FORGE — app.js
-   UI controller for the browser-based financial analyzer
-   ========================================================= */
-
 (function () {
   "use strict";
 
-  const STORAGE_KEYS = {
-    userName: "forge_user_name",
-    history: "forge_analysis_history",
-    lastAnalysis: "forge_last_analysis"
+  const STORE = {
+    user: "forge_user_name",
+    history: "forge_analysis_history"
   };
 
-  const state = {
-    userName: "",
-    file: null,
-    analysis: null,
-    history: [],
-    currentView: "dashboard"
-  };
-
-  const $ = (selector) => document.querySelector(selector);
-  const $$ = (selector) => Array.from(document.querySelectorAll(selector));
-
-  /* ---------------------------------------------------------
-     Initialization
-     --------------------------------------------------------- */
+  const state = { userName: "", analysis: null, currentView: "dashboard" };
+  const $ = selector => document.querySelector(selector);
+  const $$ = selector => [...document.querySelectorAll(selector)];
+  const na = "N/A — insufficient information in uploaded filing";
 
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
-    loadStoredState();
+    state.userName = localStorage.getItem(STORE.user) || "";
     bindEvents();
-    initializeInterface();
-
-    if (state.userName) {
-      showWorkspace();
-    } else {
-      showWelcome();
-    }
+    updateUser();
+    state.userName ? showScreen("workspaceScreen") : showScreen("welcomeScreen");
+    showWorkspaceSection("uploadSection");
   }
 
   function bindEvents() {
-    const nameForm = $("#nameForm");
-    const nameInput = $("#nameInput");
+    $("#enterForgeBtn").addEventListener("click", enterForge);
+    $("#userName").addEventListener("keydown", event => { if (event.key === "Enter") enterForge(); });
+    $("#browseFilesBtn").addEventListener("click", event => { event.stopPropagation(); $("#fileInput").click(); });
+    $("#fileInput").addEventListener("change", event => event.target.files[0] && startAnalysis(event.target.files[0]));
+    $("#dropZone").addEventListener("click", () => $("#fileInput").click());
+    $("#dropZone").addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") $("#fileInput").click(); });
+    ["dragenter", "dragover"].forEach(type => $("#dropZone").addEventListener(type, event => { event.preventDefault(); $("#dropZone").classList.add("drag-active"); }));
+    ["dragleave", "drop"].forEach(type => $("#dropZone").addEventListener(type, event => { event.preventDefault(); $("#dropZone").classList.remove("drag-active"); }));
+    $("#dropZone").addEventListener("drop", event => event.dataTransfer.files[0] && startAnalysis(event.dataTransfer.files[0]));
+    $("#newAnalysisBtn").addEventListener("click", resetForNewAnalysis);
+    $("#tryAgainBtn").addEventListener("click", resetForNewAnalysis);
+    $("#exportReportBtn").addEventListener("click", exportReport);
 
-    if (nameForm) {
-      nameForm.addEventListener("submit", handleNameSubmit);
-    }
-
-    if (nameInput) {
-      nameInput.addEventListener("input", () => {
-        clearFieldError();
-      });
-
-      nameInput.addEventListener("keydown", event => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          handleNameSubmit(event);
-        }
-      });
-    }
-
-    const fileInput = $("#fileInput");
-    const dropZone = $("#dropZone");
-
-    if (fileInput) {
-      fileInput.addEventListener("change", event => {
-        const file = event.target.files?.[0];
-
-        if (file) {
-          handleFile(file);
-        }
-      });
-    }
-
-    if (dropZone) {
-      dropZone.addEventListener("click", event => {
-        if (
-          event.target.closest("button") ||
-          event.target.closest("input")
-        ) {
-          return;
-        }
-
-        fileInput?.click();
-      });
-
-      dropZone.addEventListener("dragover", event => {
-        event.preventDefault();
-        dropZone.classList.add("drag-active");
-      });
-
-      dropZone.addEventListener("dragleave", () => {
-        dropZone.classList.remove("drag-active");
-      });
-
-      dropZone.addEventListener("drop", event => {
-        event.preventDefault();
-        dropZone.classList.remove("drag-active");
-
-        const file = event.dataTransfer?.files?.[0];
-
-        if (file) {
-          handleFile(file);
-        }
-      });
-    }
-
-    const uploadButton = $("#uploadButton");
-    if (uploadButton) {
-      uploadButton.addEventListener("click", () => {
-        fileInput?.click();
-      });
-    }
-
-    const analyzeButton = $("#analyzeButton");
-    if (analyzeButton) {
-      analyzeButton.addEventListener("click", startAnalysis);
-    }
-
-    const newAnalysisButton = $("#newAnalysisButton");
-    if (newAnalysisButton) {
-      newAnalysisButton.addEventListener(
-        "click",
-        resetForNewAnalysis
-      );
-    }
-
-    const retryButton = $("#retryButton");
-    if (retryButton) {
-      retryButton.addEventListener("click", resetForNewAnalysis);
-    }
-
-    bindNavigation();
-    bindSettings();
-    bindUserMenu();
-    bindModalControls();
+    $$(".nav-item").forEach(button => button.addEventListener("click", () => showResultView(button.dataset.section)));
+    $("#settingsBtn").addEventListener("click", () => $("#settingsOverlay").classList.add("open"));
+    $("#closeSettingsBtn").addEventListener("click", () => $("#settingsOverlay").classList.remove("open"));
+    $("#clearHistoryBtn").addEventListener("click", () => { localStorage.removeItem(STORE.history); toast("Analysis history cleared."); });
+    $("#clearCacheBtn").addEventListener("click", () => { localStorage.removeItem(STORE.history); toast("Cached workspace data cleared."); });
+    $("#resetWorkspaceBtn").addEventListener("click", resetWorkspace);
+    $("#openSidebarBtn").addEventListener("click", () => $("#sidebar").classList.add("open"));
+    $("#closeSidebarBtn").addEventListener("click", () => $("#sidebar").classList.remove("open"));
   }
 
-  function initializeInterface() {
-    setText("#workspaceUserName", state.userName || "User");
-    setText("#userNameDisplay", state.userName || "User");
-
-    updateHistoryCount();
-    updateSidebarState();
-
-    hideAllSections();
-  }
-
-  /* ---------------------------------------------------------
-     Welcome screen
-     --------------------------------------------------------- */
-
-  function handleNameSubmit(event) {
-    if (event) {
-      event.preventDefault();
-    }
-
-    const input = $("#nameInput");
-
-    if (!input) {
-      showWorkspace();
-      return;
-    }
-
-    const name = input.value.trim();
-
-    if (!name) {
-      showFieldError("Please enter your name.");
-      input.focus();
-      return;
-    }
-
-    if (name.length < 2) {
-      showFieldError("Please enter at least 2 characters.");
-      input.focus();
-      return;
-    }
-
+  function enterForge() {
+    const name = $("#userName").value.trim();
+    if (!name) { $("#nameError").textContent = "Please enter your name to continue."; return; }
     state.userName = name;
-
-    localStorage.setItem(
-      STORAGE_KEYS.userName,
-      name
-    );
-
-    setText("#workspaceUserName", name);
-    setText("#userNameDisplay", name);
-
-    showWorkspace();
+    localStorage.setItem(STORE.user, name);
+    $("#nameError").textContent = "";
+    updateUser();
+    showScreen("workspaceScreen");
   }
 
-  function showFieldError(message) {
-    const error = $("#nameError");
-
-    if (error) {
-      error.textContent = message;
-      error.classList.add("visible");
-    }
+  function updateUser() {
+    const name = state.userName || "User";
+    $("#topbarUserName").textContent = name;
+    $("#settingsUserName").textContent = name;
+    $("#userInitial").textContent = name.charAt(0).toUpperCase();
   }
 
-  function clearFieldError() {
-    const error = $("#nameError");
-
-    if (error) {
-      error.textContent = "";
-      error.classList.remove("visible");
-    }
+  function showScreen(id) {
+    $$(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
   }
 
-  function showWelcome() {
-    hideAllSections();
-
-    const welcome = $("#welcomeScreen");
-
-    if (welcome) {
-      welcome.hidden = false;
-      welcome.classList.add("active");
-    }
-
-    document.body.classList.add("welcome-mode");
+  function showWorkspaceSection(id) {
+    $$(".workspace-section").forEach(section => section.classList.toggle("active", section.id === id));
   }
 
-  function showWorkspace() {
-    document.body.classList.remove("welcome-mode");
-
-    const welcome = $("#welcomeScreen");
-    const workspace = $("#workspaceScreen");
-
-    if (welcome) {
-      welcome.hidden = true;
-      welcome.classList.remove("active");
-    }
-
-    if (workspace) {
-      workspace.hidden = false;
-      workspace.classList.add("active");
-    }
-
-    showUploadState();
-    updateUserLabels();
+  function updateProgress(data) {
+    const value = Math.max(0, Math.min(100, data.value || 0));
+    $("#analysisProgressBar").style.width = `${value}%`;
+    $("#analysisPercent").textContent = `${value}%`;
+    $("#analysisStepLabel").textContent = data.step || "Processing";
+    $("#analysisStatusText").textContent = data.detail || "";
   }
 
-  /* ---------------------------------------------------------
-     File upload
-     --------------------------------------------------------- */
-
-  function handleFile(file) {
-    if (!file) return;
-
-    const validation = validateFile(file);
-
-    if (!validation.valid) {
-      showError(validation.message);
-      return;
-    }
-
-    state.file = file;
-    state.analysis = null;
-
-    updateUploadedFileUI(file);
-    showUploadReadyState();
-  }
-
-  function validateFile(file) {
-    const name = String(file.name || "");
-    const extension = name.includes(".")
-      ? name.split(".").pop().toLowerCase()
-      : "";
-
-    const allowed = [
-      "pdf",
-      "docx",
-      "xlsx",
-      "xls",
-      "csv",
-      "txt"
-    ];
-
-    if (!allowed.includes(extension)) {
-      return {
-        valid: false,
-        message:
-          "Unsupported file. Upload a PDF, DOCX, XLSX, XLS, CSV or TXT file."
-      };
-    }
-
-    /*
-     * Prevent accidentally selecting an enormous document that could
-     * freeze the browser.
-     */
-    const maxSize = 75 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      return {
-        valid: false,
-        message:
-          "This file is larger than 75 MB. Please upload a smaller filing."
-      };
-    }
-
-    return {
-      valid: true,
-      extension
-    };
-  }
-
-  function updateUploadedFileUI(file) {
-    const fileName =
-      $("#uploadedFileName") ||
-      $("#fileName");
-
-    const fileSize =
-      $("#uploadedFileSize") ||
-      $("#fileSize");
-
-    if (fileName) {
-      fileName.textContent = file.name;
-    }
-
-    if (fileSize) {
-      fileSize.textContent = formatFileSize(file.size);
-    }
-
-    setText("#sidebarDocument", file.name);
-    setText("#topbarDocument", file.name);
-  }
-
-  function showUploadReadyState() {
-    showSection("uploadSection");
-
-    const uploadSection = $("#uploadSection");
-
-    if (uploadSection) {
-      uploadSection.classList.add("file-ready");
-    }
-
-    const analyzeButton = $("#analyzeButton");
-
-    if (analyzeButton) {
-      analyzeButton.disabled = false;
-      analyzeButton.removeAttribute("aria-disabled");
-    }
-
-    const fileReady = $("#fileReady");
-    if (fileReady) {
-      fileReady.hidden = false;
-    }
-
-    const uploadNote = $("#uploadNote");
-    if (uploadNote) {
-      uploadNote.textContent =
-        "File loaded. Start analysis when ready.";
-    }
-  }
-
-  /* ---------------------------------------------------------
-     Analysis
-     --------------------------------------------------------- */
-
-  async function startAnalysis() {
-    if (!state.file) {
-      showError("Please upload a financial document first.");
-      return;
-    }
-
-    if (
-      !window.ForgeParser ||
-      typeof window.ForgeParser.analyzeFile !== "function"
-    ) {
-      showError(
-        "The Forge analysis engine has not loaded correctly. Please refresh the page."
-      );
-      return;
-    }
-
-    disableAnalysisControls();
-
-    showAnalysisState();
-
-    resetProgressUI();
-
+  async function startAnalysis(file) {
     try {
-      const result =
-        await window.ForgeParser.analyzeFile(
-          state.file,
-          {
-            onProgress: updateAnalysisProgress
-          }
-        );
+      if (!window.ForgeParser || !window.ForgeAnalyzer) throw new Error("FORGE application files did not load correctly. Refresh the page and try again.");
+      showWorkspaceSection("analysisSection");
+      updateProgress({ value: 2, step: "Reading document", detail: file.name });
 
-      if (!result || !result.success) {
-        throw new Error(
-          "Forge could not complete the analysis."
-        );
-      }
+      const parsed = await window.ForgeParser.analyzeFile(file, updateProgress);
+      updateProgress({ value: 84, step: "Calculating financial metrics", detail: "Computing only metrics supported by extracted values." });
+      const analysis = window.ForgeAnalyzer.analyze(parsed);
+      updateProgress({ value: 96, step: "Preparing investor brief", detail: "Rendering evidence-based observations." });
 
-      state.analysis = result;
-
-      saveAnalysis(result);
-      renderAnalysis(result);
-
-      await wait(250);
-
-      showResultsState();
+      state.analysis = analysis;
+      saveHistory(analysis);
+      renderAnalysis(analysis);
+      updateProgress({ value: 100, step: "Analysis complete", detail: "Financial analysis is ready." });
+      setTimeout(() => showWorkspaceSection("resultsSection"), 250);
     } catch (error) {
-      console.error("FORGE analysis error:", error);
-
-      showError(
-        normalizeErrorMessage(error)
-      );
-    } finally {
-      enableAnalysisControls();
+      $("#errorTitle").textContent = "Analysis unavailable";
+      $("#errorMessage").textContent = readableError(error);
+      showWorkspaceSection("errorSection");
     }
   }
 
-  function disableAnalysisControls() {
-    const analyzeButton = $("#analyzeButton");
-
-    if (analyzeButton) {
-      analyzeButton.disabled = true;
-    }
-
-    const fileInput = $("#fileInput");
-
-    if (fileInput) {
-      fileInput.disabled = true;
-    }
+  function readableError(error) {
+    const message = error && error.message ? error.message : String(error || "");
+    if (/image-only|scanned/i.test(message)) return "No extractable text was found. This may be an image-only or scanned PDF. OCR would be required, but is not included in this browser-only version.";
+    return message || "FORGE could not reliably extract the required financial information.";
   }
 
-  function enableAnalysisControls() {
-    const fileInput = $("#fileInput");
-
-    if (fileInput) {
-      fileInput.disabled = false;
-    }
+  function formatMoney(value) {
+    if (!Number.isFinite(value)) return "N/A";
+    const abs = Math.abs(value);
+    const units = abs >= 1e9 ? [1e9, "B"] : abs >= 1e6 ? [1e6, "M"] : abs >= 1e3 ? [1e3, "K"] : [1, ""];
+    return `${value < 0 ? "-" : ""}$${(abs / units[0]).toLocaleString(undefined, { maximumFractionDigits: 2 })}${units[1]}`;
   }
 
-  function showAnalysisState() {
-    hideResults();
-
-    showSection("analysisSection");
-
-    const error = $("#errorSection");
-    if (error) {
-      error.hidden = true;
-    }
+  function formatRatio(value) { return Number.isFinite(value) ? `${value.toFixed(2)}x` : "N/A"; }
+  function formatPercent(value) { return Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : "N/A"; }
+  function changeText(current, previous, percent) {
+    if (!Number.isFinite(current) || !Number.isFinite(previous) || previous === 0) return "No prior-period comparison";
+    const result = ((current - previous) / Math.abs(previous)) * 100;
+    return `${result >= 0 ? "↑" : "↓"} ${Math.abs(result).toFixed(1)}% vs previous`;
   }
 
-  function resetProgressUI() {
-    updateAnalysisProgress({
-      progress: 0,
-      message: "Preparing analysis",
-      detail: "Initializing Forge"
-    });
+  function renderAnalysis(a) {
+    $("#resultCompanyName").textContent = a.companyName;
+    $("#resultPeriod").textContent = a.years.length ? `Fiscal years identified: ${a.years.join(", ")}` : "Fiscal period unavailable";
+    $("#resultCurrency").textContent = `Amounts: ${a.units.label}`;
+    $("#resultSourceType").textContent = a.sourceType;
+    $("#topbarDocument").textContent = a.fileName;
+    $("#sidebarCompany").textContent = a.companyName;
+    $("#sidebarPeriod").textContent = a.years.length ? String(a.years[0]) : "Period unavailable";
 
-    $$(".analysis-step").forEach(step => {
-      step.classList.remove(
-        "active",
-        "completed",
-        "done"
-      );
+    const m = a.metrics;
+    $("#metricRevenue").textContent = formatMoney(m.revenue.current);
+    $("#metricRevenueChange").textContent = changeText(m.revenue.current, m.revenue.previous);
+    $("#metricGrossProfit").textContent = formatMoney(m.grossProfit.current);
+    $("#metricGrossMargin").textContent = Number.isFinite(m.grossMargin.current) ? `${formatPercent(m.grossMargin.current)} gross margin • ${m.grossProfit.source}` : na;
+    $("#metricNetIncome").textContent = formatMoney(m.netIncome.current);
+    $("#metricNetMargin").textContent = Number.isFinite(m.netMargin.current) ? `${formatPercent(m.netMargin.current)} net margin` : na;
+    $("#metricOperatingCF").textContent = formatMoney(m.operatingCashFlow.current);
+    $("#metricCashConversion").textContent = Number.isFinite(m.cashConversion.current) ? `${formatPercent(m.cashConversion.current)} of net income` : na;
+    $("#metricCurrentRatio").textContent = formatRatio(m.currentRatio.current);
+    $("#metricCurrentRatioStatus").textContent = riskByName(a, "Liquidity").status;
+    $("#metricDebtEquity").textContent = formatRatio(m.debtEquity.current);
+    $("#metricDebtEquityStatus").textContent = riskByName(a, "Leverage").status;
 
-      const status =
-        step.querySelector(".step-status");
-
-      if (status) {
-        status.textContent = "";
-      }
-    });
+    renderList($("#dashboardInvestorSummary"), a.brief);
+    renderList($("#investorBriefList"), a.brief);
+    renderFinancialTable(a);
+    renderRisks(a);
+    $("#goingConcernStatus").textContent = a.goingConcern.status;
+    $("#goingConcernExplanation").textContent = `${a.goingConcern.note}${a.goingConcern.findings.length ? ` Findings: ${a.goingConcern.findings.join(" | ")}` : ""}`;
+    showResultView("dashboard");
   }
 
-  function updateAnalysisProgress(payload) {
-    const progress = Number(payload?.progress || 0);
-    const message = payload?.message || "Analyzing";
-    const detail = payload?.detail || "";
-
-    const bar =
-      $("#progressBar");
-
-    if (bar) {
-      bar.style.width =
-        `${Math.max(0, Math.min(100, progress))}%`;
-
-      bar.setAttribute(
-        "aria-valuenow",
-        String(progress)
-      );
-    }
-
-    setText(
-      "#progressPercent",
-      `${Math.round(progress)}%`
-    );
-
-    setText(
-      "#progressMessage",
-      message
-    );
-
-    setText(
-      "#progressDetail",
-      detail
-    );
-
-    updateAnalysisSteps(
-      progress,
-      message
-    );
+  function riskByName(analysis, title) {
+    return analysis.risks.find(risk => risk.title === title) || { status: "N/A — insufficient information" };
   }
 
-  function updateAnalysisSteps(progress, message) {
-    const steps = $$(".analysis-step");
-
-    if (!steps.length) return;
-
-    const messageLower =
-      String(message || "").toLowerCase();
-
-    let activeIndex = -1;
-
-    if (messageLower.includes("preparing")) {
-      activeIndex = 0;
-    } else if (
-      messageLower.includes("reading") ||
-      messageLower.includes("extracting")
-    ) {
-      activeIndex = 1;
-    } else if (
-      messageLower.includes("normalizing") ||
-      messageLower.includes("locating")
-    ) {
-      activeIndex = 2;
-    } else if (
-      messageLower.includes("calculating")
-    ) {
-      activeIndex = 3;
-    } else if (
-      messageLower.includes("risk")
-    ) {
-      activeIndex = 4;
-    } else if (
-      messageLower.includes("going-concern") ||
-      messageLower.includes("going concern")
-    ) {
-      activeIndex = 5;
-    } else if (
-      messageLower.includes("investor")
-    ) {
-      activeIndex = 6;
-    } else if (
-      messageLower.includes("final")
-    ) {
-      activeIndex = 7;
-    }
-
-    if (activeIndex === -1) {
-      activeIndex = Math.min(
-        steps.length - 1,
-        Math.floor(progress / 100 * steps.length)
-      );
-    }
-
-    steps.forEach((step, index) => {
-      step.classList.remove(
-        "active",
-        "completed",
-        "done"
-      );
-
-      const status =
-        step.querySelector(".step-status");
-
-      if (index < activeIndex) {
-        step.classList.add("completed");
-
-        if (status) {
-          status.textContent = "✓";
-        }
-      } else if (index === activeIndex) {
-        step.classList.add("active");
-
-        if (status) {
-          status.textContent = "•";
-        }
-      } else if (status) {
-        status.textContent = "";
-      }
-    });
+  function renderList(node, values) {
+    node.innerHTML = "";
+    values.forEach(value => { const item = document.createElement("li"); item.textContent = value; node.appendChild(item); });
   }
 
-  /* ---------------------------------------------------------
-     Render complete analysis
-     --------------------------------------------------------- */
-
-  function renderAnalysis(result) {
-    renderDocumentHeader(result);
-    renderMetrics(result);
-    renderDashboard(result);
-    renderRisk(result);
-    renderGoingConcern(result);
-    renderInvestorBrief(result);
-    renderFinancialTable(result);
-    renderMethodology(result);
-    renderWarnings(result);
-  }
-
-  /* ---------------------------------------------------------
-     Header
-     --------------------------------------------------------- */
-
-  function renderDocumentHeader(result) {
-    const document = result.document || {};
-
-    setText(
-      "#resultCompanyName",
-      document.companyName || "Uploaded company"
-    );
-
-    setText(
-      "#resultFileName",
-      document.fileName || "Uploaded document"
-    );
-
-    const years = document.fiscalYears || [];
-
-    setText(
-      "#resultPeriod",
-      years.length
-        ? `Fiscal years identified: ${years.slice(0, 3).join(", ")}`
-        : "Fiscal period not clearly identified"
-    );
-
-    setText(
-      "#resultStatus",
-      document.is10K
-        ? "10-K detected"
-        : document.isAnnualReport
-          ? "Annual report detected"
-          : "Document analyzed"
-    );
-
-    setText(
-      "#sidebarCompany",
-      document.companyName || "Uploaded company"
-    );
-
-    setText(
-      "#sidebarPeriod",
-      years.length
-        ? String(years[0])
-        : "—"
-    );
-  }
-
-  /* ---------------------------------------------------------
-     Metric cards
-     --------------------------------------------------------- */
-
-  function renderMetrics(result) {
-    const metrics = result.metrics || {};
-
-    renderMetric(
-      "revenue",
-      metrics.revenue,
-      "amount"
-    );
-
-    renderMetric(
-      "grossProfit",
-      metrics.grossProfit,
-      "amount"
-    );
-
-    renderMetric(
-      "netProfit",
-      metrics.netProfit,
-      "amount"
-    );
-
-    renderMetric(
-      "currentRatio",
-      metrics.currentRatio,
-      "ratio"
-    );
-
-    renderMetric(
-      "debtToEquity",
-      metrics.debtToEquity,
-      "ratio"
-    );
-
-    renderMetric(
-      "operatingCashFlow",
-      metrics.operatingCashFlow,
-      "amount"
-    );
-  }
-
-  function renderMetric(key, metric, type) {
-    const valueElement =
-      document.querySelector(
-        `[data-metric-value="${key}"]`
-      );
-
-    const sourceElement =
-      document.querySelector(
-        `[data-metric-source="${key}"]`
-      );
-
-    const changeElement =
-      document.querySelector(
-        `[data-metric-change="${key}"]`
-      );
-
-    if (!valueElement) {
-      /*
-       * Also support conventional IDs in case the HTML uses them.
-       */
-      renderMetricById(
-        key,
-        metric,
-        type
-      );
-      return;
-    }
-
-    const value = metric?.value;
-
-    valueElement.textContent =
-      formatMetricValue(value, type);
-
-    if (sourceElement) {
-      sourceElement.textContent =
-        metric?.basis === "calculated"
-          ? "Calculated"
-          : value !== null && value !== undefined
-            ? "Reported"
-            : "Not found";
-    }
-
-    if (changeElement) {
-      renderChange(
-        changeElement,
-        metric?.trend
-      );
-    }
-  }
-
-  function renderMetricById(key, metric, type) {
-    const candidates = [
-      `#${key}Value`,
-      `#metric${capitalize(key)}`,
-      `#${key}Metric`
+  function renderFinancialTable(a) {
+    const currentYear = a.years[0] || "Current";
+    const previousYear = a.years[1] || "Previous";
+    $("#tableCurrentYear").textContent = currentYear;
+    $("#tablePreviousYear").textContent = previousYear;
+    const rows = [
+      ["Revenue", a.metrics.revenue, formatMoney],
+      ["Gross Profit", a.metrics.grossProfit, formatMoney],
+      ["Net Income", a.metrics.netIncome, formatMoney],
+      ["Operating Cash Flow", a.metrics.operatingCashFlow, formatMoney],
+      ["Gross Margin", a.metrics.grossMargin, formatPercent],
+      ["Net Margin", a.metrics.netMargin, formatPercent],
+      ["Current Ratio", a.metrics.currentRatio, formatRatio],
+      ["Debt / Equity", a.metrics.debtEquity, formatRatio],
+      ["OCF / Net Income", a.metrics.cashConversion, formatPercent]
     ];
-
-    const valueElement =
-      candidates
-        .map(selector => $(selector))
-        .find(Boolean);
-
-    if (!valueElement) return;
-
-    valueElement.textContent =
-      formatMetricValue(
-        metric?.value,
-        type
-      );
+    $("#financialTableBody").innerHTML = rows.map(([name, value, formatter]) => `<tr><td>${name}${value.source === "Calculated" ? " <small>(Calculated)</small>" : ""}</td><td>${formatter(value.current)}</td><td>${formatter(value.previous)}</td><td>${changeText(value.current, value.previous)}</td></tr>`).join("");
   }
 
-  function formatMetricValue(value, type) {
-    if (!Number.isFinite(value)) {
-      return "Not found";
-    }
-
-    if (type === "ratio") {
-      return `${round(value, 2)}x`;
-    }
-
-    return formatFinancialAmount(value);
-  }
-
-  function renderChange(element, trend) {
-    if (!trend || trend.changePercent === null) {
-      element.textContent = "Change unavailable";
-      element.className =
-        "metric-change neutral";
-      return;
-    }
-
-    const change =
-      Number(trend.changePercent);
-
-    const prefix =
-      change >= 0 ? "+" : "";
-
-    element.textContent =
-      `${prefix}${round(change, 1)}%`;
-
-    element.classList.remove(
-      "positive",
-      "negative",
-      "neutral"
-    );
-
-    element.classList.add(
-      change > 0.5
-        ? "positive"
-        : change < -0.5
-          ? "negative"
-          : "neutral"
-    );
-  }
-
-  /* ---------------------------------------------------------
-     Dashboard
-     --------------------------------------------------------- */
-
-  function renderDashboard(result) {
-    renderRevenueChart(result);
-    renderDashboardRiskSummary(result);
-    renderLargeStatistics(result);
-  }
-
-  function renderRevenueChart(result) {
-    const chart =
-      $("#revenueChart");
-
-    const chartBars =
-      $("#revenueChartBars");
-
-    const observations =
-      result.underlyingFinancials?.revenue || [];
-
-    if (!chartBars) return;
-
-    chartBars.innerHTML = "";
-
-    const values =
-      observations
-        .filter(item =>
-          Number.isFinite(item.value)
-        )
-        .slice(0, 5)
-        .reverse();
-
-    if (!values.length) {
-      chartBars.innerHTML =
-        `<div class="chart-empty">Revenue history not available.</div>`;
-      return;
-    }
-
-    const max =
-      Math.max(
-        ...values.map(item =>
-          Math.abs(item.value)
-        )
-      ) || 1;
-
-    values.forEach(item => {
-      const column =
-        document.createElement("div");
-
-      column.className =
-        "chart-column";
-
-      const value =
-        document.createElement("div");
-
-      value.className =
-        "chart-bar-value";
-
-      value.textContent =
-        formatFinancialAmount(item.value);
-
-      const bar =
-        document.createElement("div");
-
-      bar.className =
-        "chart-bar";
-
-      bar.style.height =
-        `${Math.max(
-          6,
-          Math.min(
-            100,
-            Math.abs(item.value) / max * 100
-          )
-        )}%`;
-
-      const year =
-        document.createElement("div");
-
-      year.className =
-        "chart-year";
-
-      year.textContent =
-        item.year || "—";
-
-      column.appendChild(value);
-      column.appendChild(bar);
-      column.appendChild(year);
-
-      chartBars.appendChild(column);
-    });
-
-    if (chart) {
-      chart.setAttribute(
-        "aria-label",
-        "Revenue trend chart"
-      );
-    }
-  }
-
-  function renderDashboardRiskSummary(result) {
-    const container =
-      $("#riskSummaryList");
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    const indicators =
-      result.riskIndicators || [];
-
-    if (!indicators.length) {
-      container.innerHTML =
-        `<div class="empty-state">No risk indicators could be calculated.</div>`;
-      return;
-    }
-
-    indicators.forEach(indicator => {
-      const item =
-        document.createElement("div");
-
-      item.className =
-        "risk-summary-item";
-
-      item.innerHTML = `
-        <div class="risk-summary-main">
-          <span class="risk-summary-title"></span>
-          <span class="risk-summary-value"></span>
-        </div>
-        <div class="risk-summary-status"></div>
-        <div class="risk-summary-reason"></div>
-      `;
-
-      item.querySelector(
-        ".risk-summary-title"
-      ).textContent =
-        indicator.title;
-
-      item.querySelector(
-        ".risk-summary-value"
-      ).textContent =
-        indicator.formattedValue;
-
-      item.querySelector(
-        ".risk-summary-status"
-      ).textContent =
-        humanRiskStatus(indicator.status);
-
-      item.querySelector(
-        ".risk-summary-status"
-      ).classList.add(
-        `status-${indicator.status}`
-      );
-
-      item.querySelector(
-        ".risk-summary-reason"
-      ).textContent =
-        indicator.explanation;
-
-      container.appendChild(item);
+  function renderRisks(a) {
+    $("#riskAnalysisGrid").innerHTML = "";
+    a.risks.forEach(risk => {
+      const card = document.createElement("article");
+      card.className = "risk-card";
+      card.innerHTML = `<h3>${risk.title}</h3><div class="status-label">${risk.status}</div><p>${risk.reason}</p>`;
+      $("#riskAnalysisGrid").appendChild(card);
     });
   }
 
-  function renderLargeStatistics(result) {
-    const container =
-      $("#statisticsGrid");
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    const statistics =
-      result.statistics || [];
-
-    statistics.forEach(stat => {
-      const card =
-        document.createElement("div");
-
-      card.className =
-        "large-stat-panel";
-
-      card.innerHTML = `
-        <div class="large-stat-label"></div>
-        <div class="large-stat"></div>
-        <div class="large-stat-sub"></div>
-      `;
-
-      card.querySelector(
-        ".large-stat-label"
-      ).textContent =
-        stat.label;
-
-      card.querySelector(
-        ".large-stat"
-      ).textContent =
-        formatStatistic(stat);
-
-      card.querySelector(
-        ".large-stat-sub"
-      ).textContent =
-        stat.year
-          ? `${stat.basis === "calculated" ? "Calculated" : "Reported"} • ${stat.year}`
-          : "Data unavailable";
-
-      container.appendChild(card);
-    });
+  function showResultView(id) {
+    state.currentView = id;
+    $$(".result-view").forEach(view => view.classList.toggle("active", view.id === id));
+    $$(".nav-item").forEach(item => item.classList.toggle("active", item.dataset.section === id));
+    $("#sidebar").classList.remove("open");
   }
 
-  function formatStatistic(stat) {
-    if (!Number.isFinite(stat.value)) {
-      return "Not found";
-    }
-
-    if (
-      stat.label === "Current ratio" ||
-      stat.label === "Debt to equity"
-    ) {
-      return `${round(stat.value, 2)}x`;
-    }
-
-    return formatFinancialAmount(stat.value);
+  function saveHistory(analysis) {
+    const history = JSON.parse(localStorage.getItem(STORE.history) || "[]");
+    history.unshift({ companyName: analysis.companyName, fileName: analysis.fileName, analyzedAt: analysis.analyzedAt });
+    localStorage.setItem(STORE.history, JSON.stringify(history.slice(0, 20)));
   }
-
-  /* ---------------------------------------------------------
-     Risk section
-     --------------------------------------------------------- */
-
-  function renderRisk(result) {
-    const container =
-      $("#riskGrid");
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    const indicators =
-      result.riskIndicators || [];
-
-    indicators.forEach(indicator => {
-      const card =
-        document.createElement("article");
-
-      card.className =
-        "risk-card";
-
-      card.innerHTML = `
-        <div class="risk-card-header">
-          <div class="risk-card-title"></div>
-          <div class="risk-card-status"></div>
-        </div>
-        <div class="risk-card-value"></div>
-        <div class="risk-card-reason"></div>
-      `;
-
-      card.querySelector(
-        ".risk-card-title"
-      ).textContent =
-        indicator.title;
-
-      const status =
-        card.querySelector(
-          ".risk-card-status"
-        );
-
-      status.textContent =
-        humanRiskStatus(
-          indicator.status
-        );
-
-      status.classList.add(
-        `status-${indicator.status}`
-      );
-
-      card.querySelector(
-        ".risk-card-value"
-      ).textContent =
-        indicator.formattedValue;
-
-      card.querySelector(
-        ".risk-card-reason"
-      ).textContent =
-        indicator.explanation;
-
-      container.appendChild(card);
-    });
-  }
-
-  function humanRiskStatus(status) {
-    const map = {
-      positive: "Positive indicator",
-      attention: "Attention",
-      neutral: "Neutral",
-      not_available: "Not available"
-    };
-
-    return map[status] || "Review";
-  }
-
-  /* ---------------------------------------------------------
-     Going concern
-     --------------------------------------------------------- */
-
-  function renderGoingConcern(result) {
-    const going =
-      result.goingConcern;
-
-    if (!going) return;
-
-    setText(
-      "#goingConcernLabel",
-      going.label
-    );
-
-    setText(
-      "#goingConcernExplanation",
-      going.explanation
-    );
-
-    const status =
-      $("#goingConcernStatus");
-
-    if (status) {
-      status.textContent =
-        going.status === "explicit_concern"
-          ? "Concern detected"
-          : going.status === "disclosure_detected"
-            ? "Disclosure detected"
-            : "No explicit disclosure detected";
-
-      status.className =
-        `going-status-value status-${going.status}`;
-    }
-
-    const evidence =
-      $("#goingConcernEvidence");
-
-    if (evidence) {
-      if (going.evidence) {
-        evidence.textContent =
-          going.evidence;
-        evidence.hidden = false;
-      } else {
-        evidence.textContent =
-          "No matching disclosure excerpt was identified.";
-        evidence.hidden = false;
-      }
-    }
-  }
-
-  /* ---------------------------------------------------------
-     Investor brief
-     --------------------------------------------------------- */
-
-  function renderInvestorBrief(result) {
-    const container =
-      $("#investorBriefList");
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    const insights =
-      result.investorBrief || [];
-
-    if (!insights.length) {
-      container.innerHTML = `
-        <div class="empty-state">
-          Forge could not produce enough evidence-backed investor observations from this document.
-        </div>
-      `;
-      return;
-    }
-
-    insights.forEach((insight, index) => {
-      const item =
-        document.createElement("article");
-
-      item.className =
-        "investor-item";
-
-      item.innerHTML = `
-        <div class="investor-number"></div>
-        <div class="investor-content">
-          <div class="investor-item-title"></div>
-          <div class="investor-item-text"></div>
-        </div>
-      `;
-
-      item.querySelector(
-        ".investor-number"
-      ).textContent =
-        String(index + 1).padStart(2, "0");
-
-      item.querySelector(
-        ".investor-item-title"
-      ).textContent =
-        insight.title;
-
-      item.querySelector(
-        ".investor-item-text"
-      ).textContent =
-        insight.text;
-
-      container.appendChild(item);
-    });
-  }
-
-  /* ---------------------------------------------------------
-     Financial table
-     --------------------------------------------------------- */
-
-  function renderFinancialTable(result) {
-    const table =
-      $("#financialTable");
-
-    if (!table) return;
-
-    const body =
-      table.querySelector("tbody");
-
-    if (!body) return;
-
-    body.innerHTML = "";
-
-    const rows =
-      result.financialTable || [];
-
-    rows.forEach(row => {
-      const tr =
-        document.createElement("tr");
-
-      tr.innerHTML = `
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-      `;
-
-      tr.children[0].textContent =
-        row.label;
-
-      tr.children[1].textContent =
-        formatTableValue(
-          row.label,
-          row.value
-        );
-
-      tr.children[2].textContent =
-        row.year || "—";
-
-      tr.children[3].textContent =
-        row.basis === "calculated"
-          ? "Calculated"
-          : row.basis === "reported"
-            ? "Reported"
-            : "Not available";
-
-      body.appendChild(tr);
-    });
-  }
-
-  function formatTableValue(label, value) {
-    if (!Number.isFinite(value)) {
-      return "Not found";
-    }
-
-    if (
-      label === "Current ratio" ||
-      label === "Debt to equity"
-    ) {
-      return `${round(value, 2)}x`;
-    }
-
-    return formatFinancialAmount(value);
-  }
-
-  /* ---------------------------------------------------------
-     Methodology
-     --------------------------------------------------------- */
-
-  function renderMethodology(result) {
-    const methodology =
-      result.methodology;
-
-    if (!methodology) return;
-
-    setText(
-      "#methodologyEngine",
-      methodology.engine
-    );
-
-    setText(
-      "#methodologyReported",
-      methodology.reportedValues
-    );
-
-    setText(
-      "#methodologyCalculated",
-      methodology.calculatedValues
-    );
-
-    setText(
-      "#methodologyExternal",
-      methodology.noExternalData
-    );
-
-    const limitations =
-      $("#methodologyLimitations");
-
-    if (
-      limitations &&
-      Array.isArray(methodology.limitations)
-    ) {
-      limitations.innerHTML = "";
-
-      methodology.limitations.forEach(item => {
-        const li =
-          document.createElement("li");
-
-        li.textContent = item;
-
-        limitations.appendChild(li);
-      });
-    }
-  }
-
-  /* ---------------------------------------------------------
-     Warnings
-     --------------------------------------------------------- */
-
-  function renderWarnings(result) {
-    const container =
-      $("#analysisWarnings");
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    const warnings =
-      result.warnings || [];
-
-    if (!warnings.length) {
-      container.hidden = true;
-      return;
-    }
-
-    container.hidden = false;
-
-    warnings.forEach(warning => {
-      const item =
-        document.createElement("div");
-
-      item.className =
-        "analysis-warning";
-
-      item.textContent =
-        warning;
-
-      container.appendChild(item);
-    });
-  }
-
-  /* ---------------------------------------------------------
-     Navigation
-     --------------------------------------------------------- */
-
-  function bindNavigation() {
-    $$(".nav-item").forEach(item => {
-      item.addEventListener("click", event => {
-        event.preventDefault();
-
-        const target =
-          item.dataset.view ||
-          item.getAttribute("href")?.replace("#", "");
-
-        if (!target) return;
-
-        navigateTo(target);
-
-        $$(".nav-item").forEach(nav =>
-          nav.classList.remove("active")
-        );
-
-        item.classList.add("active");
-      });
-    });
-  }
-
-  function navigateTo(view) {
-    state.currentView = view;
-
-    const results =
-      $("#resultsSection");
-
-    if (!results) return;
-
-    if (!state.analysis) {
-      showUploadState();
-      return;
-    }
-
-    const targets = {
-      dashboard: "#dashboardPanel",
-      analysis: "#analysisPanel",
-      risk: "#riskPanel",
-      investor: "#investorPanel",
-      methodology: "#methodologyPanel"
-    };
-
-    const targetSelector =
-      targets[view];
-
-    if (!targetSelector) {
-      showResultsState();
-      return;
-    }
-
-    $$(".result-panel").forEach(panel => {
-      panel.hidden = true;
-    });
-
-    const target =
-      $(targetSelector);
-
-    if (target) {
-      target.hidden = false;
-    } else {
-      showResultsState();
-    }
-  }
-
-  /* ---------------------------------------------------------
-     Settings
-     --------------------------------------------------------- */
-
-  function bindSettings() {
-    const clearHistory =
-      $("#clearHistory");
-
-    if (clearHistory) {
-      clearHistory.addEventListener(
-        "click",
-        clearStoredHistory
-      );
-    }
-
-    const resetWorkspace =
-      $("#resetWorkspace");
-
-    if (resetWorkspace) {
-      resetWorkspace.addEventListener(
-        "click",
-        resetWorkspaceCompletely
-      );
-    }
-  }
-
-  function clearStoredHistory() {
-    const confirmed =
-      window.confirm(
-        "Clear saved Forge analysis history and cached analysis?"
-      );
-
-    if (!confirmed) return;
-
-    localStorage.removeItem(
-      STORAGE_KEYS.history
-    );
-
-    localStorage.removeItem(
-      STORAGE_KEYS.lastAnalysis
-    );
-
-    state.history = [];
-    state.analysis = null;
-
-    updateHistoryCount();
-
-    showToast(
-      "Saved analysis history cleared."
-    );
-  }
-
-  function resetWorkspaceCompletely() {
-    const confirmed =
-      window.confirm(
-        "Reset Forge completely? Your name, saved history and current analysis will be cleared."
-      );
-
-    if (!confirmed) return;
-
-    localStorage.removeItem(
-      STORAGE_KEYS.userName
-    );
-
-    localStorage.removeItem(
-      STORAGE_KEYS.history
-    );
-
-    localStorage.removeItem(
-      STORAGE_KEYS.lastAnalysis
-    );
-
-    state.userName = "";
-    state.file = null;
-    state.analysis = null;
-    state.history = [];
-
-    closeSettingsModal();
-
-    const input = $("#nameInput");
-
-    if (input) {
-      input.value = "";
-    }
-
-    showWelcome();
-
-    showToast(
-      "Forge workspace reset."
-    );
-  }
-
-  /* ---------------------------------------------------------
-     User menu
-     --------------------------------------------------------- */
-
-  function bindUserMenu() {
-    const menuButton =
-      $("#userMenuButton");
-
-    const menu =
-      $("#userMenu");
-
-    if (!menuButton || !menu) return;
-
-    menuButton.addEventListener(
-      "click",
-      event => {
-        event.stopPropagation();
-
-        menu.classList.toggle("open");
-      }
-    );
-
-    document.addEventListener(
-      "click",
-      event => {
-        if (
-          !menu.contains(event.target) &&
-          !menuButton.contains(event.target)
-        ) {
-          menu.classList.remove("open");
-        }
-      }
-    );
-  }
-
-  /* ---------------------------------------------------------
-     Modal controls
-     --------------------------------------------------------- */
-
-  function bindModalControls() {
-    const settingsButton =
-      $("#settingsButton");
-
-    if (settingsButton) {
-      settingsButton.addEventListener(
-        "click",
-        openSettingsModal
-      );
-    }
-
-    const closeButton =
-      $("#closeSettings");
-
-    if (closeButton) {
-      closeButton.addEventListener(
-        "click",
-        closeSettingsModal
-      );
-    }
-
-    const overlay =
-      $("#settingsModal");
-
-    if (overlay) {
-      overlay.addEventListener(
-        "click",
-        event => {
-          if (event.target === overlay) {
-            closeSettingsModal();
-          }
-        }
-      );
-    }
-
-    document.addEventListener(
-      "keydown",
-      event => {
-        if (event.key === "Escape") {
-          closeSettingsModal();
-        }
-      }
-    );
-  }
-
-  function openSettingsModal() {
-    const modal =
-      $("#settingsModal");
-
-    if (!modal) return;
-
-    modal.hidden = false;
-    modal.classList.add("open");
-
-    updateSettingsInfo();
-  }
-
-  function closeSettingsModal() {
-    const modal =
-      $("#settingsModal");
-
-    if (!modal) return;
-
-    modal.classList.remove("open");
-    modal.hidden = true;
-  }
-
-  function updateSettingsInfo() {
-    setText(
-      "#settingsUserName",
-      state.userName || "Not set"
-    );
-
-    setText(
-      "#settingsHistoryCount",
-      String(state.history.length)
-    );
-
-    setText(
-      "#settingsCurrentFile",
-      state.file?.name || "No file loaded"
-    );
-  }
-
-  /* ---------------------------------------------------------
-     Storage
-     --------------------------------------------------------- */
-
-  function loadStoredState() {
-    state.userName =
-      localStorage.getItem(
-        STORAGE_KEYS.userName
-      ) || "";
-
-    try {
-      const history =
-        JSON.parse(
-          localStorage.getItem(
-            STORAGE_KEYS.history
-          ) || "[]"
-        );
-
-      state.history =
-        Array.isArray(history)
-          ? history
-          : [];
-    } catch {
-      state.history = [];
-    }
-
-    /*
-     * Do not automatically restore a full analysis into the UI.
-     * The uploaded source file itself may no longer exist, so restoring
-     * results without the source could mislead the user.
-     */
-  }
-
-  function saveAnalysis(result) {
-    const record = {
-      id:
-        `${Date.now()}_${Math.random()
-          .toString(36)
-          .slice(2, 8)}`,
-
-      fileName:
-        result.document?.fileName ||
-        "Uploaded document",
-
-      companyName:
-        result.document?.companyName ||
-        "Uploaded company",
-
-      period:
-        result.document?.fiscalYears?.[0] ||
-        null,
-
-      analyzedAt:
-        result.analyzedAt ||
-        new Date().toISOString(),
-
-      metrics: {
-        revenue:
-          result.metrics?.revenue?.value ?? null,
-
-        grossProfit:
-          result.metrics?.grossProfit?.value ?? null,
-
-        netProfit:
-          result.metrics?.netProfit?.value ?? null
-      }
-    };
-
-    state.history.unshift(record);
-
-    /*
-     * Keep history lightweight. Do not store the full uploaded
-     * document or huge extracted text in localStorage.
-     */
-    state.history =
-      state.history.slice(0, 20);
-
-    localStorage.setItem(
-      STORAGE_KEYS.history,
-      JSON.stringify(state.history)
-    );
-
-    /*
-     * The complete analysis is intentionally not persisted.
-     * This prevents stale financial data from appearing later without
-     * the user uploading the source document again.
-     */
-
-    updateHistoryCount();
-  }
-
-  function updateHistoryCount() {
-    setText(
-      "#historyCount",
-      String(state.history.length)
-    );
-
-    setText(
-      "#settingsHistoryCount",
-      String(state.history.length)
-    );
-  }
-
-  /* ---------------------------------------------------------
-     UI states
-     --------------------------------------------------------- */
-
-  function hideAllSections() {
-    [
-      "#uploadSection",
-      "#analysisSection",
-      "#errorSection",
-      "#resultsSection"
-    ].forEach(selector => {
-      const element = $(selector);
-
-      if (element) {
-        element.hidden = true;
-      }
-    });
-  }
-
-  function showSection(id) {
-    hideAllSections();
-
-    const element =
-      document.getElementById(id);
-
-    if (element) {
-      element.hidden = false;
-    }
-  }
-
-  function showUploadState() {
-    showSection("uploadSection");
-
-    const analysis =
-      $("#analysisSection");
-
-    if (analysis) {
-      analysis.hidden = true;
-    }
-
-    const error =
-      $("#errorSection");
-
-    if (error) {
-      error.hidden = true;
-    }
-
-    updateSidebarState();
-  }
-
-  function showResultsState() {
-    const results =
-      $("#resultsSection");
-
-    if (!results) return;
-
-    hideAllSections();
-
-    results.hidden = false;
-
-    const analysis =
-      $("#analysisSection");
-
-    if (analysis) {
-      analysis.hidden = true;
-    }
-
-    const dashboard =
-      $("#dashboardPanel");
-
-    if (dashboard) {
-      $$(".result-panel").forEach(
-        panel => {
-          panel.hidden = true;
-        }
-      );
-
-      dashboard.hidden = false;
-    }
-
-    updateSidebarState();
-  }
-
-  function showError(message) {
-    hideAllSections();
-
-    const error =
-      $("#errorSection");
-
-    if (!error) {
-      window.alert(message);
-      return;
-    }
-
-    error.hidden = false;
-
-    setText(
-      "#errorMessage",
-      message
-    );
-
-    const details =
-      $("#errorDetails");
-
-    if (details) {
-      details.textContent =
-        "No financial result was created from this attempt.";
-    }
-
-    updateSidebarState();
-  }
-
-  function hideResults() {
-    const results =
-      $("#resultsSection");
-
-    if (results) {
-      results.hidden = true;
-    }
-  }
-
-  /* ---------------------------------------------------------
-     Reset
-     --------------------------------------------------------- */
 
   function resetForNewAnalysis() {
-    state.file = null;
     state.analysis = null;
-    state.currentView = "dashboard";
-
-    const fileInput =
-      $("#fileInput");
-
-    if (fileInput) {
-      fileInput.value = "";
-      fileInput.disabled = false;
-    }
-
-    const analyzeButton =
-      $("#analyzeButton");
-
-    if (analyzeButton) {
-      analyzeButton.disabled = true;
-    }
-
-    const uploadSection =
-      $("#uploadSection");
-
-    if (uploadSection) {
-      uploadSection.classList.remove(
-        "file-ready"
-      );
-    }
-
-    const fileReady =
-      $("#fileReady");
-
-    if (fileReady) {
-      fileReady.hidden = true;
-    }
-
-    setText(
-      "#sidebarDocument",
-      "No document loaded"
-    );
-
-    setText(
-      "#topbarDocument",
-      "No document loaded"
-    );
-
-    showUploadState();
+    $("#fileInput").value = "";
+    $("#topbarDocument").textContent = "No document selected";
+    showWorkspaceSection("uploadSection");
   }
 
-  /* ---------------------------------------------------------
-     Sidebar
-     --------------------------------------------------------- */
-
-  function updateSidebarState() {
-    const documentName =
-      state.analysis?.document?.fileName ||
-      state.file?.name ||
-      "No document loaded";
-
-    const companyName =
-      state.analysis?.document?.companyName ||
-      "No company loaded";
-
-    const period =
-      state.analysis?.document?.fiscalYears?.[0] ||
-      "—";
-
-    setText(
-      "#sidebarDocument",
-      documentName
-    );
-
-    setText(
-      "#sidebarCompany",
-      companyName
-    );
-
-    setText(
-      "#sidebarPeriod",
-      period
-    );
+  function resetWorkspace() {
+    localStorage.removeItem(STORE.user);
+    localStorage.removeItem(STORE.history);
+    state.userName = "";
+    state.analysis = null;
+    $("#settingsOverlay").classList.remove("open");
+    $("#userName").value = "";
+    showScreen("welcomeScreen");
   }
 
-  function updateUserLabels() {
-    setText(
-      "#workspaceUserName",
-      state.userName || "User"
-    );
-
-    setText(
-      "#userNameDisplay",
-      state.userName || "User"
-    );
-
-    const initial =
-      state.userName
-        ? state.userName
-            .trim()
-            .charAt(0)
-            .toUpperCase()
-        : "U";
-
-    setText(
-      "#userInitial",
-      initial
-    );
+  function toast(message) {
+    $("#toastMessage").textContent = message;
+    $("#toast").classList.add("show");
+    setTimeout(() => $("#toast").classList.remove("show"), 2500);
   }
 
-  /* ---------------------------------------------------------
-     Toast
-     --------------------------------------------------------- */
+  function exportReport() {
+    const a = state.analysis;
+    if (!a) { toast("No completed analysis is available to export."); return; }
+    if (!window.jspdf || !window.jspdf.jsPDF) { toast("PDF export library did not load. Refresh and try again."); return; }
 
-  function showToast(message) {
-    let toast =
-      $("#forgeToast");
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: "pt", format: "a4" });
+    const m = a.metrics;
+    pdf.setFontSize(19);
+    pdf.text("FORGE Financial Intelligence Brief", 40, 48);
+    pdf.setFontSize(10);
+    pdf.text(`Company/document: ${a.companyName}`, 40, 69);
+    pdf.text(`Source: ${a.fileName} | Analysed: ${new Date(a.analyzedAt).toLocaleString()}`, 40, 85);
+    pdf.text(`Amounts: ${a.units.label}`, 40, 101);
 
-    if (!toast) {
-      toast =
-        document.createElement("div");
-
-      toast.id =
-        "forgeToast";
-
-      toast.className =
-        "toast";
-
-      document.body.appendChild(toast);
-    }
-
-    toast.textContent = message;
-
-    toast.classList.add("visible");
-
-    clearTimeout(
-      showToast.timeout
-    );
-
-    showToast.timeout =
-      setTimeout(() => {
-        toast.classList.remove(
-          "visible"
-        );
-      }, 2800);
+    const rows = [
+      ["Revenue", formatMoney(m.revenue.current), formatMoney(m.revenue.previous)],
+      ["Gross Profit", formatMoney(m.grossProfit.current), formatMoney(m.grossProfit.previous)],
+      ["Net Income", formatMoney(m.netIncome.current), formatMoney(m.netIncome.previous)],
+      ["Operating Cash Flow", formatMoney(m.operatingCashFlow.current), formatMoney(m.operatingCashFlow.previous)],
+      ["Current Ratio", formatRatio(m.currentRatio.current), formatRatio(m.currentRatio.previous)],
+      ["Debt / Equity", formatRatio(m.debtEquity.current), formatRatio(m.debtEquity.previous)]
+    ];
+    pdf.autoTable({ startY: 122, head: [["Metric", a.years[0] || "Current", a.years[1] || "Previous"]], body: rows, theme: "grid", styles: { fontSize: 9 } });
+    let y = pdf.lastAutoTable.finalY + 28;
+    pdf.setFontSize(12);
+    pdf.text("Investor observations", 40, y);
+    pdf.setFontSize(9);
+    a.brief.forEach(item => { y += 17; const lines = pdf.splitTextToSize(`• ${item}`, 500); pdf.text(lines, 40, y); y += (lines.length - 1) * 11; });
+    y += 22;
+    pdf.setFontSize(8);
+    pdf.text("Automated document analysis only. Not investment advice, an audit, or a professional going-concern opinion.", 40, y);
+    pdf.save(`FORGE_${a.companyName.replace(/[^a-z0-9]/gi, "_")}_brief.pdf`);
   }
-
-  /* ---------------------------------------------------------
-     Helpers
-     --------------------------------------------------------- */
-
-  function setText(selector, value) {
-    const element = $(selector);
-
-    if (element) {
-      element.textContent =
-        value === null ||
-        value === undefined
-          ? ""
-          : String(value);
-    }
-  }
-
-  function formatFileSize(bytes) {
-    if (!Number.isFinite(bytes)) {
-      return "";
-    }
-
-    if (bytes < 1024) {
-      return `${bytes} B`;
-    }
-
-    if (bytes < 1024 * 1024) {
-      return `${round(bytes / 1024, 1)} KB`;
-    }
-
-    if (bytes < 1024 * 1024 * 1024) {
-      return `${round(
-        bytes / (1024 * 1024),
-        1
-      )} MB`;
-    }
-
-    return `${round(
-      bytes / (1024 * 1024 * 1024),
-      2
-    )} GB`;
-  }
-
-  function formatFinancialAmount(value) {
-    if (!Number.isFinite(value)) {
-      return "Not found";
-    }
-
-    const absolute =
-      Math.abs(value);
-
-    let formatted;
-
-    if (absolute >= 1e12) {
-      formatted =
-        `${round(value / 1e12, 2)}T`;
-    } else if (absolute >= 1e9) {
-      formatted =
-        `${round(value / 1e9, 2)}B`;
-    } else if (absolute >= 1e6) {
-      formatted =
-        `${round(value / 1e6, 2)}M`;
-    } else if (absolute >= 1e3) {
-      formatted =
-        `${round(value / 1e3, 2)}K`;
-    } else {
-      formatted =
-        numberWithCommas(
-          round(value, 2)
-        );
-    }
-
-    return formatted;
-  }
-
-  function numberWithCommas(value) {
-    const parts =
-      String(value).split(".");
-
-    parts[0] =
-      parts[0].replace(
-        /\B(?=(\d{3})+(?!\d))/g,
-        ","
-      );
-
-    return parts.join(".");
-  }
-
-  function round(value, decimals) {
-    if (!Number.isFinite(value)) {
-      return null;
-    }
-
-    const factor =
-      Math.pow(10, decimals);
-
-    return Math.round(
-      value * factor
-    ) / factor;
-  }
-
-  function capitalize(value) {
-    return String(value)
-      .charAt(0)
-      .toUpperCase() +
-      String(value).slice(1);
-  }
-
-  function wait(ms) {
-    return new Promise(
-      resolve => setTimeout(resolve, ms)
-    );
-  }
-
-  function normalizeErrorMessage(error) {
-    const raw =
-      error?.message ||
-      String(error || "");
-
-    if (
-      /password|encrypted/i.test(raw)
-    ) {
-      return "This document appears to be password-protected or encrypted. Upload an accessible copy.";
-    }
-
-    if (
-      /scanned|image-only|too little readable text/i.test(raw)
-    ) {
-      return "Forge could not extract enough selectable text. This document may be scanned or image-only.";
-    }
-
-    if (
-      /PDF\.js|PDF parsing library/i.test(raw)
-    ) {
-      return "The PDF parsing library did not load correctly. Please refresh the page and try again.";
-    }
-
-    if (
-      /Mammoth|DOCX parsing library/i.test(raw)
-    ) {
-      return "The DOCX parsing library did not load correctly. Please refresh the page and try again.";
-    }
-
-    if (
-      /SheetJS|spreadsheet parsing library/i.test(raw)
-    ) {
-      return "The spreadsheet parsing library did not load correctly. Please refresh the page and try again.";
-    }
-
-    return raw ||
-      "Forge could not complete the analysis. Please verify the uploaded file and try again.";
-  }
-
-  /* ---------------------------------------------------------
-     Expose small public interface
-     --------------------------------------------------------- */
-
-  window.ForgeApp = {
-    state,
-    startAnalysis,
-    handleFile,
-    resetForNewAnalysis
-  };
-
 })();
