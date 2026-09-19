@@ -3,12 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="FORGE — browser-based financial filing analysis.">
   <title>FORGE | Financial Intelligence Engine</title>
-
   <link rel="stylesheet" href="style.css">
-
-  <!-- Browser-compatible global builds -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.9.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -16,186 +12,78 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-  <main id="app">
-    <section id="welcomeScreen" class="screen active">
-      <div class="welcome-grid"></div>
-      <div class="welcome-content">
-        <div class="brand-lockup">
-          <div class="brand-mark">F</div>
-          <div>
-            <div class="brand-name">FORGE</div>
-            <div class="brand-subtitle">FINANCIAL INTELLIGENCE ENGINE</div>
-          </div>
-        </div>
-
-        <div class="welcome-copy">
-          <div class="eyebrow">FINANCIAL DOCUMENT ANALYSIS</div>
-          <h1>Turn financial filings<br>into <span>financial insight.</span></h1>
-          <p>Upload a financial filing and FORGE extracts available financial information, calculates transparent metrics, and prepares an evidence-based investor brief.</p>
-        </div>
-
-        <div class="name-entry">
-          <label for="userName">WHAT SHOULD WE CALL YOU?</label>
-          <div class="input-row">
-            <input id="userName" type="text" maxlength="60" autocomplete="name" placeholder="Enter your name">
-            <button id="enterForgeBtn" class="primary-btn" type="button">ENTER FORGE <span>→</span></button>
-          </div>
-          <div id="nameError" class="field-error" role="alert"></div>
-        </div>
-
-        <div class="welcome-footer">Browser-based analysis <span>•</span> No backend required <span>•</span> Built by Sahithya &amp; Yukti</div>
-      </div>
-    </section>
-
-    <section id="workspaceScreen" class="screen">
-      <aside id="sidebar" class="sidebar">
-        <div class="sidebar-top">
-          <div class="sidebar-brand">
-            <div class="brand-mark small">F</div>
-            <div><div class="brand-name small-name">FORGE</div><div class="brand-subtitle">FINANCIAL INTELLIGENCE</div></div>
-          </div>
-          <button id="closeSidebarBtn" class="icon-btn mobile-only" type="button" aria-label="Close navigation">×</button>
-        </div>
-
-        <nav class="main-nav" aria-label="Main navigation">
-          <button class="nav-item active" data-section="dashboard" type="button">⌂ <span>Dashboard</span></button>
-          <button class="nav-item" data-section="financials" type="button">◈ <span>Financials</span></button>
-          <button class="nav-item" data-section="risk" type="button">! <span>Risk analysis</span></button>
-          <button class="nav-item" data-section="goingConcern" type="button">◎ <span>Going concern</span></button>
-          <button class="nav-item" data-section="investor" type="button">↗ <span>Investor brief</span></button>
-        </nav>
-
-        <div class="sidebar-document">
-          <div class="sidebar-label">CURRENT DOCUMENT</div>
-          <strong id="sidebarCompany">No analysis loaded</strong>
-          <span id="sidebarPeriod">Upload a filing to begin</span>
-        </div>
-
-        <button id="settingsBtn" class="settings-trigger" type="button">⚙ <span>Workspace settings</span></button>
-      </aside>
-
-      <div class="workspace-main">
-        <header class="topbar">
-          <button id="openSidebarBtn" class="icon-btn mobile-only" type="button" aria-label="Open navigation">☰</button>
-          <div><div class="topbar-label">WORKSPACE</div><strong id="topbarDocument">No document selected</strong></div>
-          <div class="user-chip"><span id="userInitial">U</span><strong id="topbarUserName">User</strong></div>
-        </header>
-
-        <section id="uploadSection" class="workspace-section active">
-          <div class="section-heading">
-            <div class="eyebrow">NEW ANALYSIS</div>
-            <h2>Upload a financial document</h2>
-            <p>Supported formats: PDF, DOCX, XLSX, XLS, CSV, TXT, and HTML. Files remain in your browser.</p>
-          </div>
-
-          <div id="dropZone" class="drop-zone" role="button" tabindex="0">
-            <input id="fileInput" type="file" accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.html,.htm" hidden>
-            <div class="upload-icon">↑</div>
-            <h3>Drop a filing here</h3>
-            <p>or choose a file from your device</p>
-            <button id="browseFilesBtn" class="secondary-btn" type="button">BROWSE FILES</button>
-          </div>
-          <p class="privacy-note">FORGE does not upload or store your document. Scanned/image-only PDFs require OCR and cannot be reliably analysed in this browser-only version.</p>
-        </section>
-
-        <section id="analysisSection" class="workspace-section">
-          <div class="analysis-panel">
-            <div class="eyebrow">PROCESSING DOCUMENT</div>
-            <h2 id="analysisStepLabel">Preparing analysis</h2>
-            <p id="analysisStatusText">Waiting to begin.</p>
-            <div class="progress-track"><div id="analysisProgressBar" class="progress-bar"></div></div>
-            <div id="analysisPercent" class="analysis-percent">0%</div>
-            <ol class="progress-list">
-              <li>01 Reading document</li><li>02 Extracting financial tables</li><li>03 Identifying fiscal periods</li>
-              <li>04 Normalising financial data</li><li>05 Calculating financial metrics</li><li>06 Preparing investor brief</li>
-            </ol>
-          </div>
-        </section>
-
-        <section id="errorSection" class="workspace-section">
-          <div class="error-panel">
-            <div class="error-symbol">!</div>
-            <h2 id="errorTitle">Analysis unavailable</h2>
-            <p id="errorMessage"></p>
-            <button id="tryAgainBtn" class="primary-btn" type="button">TRY ANOTHER FILE <span>→</span></button>
-          </div>
-        </section>
-
-        <section id="resultsSection" class="workspace-section">
-          <div class="results-header">
-            <div>
-              <div class="eyebrow">ANALYSIS COMPLETE</div>
-              <h2 id="resultCompanyName">Uploaded filing</h2>
-              <p><span id="resultPeriod">Period unavailable</span> <span>•</span> <span id="resultCurrency">Units unavailable</span> <span>•</span> <span id="resultSourceType">Document analysis</span></p>
-            </div>
-            <button id="newAnalysisBtn" class="secondary-btn" type="button">NEW ANALYSIS</button>
-          </div>
-
-          <div id="dashboard" class="result-view active">
-            <div class="metric-grid">
-              <article class="metric-card"><span>REVENUE</span><strong id="metricRevenue">N/A</strong><small id="metricRevenueChange">Insufficient information</small></article>
-              <article class="metric-card"><span>GROSS PROFIT</span><strong id="metricGrossProfit">N/A</strong><small id="metricGrossMargin">Insufficient information</small></article>
-              <article class="metric-card"><span>NET INCOME</span><strong id="metricNetIncome">N/A</strong><small id="metricNetMargin">Insufficient information</small></article>
-              <article class="metric-card"><span>OPERATING CASH FLOW</span><strong id="metricOperatingCF">N/A</strong><small id="metricCashConversion">Insufficient information</small></article>
-              <article class="metric-card"><span>CURRENT RATIO</span><strong id="metricCurrentRatio">N/A</strong><small id="metricCurrentRatioStatus">Insufficient information</small></article>
-              <article class="metric-card"><span>DEBT / EQUITY</span><strong id="metricDebtEquity">N/A</strong><small id="metricDebtEquityStatus">Insufficient information</small></article>
-            </div>
-
-            <div class="panel">
-              <div class="panel-title">INVESTOR SUMMARY</div>
-              <ul id="dashboardInvestorSummary" class="insight-list"></ul>
-            </div>
-          </div>
-
-          <div id="financials" class="result-view">
-            <div class="panel">
-              <div class="panel-title">FINANCIAL STATISTICS</div>
-              <div class="table-wrap">
-                <table>
-                  <thead><tr><th>Metric</th><th id="tableCurrentYear">Current</th><th id="tablePreviousYear">Previous</th><th>Change</th></tr></thead>
-                  <tbody id="financialTableBody"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div id="risk" class="result-view">
-            <div class="panel"><div class="panel-title">RISK INDICATORS</div><div id="riskAnalysisGrid" class="risk-grid"></div></div>
-          </div>
-
-          <div id="goingConcern" class="result-view">
-            <div class="panel">
-              <div class="panel-title">GOING-CONCERN REVIEW</div>
-              <div id="goingConcernStatus" class="status-label">N/A</div>
-              <p id="goingConcernExplanation">No document has been analysed.</p>
-            </div>
-          </div>
-
-          <div id="investor" class="result-view">
-            <div class="panel">
-              <div class="panel-title">INVESTOR BRIEF</div>
-              <ul id="investorBriefList" class="insight-list"></ul>
-              <p class="disclaimer">This is automated document analysis, not investment advice, an audit, or a professional going-concern opinion.</p>
-              <button id="exportReportBtn" class="primary-btn" type="button">EXPORT PDF REPORT <span>↓</span></button>
-            </div>
-          </div>
-        </section>
-      </div>
-    </section>
-
-    <div id="settingsOverlay" class="settings-overlay" aria-hidden="true">
-      <div class="settings-panel">
-        <button id="closeSettingsBtn" class="icon-btn close-settings" type="button" aria-label="Close settings">×</button>
-        <div class="eyebrow">WORKSPACE SETTINGS</div>
-        <h2 id="settingsUserName">User</h2>
-        <button id="clearHistoryBtn" class="settings-action" type="button">Clear analysis history</button>
-        <button id="clearCacheBtn" class="settings-action" type="button">Clear cached workspace data</button>
-        <button id="resetWorkspaceBtn" class="danger-action" type="button">Reset workspace</button>
-      </div>
+  <section id="welcomeScreen" class="screen active">
+    <div class="welcome">
+      <div class="brand"><b>F</b><div><strong>FORGE</strong><small>FINANCIAL INTELLIGENCE ENGINE</small></div></div>
+      <p class="eyebrow">10-K FINANCIAL ANALYSIS</p>
+      <h1>Turn financial filings<br>into <em>financial insight.</em></h1>
+      <p class="muted">Upload a filing. FORGE extracts available financial information, calculates supported metrics, identifies financial indicators, and produces an investor brief.</p>
+      <label for="userName">WHAT SHOULD WE CALL YOU?</label>
+      <div class="entry"><input id="userName" maxlength="60" placeholder="Enter your name"><button id="enterForgeBtn">ENTER FORGE →</button></div>
+      <p id="nameError" class="error"></p>
+      <small class="muted">Browser-based analysis • No backend required • Built by Sahithya & Yukti</small>
     </div>
+  </section>
 
-    <div id="toast" class="toast" role="status"><span id="toastMessage"></span></div>
-  </main>
+  <section id="workspaceScreen" class="screen">
+    <aside id="sidebar">
+      <div class="brand"><b>F</b><div><strong>FORGE</strong><small>FINANCIAL INTELLIGENCE</small></div></div>
+      <nav id="nav">
+        <button data-view="dashboard" class="active">⌂ Dashboard</button>
+        <button data-view="revenue">↗ Revenue</button>
+        <button data-view="profitability">▣ Profitability</button>
+        <button data-view="liquidity">◇ Liquidity</button>
+        <button data-view="leverage">⬡ Leverage</button>
+        <button data-view="cashflow">◉ Cash Flow</button>
+        <button data-view="statistics">◈ Statistics</button>
+        <button data-view="risk">! Risk indicators</button>
+        <button data-view="goingConcern">◎ Going concern</button>
+        <button data-view="investor">→ Investor analysis</button>
+      </nav>
+      <div class="document"><small>CURRENT DOCUMENT</small><strong id="sidebarCompany">No analysis loaded</strong><span id="sidebarPeriod">Upload a filing to begin</span></div>
+      <button id="settingsBtn" class="plain">⚙ Workspace settings</button>
+    </aside>
+
+    <main>
+      <header><div><small>WORKSPACE</small><strong id="topbarDocument">No document selected</strong></div><div class="user"><i id="userInitial">U</i><strong id="topbarUserName">User</strong></div></header>
+
+      <section id="uploadSection" class="page active">
+        <p class="eyebrow">NEW ANALYSIS</p><h2>Upload a financial document</h2>
+        <p class="muted">PDF, DOCX, XLSX, XLS, CSV, TXT, and HTML. Your document remains in this browser.</p>
+        <div id="dropZone" class="drop" tabindex="0">
+          <input id="fileInput" type="file" hidden accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.html,.htm">
+          <b>↑</b><h3>Drop a filing here</h3><p class="muted">or choose a file from your device</p>
+          <button id="browseFilesBtn" type="button">BROWSE FILES</button>
+        </div>
+        <p class="muted note">Scanned/image-only PDFs require OCR. FORGE does not claim to perform OCR.</p>
+      </section>
+
+      <section id="analysisSection" class="page">
+        <div class="panel processing"><p class="eyebrow">PROCESSING DOCUMENT</p><h2 id="analysisStep">Preparing analysis</h2><p id="analysisDetail" class="muted"></p><div class="track"><div id="progressBar"></div></div><b id="progressText">0%</b></div>
+      </section>
+
+      <section id="errorSection" class="page">
+        <div class="panel processing"><h2 id="errorTitle">Analysis unavailable</h2><p id="errorMessage" class="muted"></p><button id="tryAgainBtn">TRY ANOTHER FILE →</button></div>
+      </section>
+
+      <section id="resultsSection" class="page">
+        <div class="result-head"><div><p class="eyebrow">ANALYSIS COMPLETE</p><h2 id="companyName">Uploaded filing</h2><p id="periodLabel" class="muted"></p></div><button id="newAnalysisBtn">NEW ANALYSIS</button></div>
+        <div id="dashboard" class="view active"></div>
+        <div id="revenue" class="view"></div>
+        <div id="profitability" class="view"></div>
+        <div id="liquidity" class="view"></div>
+        <div id="leverage" class="view"></div>
+        <div id="cashflow" class="view"></div>
+        <div id="statistics" class="view"></div>
+        <div id="risk" class="view"></div>
+        <div id="goingConcern" class="view"></div>
+        <div id="investor" class="view"></div>
+      </section>
+    </main>
+  </section>
+
+  <div id="settings" class="modal"><div class="panel"><button id="closeSettingsBtn" class="close">×</button><p class="eyebrow">WORKSPACE SETTINGS</p><h2 id="settingsUserName">User</h2><button id="clearHistoryBtn">Clear analysis history</button><button id="clearCacheBtn">Clear cached data</button><button id="resetWorkspaceBtn" class="danger">Reset workspace</button></div></div>
+  <div id="toast"></div>
 
   <script src="parser.js"></script>
   <script src="analyzer.js"></script>
