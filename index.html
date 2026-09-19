@@ -1,49 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <meta
-    name="description"
-    content="FORGE — browser-based 10-K financial document analysis and investor intelligence."
-  />
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="FORGE — browser-based financial filing analysis.">
   <title>FORGE | Financial Intelligence Engine</title>
 
-  <!-- External document-processing libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Browser-compatible global builds -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.9.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-  <!-- Report generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
-
-  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-
-  <!-- =========================================================
-       APP SHELL
-  ========================================================== -->
-
-  <div id="app">
-
-    <!-- =======================================================
-         ENTRY SCREEN
-    ======================================================== -->
-
+  <main id="app">
     <section id="welcomeScreen" class="screen active">
-
       <div class="welcome-grid"></div>
-
       <div class="welcome-content">
-
         <div class="brand-lockup">
           <div class="brand-mark">F</div>
-
           <div>
             <div class="brand-name">FORGE</div>
             <div class="brand-subtitle">FINANCIAL INTELLIGENCE ENGINE</div>
@@ -51,1231 +29,176 @@
         </div>
 
         <div class="welcome-copy">
-
-          <div class="eyebrow">10-K FINANCIAL ANALYSIS</div>
-
-          <h1>
-            Turn financial filings<br />
-            into <span>financial insight.</span>
-          </h1>
-
-          <p>
-            Upload a company 10-K and FORGE extracts financial information,
-            calculates key metrics, evaluates financial indicators and
-            produces a structured investor brief.
-          </p>
-
+          <div class="eyebrow">FINANCIAL DOCUMENT ANALYSIS</div>
+          <h1>Turn financial filings<br>into <span>financial insight.</span></h1>
+          <p>Upload a financial filing and FORGE extracts available financial information, calculates transparent metrics, and prepares an evidence-based investor brief.</p>
         </div>
 
         <div class="name-entry">
-
           <label for="userName">WHAT SHOULD WE CALL YOU?</label>
-
           <div class="input-row">
-            <input
-              id="userName"
-              type="text"
-              maxlength="60"
-              autocomplete="name"
-              placeholder="Enter your name"
-            />
-
-            <button id="enterForgeBtn" class="primary-btn">
-              ENTER FORGE
-              <span>→</span>
-            </button>
+            <input id="userName" type="text" maxlength="60" autocomplete="name" placeholder="Enter your name">
+            <button id="enterForgeBtn" class="primary-btn" type="button">ENTER FORGE <span>→</span></button>
           </div>
-
           <div id="nameError" class="field-error" role="alert"></div>
-
         </div>
 
-        <div class="welcome-footer">
-          <span>Browser-based analysis</span>
-          <span class="footer-dot">•</span>
-          <span>No backend required</span>
-          <span class="footer-dot">•</span>
-          <span>Built by Sahithya &amp; Yukti</span>
-        </div>
-
+        <div class="welcome-footer">Browser-based analysis <span>•</span> No backend required <span>•</span> Built by Sahithya &amp; Yukti</div>
       </div>
-
     </section>
 
-
-    <!-- =======================================================
-         WORKSPACE
-    ======================================================== -->
-
     <section id="workspaceScreen" class="screen">
-
-      <!-- SIDEBAR -->
-
       <aside id="sidebar" class="sidebar">
-
         <div class="sidebar-top">
-
           <div class="sidebar-brand">
             <div class="brand-mark small">F</div>
-
-            <div>
-              <div class="brand-name small-name">FORGE</div>
-              <div class="brand-subtitle">FINANCIAL INTELLIGENCE</div>
-            </div>
+            <div><div class="brand-name small-name">FORGE</div><div class="brand-subtitle">FINANCIAL INTELLIGENCE</div></div>
           </div>
-
-          <button
-            id="closeSidebarBtn"
-            class="icon-btn mobile-only"
-            aria-label="Close navigation"
-          >
-            ×
-          </button>
-
+          <button id="closeSidebarBtn" class="icon-btn mobile-only" type="button" aria-label="Close navigation">×</button>
         </div>
 
         <nav class="main-nav" aria-label="Main navigation">
-
-          <button class="nav-item active" data-section="dashboard">
-            <span class="nav-icon">⌂</span>
-            <span>Dashboard</span>
-          </button>
-
-          <button class="nav-item" data-section="financials">
-            <span class="nav-icon">◈</span>
-            <span>Financials</span>
-          </button>
-
-          <button class="nav-item" data-section="revenue">
-            <span class="nav-icon">↗</span>
-            <span>Revenue</span>
-          </button>
-
-          <button class="nav-item" data-section="profitability">
-            <span class="nav-icon">▣</span>
-            <span>Profitability</span>
-          </button>
-
-          <button class="nav-item" data-section="liquidity">
-            <span class="nav-icon">◇</span>
-            <span>Liquidity</span>
-          </button>
-
-          <button class="nav-item" data-section="leverage">
-            <span class="nav-icon">⬡</span>
-            <span>Leverage</span>
-          </button>
-
-          <button class="nav-item" data-section="cashflow">
-            <span class="nav-icon">◉</span>
-            <span>Cash Flow</span>
-          </button>
-
-          <button class="nav-item" data-section="risk">
-            <span class="nav-icon">!</span>
-            <span>Risk Analysis</span>
-          </button>
-
-          <button class="nav-item" data-section="goingConcern">
-            <span class="nav-icon">◎</span>
-            <span>Going Concern</span>
-          </button>
-
-          <button class="nav-item" data-section="investor">
-            <span class="nav-icon">▤</span>
-            <span>Investor Brief</span>
-          </button>
-
+          <button class="nav-item active" data-section="dashboard" type="button">⌂ <span>Dashboard</span></button>
+          <button class="nav-item" data-section="financials" type="button">◈ <span>Financials</span></button>
+          <button class="nav-item" data-section="risk" type="button">! <span>Risk analysis</span></button>
+          <button class="nav-item" data-section="goingConcern" type="button">◎ <span>Going concern</span></button>
+          <button class="nav-item" data-section="investor" type="button">↗ <span>Investor brief</span></button>
         </nav>
 
-        <div class="sidebar-bottom">
-
-          <div class="sidebar-document">
-
-            <div class="sidebar-label">CURRENT DOCUMENT</div>
-
-            <div id="sidebarCompany" class="sidebar-company">
-              No document loaded
-            </div>
-
-            <div id="sidebarPeriod" class="sidebar-period">
-              —
-            </div>
-
-          </div>
-
-          <div class="sidebar-credit">
-            <div>Built by Sahithya &amp; Yukti</div>
-            <div class="version">FORGE v1.0</div>
-          </div>
-
+        <div class="sidebar-document">
+          <div class="sidebar-label">CURRENT DOCUMENT</div>
+          <strong id="sidebarCompany">No analysis loaded</strong>
+          <span id="sidebarPeriod">Upload a filing to begin</span>
         </div>
 
+        <button id="settingsBtn" class="settings-trigger" type="button">⚙ <span>Workspace settings</span></button>
       </aside>
 
-
-      <!-- MAIN -->
-
-      <main class="main-content">
-
-        <!-- TOP BAR -->
-
+      <div class="workspace-main">
         <header class="topbar">
-
-          <button
-            id="openSidebarBtn"
-            class="icon-btn mobile-only"
-            aria-label="Open navigation"
-          >
-            ☰
-          </button>
-
-          <div class="topbar-context">
-            <span class="topbar-label">WORKSPACE</span>
-            <span id="topbarDocument" class="topbar-document">
-              No document loaded
-            </span>
-          </div>
-
-          <div class="topbar-actions">
-
-            <button id="newAnalysisBtn" class="secondary-btn">
-              + New Analysis
-            </button>
-
-            <button id="exportReportBtn" class="secondary-btn" disabled>
-              Export Report
-            </button>
-
-            <button
-              id="settingsBtn"
-              class="user-menu"
-              aria-label="Open workspace settings"
-            >
-              <span id="userInitial" class="user-initial">U</span>
-              <span id="topbarUserName">User</span>
-              <span class="chevron">⌄</span>
-            </button>
-
-          </div>
-
+          <button id="openSidebarBtn" class="icon-btn mobile-only" type="button" aria-label="Open navigation">☰</button>
+          <div><div class="topbar-label">WORKSPACE</div><strong id="topbarDocument">No document selected</strong></div>
+          <div class="user-chip"><span id="userInitial">U</span><strong id="topbarUserName">User</strong></div>
         </header>
 
-
-        <!-- ===================================================
-             DOCUMENT UPLOAD / EMPTY STATE
-        ==================================================== -->
-
         <section id="uploadSection" class="workspace-section active">
-
           <div class="section-heading">
-
-            <div>
-              <div class="eyebrow">NEW ANALYSIS</div>
-
-              <h2>
-                Analyse a 10-K.
-              </h2>
-
-              <p>
-                Upload the company's annual filing and let FORGE extract,
-                calculate and organise the financial information.
-              </p>
-            </div>
-
+            <div class="eyebrow">NEW ANALYSIS</div>
+            <h2>Upload a financial document</h2>
+            <p>Supported formats: PDF, DOCX, XLSX, XLS, CSV, TXT, and HTML. Files remain in your browser.</p>
           </div>
 
-
-          <div
-            id="dropZone"
-            class="drop-zone"
-            tabindex="0"
-            role="button"
-            aria-label="Upload financial document"
-          >
-
-            <div class="upload-symbol">↑</div>
-
-            <h3>Drop your 10-K here</h3>
-
-            <p>
-              or choose a file from your computer
-            </p>
-
-            <button id="browseFilesBtn" class="primary-btn">
-              Choose Document
-            </button>
-
-            <input
-              id="fileInput"
-              type="file"
-              hidden
-              accept=".pdf,.docx,.txt,.html,.htm,.csv,.xlsx,.xls"
-            />
-
-            <div class="supported-files">
-              PDF &nbsp;·&nbsp; DOCX &nbsp;·&nbsp; HTML &nbsp;·&nbsp; TXT
-              &nbsp;·&nbsp; XLSX &nbsp;·&nbsp; CSV
-            </div>
-
-            <div class="upload-note">
-              Best results: searchable company 10-K filings.
-              Image-only scanned PDFs may not contain extractable text.
-            </div>
-
+          <div id="dropZone" class="drop-zone" role="button" tabindex="0">
+            <input id="fileInput" type="file" accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,.html,.htm" hidden>
+            <div class="upload-icon">↑</div>
+            <h3>Drop a filing here</h3>
+            <p>or choose a file from your device</p>
+            <button id="browseFilesBtn" class="secondary-btn" type="button">BROWSE FILES</button>
           </div>
-
-
-          <div class="upload-principles">
-
-            <div class="principle">
-              <span>01</span>
-              <div>
-                <strong>Extract</strong>
-                <p>Identify statements, periods, units and financial line items.</p>
-              </div>
-            </div>
-
-            <div class="principle">
-              <span>02</span>
-              <div>
-                <strong>Calculate</strong>
-                <p>Derive metrics that are not explicitly reported.</p>
-              </div>
-            </div>
-
-            <div class="principle">
-              <span>03</span>
-              <div>
-                <strong>Interpret</strong>
-                <p>Turn the resulting figures into structured observations.</p>
-              </div>
-            </div>
-
-          </div>
-
+          <p class="privacy-note">FORGE does not upload or store your document. Scanned/image-only PDFs require OCR and cannot be reliably analysed in this browser-only version.</p>
         </section>
-
-
-        <!-- ===================================================
-             ANALYSIS PROGRESS
-        ==================================================== -->
 
         <section id="analysisSection" class="workspace-section">
-
-          <div class="analysis-loader">
-
-            <div class="eyebrow">FORGE ANALYSIS ENGINE</div>
-
-            <h2>Analysing your filing.</h2>
-
-            <p id="analysisStatusText">
-              Preparing document...
-            </p>
-
-            <div class="analysis-progress-wrap">
-
-              <div class="progress-header">
-                <span id="analysisStepLabel">
-                  Initialising
-                </span>
-
-                <strong id="analysisPercent">
-                  0%
-                </strong>
-              </div>
-
-              <div class="progress-track">
-                <div
-                  id="analysisProgressBar"
-                  class="progress-bar"
-                  style="width: 0%"
-                ></div>
-              </div>
-
-            </div>
-
-
-            <div class="analysis-steps">
-
-              <div class="analysis-step" data-step="1">
-                <span class="step-status">○</span>
-                <span>Reading document</span>
-              </div>
-
-              <div class="analysis-step" data-step="2">
-                <span class="step-status">○</span>
-                <span>Extracting financial tables</span>
-              </div>
-
-              <div class="analysis-step" data-step="3">
-                <span class="step-status">○</span>
-                <span>Identifying fiscal periods</span>
-              </div>
-
-              <div class="analysis-step" data-step="4">
-                <span class="step-status">○</span>
-                <span>Normalising financial data</span>
-              </div>
-
-              <div class="analysis-step" data-step="5">
-                <span class="step-status">○</span>
-                <span>Calculating financial metrics</span>
-              </div>
-
-              <div class="analysis-step" data-step="6">
-                <span class="step-status">○</span>
-                <span>Checking financial trends</span>
-              </div>
-
-              <div class="analysis-step" data-step="7">
-                <span class="step-status">○</span>
-                <span>Evaluating risk indicators</span>
-              </div>
-
-              <div class="analysis-step" data-step="8">
-                <span class="step-status">○</span>
-                <span>Reviewing going-concern indicators</span>
-              </div>
-
-              <div class="analysis-step" data-step="9">
-                <span class="step-status">○</span>
-                <span>Preparing investor brief</span>
-              </div>
-
-            </div>
-
+          <div class="analysis-panel">
+            <div class="eyebrow">PROCESSING DOCUMENT</div>
+            <h2 id="analysisStepLabel">Preparing analysis</h2>
+            <p id="analysisStatusText">Waiting to begin.</p>
+            <div class="progress-track"><div id="analysisProgressBar" class="progress-bar"></div></div>
+            <div id="analysisPercent" class="analysis-percent">0%</div>
+            <ol class="progress-list">
+              <li>01 Reading document</li><li>02 Extracting financial tables</li><li>03 Identifying fiscal periods</li>
+              <li>04 Normalising financial data</li><li>05 Calculating financial metrics</li><li>06 Preparing investor brief</li>
+            </ol>
           </div>
-
         </section>
-
-
-        <!-- ===================================================
-             ERROR STATE
-        ==================================================== -->
 
         <section id="errorSection" class="workspace-section">
-
           <div class="error-panel">
-
             <div class="error-symbol">!</div>
-
-            <div>
-              <div class="eyebrow">ANALYSIS INTERRUPTED</div>
-
-              <h2 id="errorTitle">
-                FORGE could not complete the analysis.
-              </h2>
-
-              <p id="errorMessage">
-                An unexpected error occurred.
-              </p>
-
-              <div class="error-actions">
-
-                <button id="tryAgainBtn" class="primary-btn">
-                  Try Again
-                </button>
-
-                <button id="errorNewAnalysisBtn" class="secondary-btn">
-                  Choose Another Document
-                </button>
-
-              </div>
-
-            </div>
-
+            <h2 id="errorTitle">Analysis unavailable</h2>
+            <p id="errorMessage"></p>
+            <button id="tryAgainBtn" class="primary-btn" type="button">TRY ANOTHER FILE <span>→</span></button>
           </div>
-
         </section>
-
-
-        <!-- ===================================================
-             RESULTS
-        ==================================================== -->
 
         <section id="resultsSection" class="workspace-section">
-
-          <!-- RESULT HEADER -->
-
-          <div class="result-header">
-
+          <div class="results-header">
             <div>
-
-              <div class="eyebrow">FINANCIAL ANALYSIS</div>
-
-              <h2 id="resultCompanyName">
-                Company
-              </h2>
-
-              <div class="result-meta">
-                <span id="resultPeriod">Fiscal year —</span>
-                <span>•</span>
-                <span id="resultCurrency">Currency —</span>
-                <span>•</span>
-                <span id="resultSourceType">Uploaded filing</span>
-              </div>
-
+              <div class="eyebrow">ANALYSIS COMPLETE</div>
+              <h2 id="resultCompanyName">Uploaded filing</h2>
+              <p><span id="resultPeriod">Period unavailable</span> <span>•</span> <span id="resultCurrency">Units unavailable</span> <span>•</span> <span id="resultSourceType">Document analysis</span></p>
             </div>
-
-            <div class="result-status">
-              <span class="status-dot"></span>
-              Analysis complete
-            </div>
-
+            <button id="newAnalysisBtn" class="secondary-btn" type="button">NEW ANALYSIS</button>
           </div>
 
+          <div id="dashboard" class="result-view active">
+            <div class="metric-grid">
+              <article class="metric-card"><span>REVENUE</span><strong id="metricRevenue">N/A</strong><small id="metricRevenueChange">Insufficient information</small></article>
+              <article class="metric-card"><span>GROSS PROFIT</span><strong id="metricGrossProfit">N/A</strong><small id="metricGrossMargin">Insufficient information</small></article>
+              <article class="metric-card"><span>NET INCOME</span><strong id="metricNetIncome">N/A</strong><small id="metricNetMargin">Insufficient information</small></article>
+              <article class="metric-card"><span>OPERATING CASH FLOW</span><strong id="metricOperatingCF">N/A</strong><small id="metricCashConversion">Insufficient information</small></article>
+              <article class="metric-card"><span>CURRENT RATIO</span><strong id="metricCurrentRatio">N/A</strong><small id="metricCurrentRatioStatus">Insufficient information</small></article>
+              <article class="metric-card"><span>DEBT / EQUITY</span><strong id="metricDebtEquity">N/A</strong><small id="metricDebtEquityStatus">Insufficient information</small></article>
+            </div>
 
-          <!-- METRIC CARDS -->
-
-          <div class="metric-grid">
-
-            <article class="metric-card">
-
-              <div class="metric-label">REVENUE</div>
-
-              <div id="metricRevenue" class="metric-value">
-                —
-              </div>
-
-              <div id="metricRevenueChange" class="metric-change">
-                —
-              </div>
-
-              <div class="metric-source">
-                <span id="metricRevenueSource">Not available</span>
-              </div>
-
-            </article>
-
-
-            <article class="metric-card">
-
-              <div class="metric-label">GROSS PROFIT</div>
-
-              <div id="metricGrossProfit" class="metric-value">
-                —
-              </div>
-
-              <div id="metricGrossMargin" class="metric-change">
-                —
-              </div>
-
-              <div class="metric-source">
-                Gross profit / calculated
-              </div>
-
-            </article>
-
-
-            <article class="metric-card">
-
-              <div class="metric-label">NET PROFIT</div>
-
-              <div id="metricNetIncome" class="metric-value">
-                —
-              </div>
-
-              <div id="metricNetMargin" class="metric-change">
-                —
-              </div>
-
-              <div class="metric-source">
-                Net income
-              </div>
-
-            </article>
-
-
-            <article class="metric-card">
-
-              <div class="metric-label">OPERATING CASH FLOW</div>
-
-              <div id="metricOperatingCF" class="metric-value">
-                —
-              </div>
-
-              <div id="metricCashConversion" class="metric-change">
-                —
-              </div>
-
-              <div class="metric-source">
-                Operating activities
-              </div>
-
-            </article>
-
-
-            <article class="metric-card">
-
-              <div class="metric-label">CURRENT RATIO</div>
-
-              <div id="metricCurrentRatio" class="metric-value">
-                —
-              </div>
-
-              <div id="metricCurrentRatioStatus" class="metric-change">
-                —
-              </div>
-
-              <div class="metric-source">
-                Current assets / liabilities
-              </div>
-
-            </article>
-
-
-            <article class="metric-card">
-
-              <div class="metric-label">DEBT / EQUITY</div>
-
-              <div id="metricDebtEquity" class="metric-value">
-                —
-              </div>
-
-              <div id="metricDebtEquityStatus" class="metric-change">
-                —
-              </div>
-
-              <div class="metric-source">
-                Defined FORGE methodology
-              </div>
-
-            </article>
-
+            <div class="panel">
+              <div class="panel-title">INVESTOR SUMMARY</div>
+              <ul id="dashboardInvestorSummary" class="insight-list"></ul>
+            </div>
           </div>
 
-
-          <!-- DASHBOARD -->
-
-          <div id="dashboard" class="result-section">
-
-            <div class="section-title-row">
-
-              <div>
-                <div class="eyebrow">01 / DASHBOARD</div>
-                <h3>Financial position</h3>
-              </div>
-
-            </div>
-
-
-            <div class="dashboard-grid">
-
-              <div class="panel chart-panel">
-
-                <div class="panel-header">
-                  <div>
-                    <span class="panel-kicker">REVENUE</span>
-                    <h4>Historical trajectory</h4>
-                  </div>
-
-                  <span class="panel-note">Available fiscal years</span>
-                </div>
-
-                <div id="revenueChart" class="chart-area">
-                  <div class="empty-chart">
-                    No historical revenue data available.
-                  </div>
-                </div>
-
-              </div>
-
-
-              <div class="panel risk-summary-panel">
-
-                <div class="panel-header">
-                  <div>
-                    <span class="panel-kicker">RISK INDICATORS</span>
-                    <h4>Financial signals</h4>
-                  </div>
-                </div>
-
-                <div id="riskSummaryList" class="risk-summary-list">
-                  <!-- populated by app.js -->
-                </div>
-
-              </div>
-
-            </div>
-
-
-            <div class="panel investor-highlight">
-
-              <div class="panel-header">
-                <div>
-                  <span class="panel-kicker">INVESTOR ANALYSIS</span>
-                  <h4>What the numbers indicate</h4>
-                </div>
-              </div>
-
-              <div id="dashboardInvestorSummary" class="investor-summary">
-                Upload a filing to generate the analysis.
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <!-- FINANCIALS -->
-
-          <div id="financials" class="result-section">
-
-            <div class="section-title-row">
-              <div>
-                <div class="eyebrow">02 / FINANCIALS</div>
-                <h3>Financial statistics</h3>
-              </div>
-            </div>
-
-            <div class="panel table-panel">
-
-              <div class="table-scroll">
-
-                <table class="financial-table">
-
-                  <thead>
-                    <tr>
-                      <th>Metric</th>
-                      <th id="tableCurrentYear">Current</th>
-                      <th id="tablePreviousYear">Previous</th>
-                      <th>Change</th>
-                      <th>Basis</th>
-                    </tr>
-                  </thead>
-
-                  <tbody id="financialTableBody">
-                    <!-- populated by app.js -->
-                  </tbody>
-
+          <div id="financials" class="result-view">
+            <div class="panel">
+              <div class="panel-title">FINANCIAL STATISTICS</div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Metric</th><th id="tableCurrentYear">Current</th><th id="tablePreviousYear">Previous</th><th>Change</th></tr></thead>
+                  <tbody id="financialTableBody"></tbody>
                 </table>
-
               </div>
-
             </div>
-
           </div>
 
-
-          <!-- REVENUE -->
-
-          <div id="revenue" class="result-section">
-
-            <div class="section-title-row">
-              <div>
-                <div class="eyebrow">03 / REVENUE</div>
-                <h3>Revenue analysis</h3>
-              </div>
-            </div>
-
-            <div class="analysis-grid">
-
-              <div class="panel large-stat-panel">
-
-                <span class="panel-kicker">LATEST REPORTED / IDENTIFIED</span>
-
-                <div id="revenueLargeValue" class="large-stat">
-                  —
-                </div>
-
-                <div id="revenueLargeChange" class="large-stat-sub">
-                  —
-                </div>
-
-              </div>
-
-              <div class="panel explanation-panel">
-
-                <span class="panel-kicker">FORGE INTERPRETATION</span>
-
-                <p id="revenueInterpretation">
-                  Revenue analysis will appear after a filing is processed.
-                </p>
-
-              </div>
-
-            </div>
-
-            <div class="panel chart-panel full-width">
-
-              <div class="panel-header">
-                <div>
-                  <span class="panel-kicker">TREND</span>
-                  <h4>Revenue by fiscal year</h4>
-                </div>
-              </div>
-
-              <div id="revenueDetailChart" class="chart-area">
-                <div class="empty-chart">
-                  No revenue trend available.
-                </div>
-              </div>
-
-            </div>
-
+          <div id="risk" class="result-view">
+            <div class="panel"><div class="panel-title">RISK INDICATORS</div><div id="riskAnalysisGrid" class="risk-grid"></div></div>
           </div>
 
-
-          <!-- PROFITABILITY -->
-
-          <div id="profitability" class="result-section">
-
-            <div class="section-title-row">
-              <div>
-                <div class="eyebrow">04 / PROFITABILITY</div>
-                <h3>Profitability analysis</h3>
-              </div>
+          <div id="goingConcern" class="result-view">
+            <div class="panel">
+              <div class="panel-title">GOING-CONCERN REVIEW</div>
+              <div id="goingConcernStatus" class="status-label">N/A</div>
+              <p id="goingConcernExplanation">No document has been analysed.</p>
             </div>
-
-            <div class="two-column-grid">
-
-              <div class="panel">
-
-                <span class="panel-kicker">GROSS PROFIT</span>
-
-                <div id="profitGrossValue" class="large-stat">
-                  —
-                </div>
-
-                <div id="profitGrossMargin" class="large-stat-sub">
-                  —
-                </div>
-
-                <p id="grossProfitExplanation" class="panel-text">
-                  —
-                </p>
-
-              </div>
-
-              <div class="panel">
-
-                <span class="panel-kicker">NET PROFIT</span>
-
-                <div id="profitNetValue" class="large-stat">
-                  —
-                </div>
-
-                <div id="profitNetMargin" class="large-stat-sub">
-                  —
-                </div>
-
-                <p id="netProfitExplanation" class="panel-text">
-                  —
-                </p>
-
-              </div>
-
-            </div>
-
           </div>
 
-
-          <!-- LIQUIDITY -->
-
-          <div id="liquidity" class="result-section">
-
-            <div class="section-title-row">
-              <div>
-                <div class="eyebrow">05 / LIQUIDITY</div>
-                <h3>Short-term financial position</h3>
-              </div>
+          <div id="investor" class="result-view">
+            <div class="panel">
+              <div class="panel-title">INVESTOR BRIEF</div>
+              <ul id="investorBriefList" class="insight-list"></ul>
+              <p class="disclaimer">This is automated document analysis, not investment advice, an audit, or a professional going-concern opinion.</p>
+              <button id="exportReportBtn" class="primary-btn" type="button">EXPORT PDF REPORT <span>↓</span></button>
             </div>
-
-            <div class="analysis-grid">
-
-              <div class="panel large-stat-panel">
-
-                <span class="panel-kicker">CURRENT RATIO</span>
-
-                <div id="liquidityRatio" class="large-stat">
-                  —
-                </div>
-
-                <div id="liquidityStatus" class="large-stat-sub">
-                  —
-                </div>
-
-              </div>
-
-              <div class="panel explanation-panel">
-
-                <span class="panel-kicker">WHY IT MATTERS</span>
-
-                <p id="liquidityExplanation">
-                  —
-                </p>
-
-              </div>
-
-            </div>
-
           </div>
-
-
-          <!-- LEVERAGE -->
-
-          <div id="leverage" class="result-section">
-
-            <div class="section-title-row">
-              <div>
-                <div class="eyebrow">06 / LEVERAGE</div>
-                <h3>Capital structure</h3>
-              </div>
-            </div>
-
-            <div class="analysis-grid">
-
-              <div class="panel large-stat-panel">
-
-                <span class="panel-kicker">DEBT / EQUITY</span>
-
-                <div id="leverageRatio" class="large-stat">
-                  —
-                </div>
-
-                <div id="leverageStatus" class="large-stat-sub">
-                  —
-                </div>
-
-              </div>
-
-              <div class="panel explanation-panel">
-
-                <span class="panel-kicker">METHODOLOGY</span>
-
-                <p>
-                  FORGE defines debt as short-term borrowings plus
-                  long-term debt where identifiable in the filing.
-                  It does not treat every liability as debt.
-                </p>
-
-                <p id="leverageExplanation">
-                  —
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <!-- CASH FLOW -->
-
-          <div id="cashflow" class="result-section">
-
-            <div class="section-title-row">
-              <div>
-                <div class="eyebrow">07 / CASH FLOW</div>
-                <h3>Operating cash generation</h3>
-              </div>
-            </div>
-
-            <div class="two-column-grid">
-
-              <div class="panel">
-
-                <span class="panel-kicker">OPERATING CASH FLOW</span>
-
-                <div id="cashflowValue" class="large-stat">
-                  —
-                </div>
-
-                <p id="cashflowExplanation" class="panel-text">
-                  —
-                </p>
-
-              </div>
-
-              <div class="panel">
-
-                <span class="panel-kicker">CASH CONVERSION</span>
-
-                <div id="cashConversionValue" class="large-stat">
-                  —
-                </div>
-
-                <p id="cashConversionExplanation" class="panel-text">
-                  —
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <!-- RISK -->
-
-          <div id="risk" class="result-section">
-
-            <div class="section-title-row">
-              <div>
-                <div class="eyebrow">08 / RISK ANALYSIS</div>
-                <h3>Financial risk indicators</h3>
-              </div>
-            </div>
-
-            <div id="riskAnalysisGrid" class="risk-grid">
-              <!-- populated by app.js -->
-            </div>
-
-          </div>
-
-
-          <!-- GOING CONCERN -->
-
-          <div id="goingConcern" class="result-section">
-
-            <div class="section-title-row">
-              <div>
-                <div class="eyebrow">09 / GOING CONCERN</div>
-                <h3>Disclosure review</h3>
-              </div>
-            </div>
-
-            <div class="going-concern-panel">
-
-              <div class="going-status">
-
-                <div class="status-label">
-                  DISCLOSURE INDICATOR
-                </div>
-
-                <div id="goingConcernStatus" class="going-status-value">
-                  —
-                </div>
-
-              </div>
-
-              <div class="going-evidence">
-
-                <div class="status-label">
-                  REVIEW
-                </div>
-
-                <p id="goingConcernExplanation">
-                  —
-                </p>
-
-              </div>
-
-            </div>
-
-            <div class="panel methodology-note">
-
-              <span class="panel-kicker">IMPORTANT LIMITATION</span>
-
-              <p>
-                This is an automated document-analysis indicator.
-                It is not an audit opinion and does not replace management,
-                auditor or professional assessment of going concern.
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <!-- INVESTOR BRIEF -->
-
-          <div id="investor" class="result-section">
-
-            <div class="section-title-row">
-
-              <div>
-                <div class="eyebrow">10 / INVESTOR BRIEF</div>
-                <h3>10 things to know</h3>
-              </div>
-
-              <button id="investorExportBtn" class="secondary-btn">
-                Export Brief
-              </button>
-
-            </div>
-
-            <div id="investorBriefList" class="investor-brief-list">
-              <!-- populated by app.js -->
-            </div>
-
-          </div>
-
-
-          <!-- SOURCE / METHODOLOGY -->
-
-          <div class="result-section methodology-section">
-
-            <div class="section-title-row">
-              <div>
-                <div class="eyebrow">METHODOLOGY</div>
-                <h3>Source &amp; calculation notes</h3>
-              </div>
-            </div>
-
-            <div class="methodology-grid">
-
-              <div class="panel">
-
-                <span class="panel-kicker">SOURCE</span>
-
-                <p>
-                  Financial information is extracted from the document
-                  uploaded by the user. FORGE does not invent missing
-                  financial values.
-                </p>
-
-              </div>
-
-              <div class="panel">
-
-                <span class="panel-kicker">CALCULATED METRICS</span>
-
-                <p>
-                  Where a metric is not directly reported, FORGE derives
-                  it from identified financial statement values using the
-                  methodology displayed in the application.
-                </p>
-
-              </div>
-
-              <div class="panel">
-
-                <span class="panel-kicker">UNCERTAINTY</span>
-
-                <p>
-                  If FORGE cannot identify the required inputs with
-                  sufficient confidence, the metric is shown as unavailable
-                  rather than being fabricated.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
         </section>
-
-      </main>
-
+      </div>
     </section>
 
-
-    <!-- =======================================================
-         SETTINGS MODAL
-    ======================================================== -->
-
-    <div id="settingsOverlay" class="modal-overlay hidden">
-
-      <div class="settings-modal">
-
-        <div class="modal-header">
-
-          <div>
-            <div class="eyebrow">WORKSPACE</div>
-            <h2>Settings</h2>
-          </div>
-
-          <button
-            id="closeSettingsBtn"
-            class="modal-close"
-            aria-label="Close settings"
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <div class="settings-section">
-
-          <div class="settings-label">PROFILE</div>
-
-          <div class="profile-row">
-
-            <div id="settingsInitial" class="large-user-initial">
-              U
-            </div>
-
-            <div>
-              <strong id="settingsUserName">
-                User
-              </strong>
-
-              <p>
-                Local workspace profile
-              </p>
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="settings-section">
-
-          <div class="settings-label">LOCAL DATA</div>
-
-          <button id="clearHistoryBtn" class="settings-action">
-            <span>
-              <strong>Clear analysis history</strong>
-              <small>Remove saved analysis summaries from this browser.</small>
-            </span>
-            <span>→</span>
-          </button>
-
-          <button id="clearCacheBtn" class="settings-action">
-            <span>
-              <strong>Clear cached workspace data</strong>
-              <small>Remove local FORGE workspace information.</small>
-            </span>
-            <span>→</span>
-          </button>
-
-        </div>
-
-
-        <div class="settings-section">
-
-          <div class="settings-label">SESSION</div>
-
-          <button id="resetWorkspaceBtn" class="danger-action">
-            <span>
-              <strong>Reset workspace</strong>
-              <small>Clear the current session and return to the entry screen.</small>
-            </span>
-            <span>→</span>
-          </button>
-
-        </div>
-
-
-        <div class="settings-footer">
-          FORGE v1.0 · Built by Sahithya &amp; Yukti
-        </div>
-
+    <div id="settingsOverlay" class="settings-overlay" aria-hidden="true">
+      <div class="settings-panel">
+        <button id="closeSettingsBtn" class="icon-btn close-settings" type="button" aria-label="Close settings">×</button>
+        <div class="eyebrow">WORKSPACE SETTINGS</div>
+        <h2 id="settingsUserName">User</h2>
+        <button id="clearHistoryBtn" class="settings-action" type="button">Clear analysis history</button>
+        <button id="clearCacheBtn" class="settings-action" type="button">Clear cached workspace data</button>
+        <button id="resetWorkspaceBtn" class="danger-action" type="button">Reset workspace</button>
       </div>
-
     </div>
 
+    <div id="toast" class="toast" role="status"><span id="toastMessage"></span></div>
+  </main>
 
-    <!-- =======================================================
-         TOAST
-    ======================================================== -->
-
-    <div id="toast" class="toast" role="status">
-      <span id="toastMessage"></span>
-    </div>
-
-  </div>
-
-
-  <!-- Main application scripts -->
   <script src="parser.js"></script>
   <script src="analyzer.js"></script>
   <script src="app.js"></script>
-
 </body>
 </html>
