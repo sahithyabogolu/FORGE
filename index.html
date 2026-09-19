@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FORGE | Filing Analyzer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <a href="#">FORGE<span>.</span></a>
+      <p>Local filing analysis</p>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">FINANCIAL STATEMENT READER</p>
+      <h1>Read the filing.<br>Check the numbers.</h1>
+      <p>Drop a 10-K PDF, spreadsheet, CSV, or Word document. Your file stays in your browser.</p>
+    </section>
+
+    <section class="upload-card" id="dropZone">
+      <input id="fileInput" type="file" accept=".pdf,.csv,.xlsx,.xls,.docx" hidden>
+      <button id="chooseFile" class="upload-button">Choose a file</button>
+      <p>or drag it here</p>
+      <small>PDF · CSV · XLSX/XLS · DOCX · maximum recommended size: 50 MB</small>
+    </section>
+
+    <p id="status" role="status"></p>
+
+    <section id="results" hidden>
+      <section class="file-summary">
+        <div>
+          <p class="eyebrow">LOADED DOCUMENT</p>
+          <h2 id="fileName">—</h2>
+          <p id="fileDetails"></p>
+        </div>
+        <button id="newFile" class="secondary">Analyse another file</button>
+      </section>
+
+      <section class="notice">
+        <strong>Review required.</strong>
+        FORGE identifies likely statement values from uploaded content.
+        Confirm every extracted number against its displayed source evidence
+        before relying on it. It does not make investment recommendations.
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">EXTRACTED FINANCIALS</p>
+            <h2>Statement values</h2>
+          </div>
+          <p>Click a value to review its source text</p>
+        </div>
+
+        <div id="metricCards" class="metrics"></div>
+      </section>
+
+      <section class="two-col">
+        <div>
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">CALCULATED</p>
+              <h2>Ratios and signals</h2>
+            </div>
+          </div>
+
+          <div id="ratios" class="ratio-list"></div>
+        </div>
+
+        <aside>
+          <p class="eyebrow">ANALYSIS NOTES</p>
+          <h2>What FORGE can say</h2>
+          <div id="analysis"></div>
+        </aside>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">AUDIT TRAIL</p>
+            <h2>Extraction evidence</h2>
+          </div>
+          <p>Exact nearby text from your document</p>
+        </div>
+
+        <div id="evidence" class="evidence"></div>
+      </section>
+
+      <section class="method">
+        <p class="eyebrow">METHOD</p>
+        <h2>Transparent by design.</h2>
+        <p>
+          PDF and DOCX files are converted to text locally in this browser.
+          CSV and Excel sheets are read locally. FORGE looks for standard
+          consolidated-statement labels and values near them. It does not
+          upload, store, or send the document to a server.
+        </p>
+
+        <ul>
+          <li>Current ratio = current assets ÷ current liabilities</li>
+          <li>Debt/equity = total debt ÷ shareholders’ equity</li>
+          <li>Gross margin = gross profit ÷ revenue</li>
+          <li>Net margin = net income ÷ revenue</li>
+          <li>Cash conversion = operating cash flow ÷ net income</li>
+        </ul>
+      </section>
+    </section>
+
+    <footer>
+      Built by Sahithya &amp; Yukti · FORGE · No BUY/SELL recommendations
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
+  <script src="data.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
