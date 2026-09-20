@@ -30,50 +30,53 @@ st.markdown("---")
 # 3. Main Data Core Program
 if uploaded_file and api_key:
     genai.configure(api_key=api_key)
-    # Using the fast, highly capable reasoning model context windows
     model = genai.GenerativeModel('gemini-1.5-flash')
     
     with st.spinner("FORGE Engine: Extracting and parsing document vectors..."):
         reader = PdfReader(uploaded_file)
         raw_text = ""
-        # Pull text baseline profiles across initial pages containing standard consolidated statements
-        max_pages = min(45, len(reader))
+        # CRITICAL FIX: Safe page retrieval mapping using .pages boundary limits
+        total_pages = len(reader.pages)
+        max_pages = min(45, total_pages)
+        
         for i in range(max_pages):
             page_content = reader.pages[i].extract_text()
             if page_content:
                 raw_text += page_content
                 
     if len(raw_text) < 100:
-        st.error("Failed to read enough text from the PDF. Please make sure the file is not an unreadable scanned image image document.")
+        st.error("Failed to read enough text from the PDF. Please make sure the file is not an unreadable scanned image document.")
     else:
-        st.success(f"Successfully processed {max_pages} pages of corporate filings details.")
+        st.success(f"Successfully processed {max_pages} pages of financial records.")
         
-        # Hyper-detailed specific formatting matrix to avoid crashes
         analysis_prompt = f"""
-        You are an expert financial analysis bot checking a company's 10-K filing text text data.
-        Analyze this raw text and pull the metrics accurately. 
-        Structure your final output with exactly these markdown section headers so they load cleanly into the web script dashboard code layout:
-
-        ### CORE_NUMBERS
-        Extract these values for the latest fiscal year available. Write each on a new line format like 'Metric: Value':
-        - Revenue
-        - Gross Profit
-        - Net Profit / Net Income
-        - Operating Cash Flow
-        - Current Ratio
-        - Debt-to-Equity Ratio
+        You are an expert financial analysis engine checking a company's 10-K filing text data.
+        Analyze this raw text and pull the metrics accurately. Do not extrapolate, assume, or guess any data points. If a metric is not present, mark it as 'Not Available in Extracted Pages'.
         
-        ### INVESTOR_ANALYSIS
-        Provide a 3-4 sentence comprehensive financial analysis statement regarding the corporate health vector.
+        Structure your final output with exactly these clean visual layout blocks:
 
-        ### RISK_EVALUATION
-        State whether the company exhibits heavy overall financial distress/risks or not, and justify based on liquidity/leverage.
+        ### 📊 CORE NUMBERS & RATIOS
+        Extract these values for the latest fiscal year available. Format each on a new line:
+        - **Revenue:** [Value]
+        - **Gross Profit:** [Value]
+        - **Gross Margin:** [Calculate explicitly as (Gross Profit / Revenue) * 100]%
+        - **Net Profit / Net Income:** [Value]
+        - **Net Margin:** [Calculate explicitly as (Net Income / Revenue) * 100]%
+        - **Operating Cash Flow:** [Value]
+        - **Current Ratio:** [Calculate explicitly as Current Assets / Current Liabilities]x
+        - **Debt-to-Equity Ratio:** [Calculate explicitly as (Short-term Debt + Long-term Debt) / Shareholders' Equity]x
+        
+        ### 🔍 INVESTOR ANALYSIS & OBSERVATIONS
+        Provide a comprehensive financial analysis paragraph regarding the corporate strategy, operational execution, and revenue health vector.
 
-        ### TOP_10_INSIGHTS
-        List exactly 10 critical factual things or key highlights an investor absolutely must know about this company's business model, performance, or operational realities based strictly on this file document text.
+        ### ⚠️ RISK EVALUATION MATRIX
+        State explicitly whether the company exhibits heavy overall financial distress/risks or not (**RISK** or **NO HEAVY DISTRESS**), and justify your verdict using its liquidity parameters, margin shifts, or leverage trends.
 
-        ### GOING_CONCERN_STATUS
-        Discuss whether there are structural going concern uncertainties mentioned, followed by a bulleted string containing key statistical highlights.
+        ### 💡 TOP 10 CRITICAL INSIGHTS
+        List exactly 10 factual milestones or key operations highlights an investor absolutely must know about this company's business model, revenue durability, or regulatory boundaries based on this report.
+
+        ### 📉 GOING CONCERN STATUS & STATISTICS
+        Discuss whether there are structural going concern uncertainties mentioned by the independent auditors or management in this document. Follow this up with a bulleted summary of key statistics.
 
         Text Content Source Data:
         {raw_text[:85000]}
@@ -84,7 +87,6 @@ if uploaded_file and api_key:
                 response = model.generate_content(analysis_prompt)
                 ai_output = response.text
                 
-                # Render cleanly without unsafe string splits by processing structural string segments
                 st.subheader("📋 FORGE Structural Financial Intelligence Dashboard")
                 st.markdown(ai_output)
                 
