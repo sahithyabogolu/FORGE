@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 from pypdf import PdfReader
 
 # 1. Page Configuration & Professional Corporate Dark Aesthetic
@@ -29,13 +29,12 @@ st.markdown("---")
 
 # 3. Main Data Core Program
 if uploaded_file and api_key:
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # Initialize the updated, modern production GenAI Client
+    client = genai.Client(api_key=api_key)
     
     with st.spinner("FORGE Engine: Extracting and parsing document vectors..."):
         reader = PdfReader(uploaded_file)
         raw_text = ""
-        # CRITICAL FIX: Safe page retrieval mapping using .pages boundary limits
         total_pages = len(reader.pages)
         max_pages = min(45, total_pages)
         
@@ -51,7 +50,8 @@ if uploaded_file and api_key:
         
         analysis_prompt = f"""
         You are an expert financial analysis engine checking a company's 10-K filing text data.
-        Analyze this raw text and pull the metrics accurately. Do not extrapolate, assume, or guess any data points. If a metric is not present, mark it as 'Not Available in Extracted Pages'.
+        Analyze this raw text and pull the metrics accurately. Do not extrapolate, assume, or guess any data points. 
+        If a metric is not present, mark it as 'Not Available in Extracted Pages'.
         
         Structure your final output with exactly these clean visual layout blocks:
 
@@ -84,7 +84,11 @@ if uploaded_file and api_key:
         
         with st.spinner("FORGE Core Engine Calculations: Processing analytics dashboard grids..."):
             try:
-                response = model.generate_content(analysis_prompt)
+                # Utilizing the current, supported gemini-2.5-flash execution framework
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=analysis_prompt,
+                )
                 ai_output = response.text
                 
                 st.subheader("📋 FORGE Structural Financial Intelligence Dashboard")
